@@ -1,0 +1,5 @@
+{"agent_id":"agent-alice","action":"join","params_hash":"doc-alice-v1","ts":1}
+{"agent_id":"agent-bob","action":"join","params_hash":"doc-bob-v1","ts":2}
+{"agent_id":"agent-alice","action":"pay","target":"agent-bob","amount":12,"request_id":"payment-1","ts":3}
+{"agent_id":"agent-alice","action":"append_log","params_hash":"request-1","request_id":"payment-1","ts":4}
+{"agent_id":"agent-bob","action":"leave","params_hash":"exit-bob","ts":5}

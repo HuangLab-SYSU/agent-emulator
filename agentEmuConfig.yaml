@@ -1,0 +1,16 @@
+base:
+  blockemulator_config: ./config.yaml
+  result_dir: ./exp/agentemu-results
+experiment:
+  seed: 20260903
+  trace: ./traces/minimal.jsonl
+protocols:
+  pay:
+    plugin: direct-pay
+  audit:
+    plugin: merkle-audit # onchain-audit | merkle-audit
+    contract_address: "0x0000000000000000000000000000000000000020"
+    batch_size: 2
+  identity:
+    plugin: did-simple
+    contract_address: "0x0000000000000000000000000000000000000030"
