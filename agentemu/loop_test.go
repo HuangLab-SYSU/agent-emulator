@@ -54,6 +54,7 @@ func TestRunnerLoopProducesPerRoundOutputAndStableDIDs(t *testing.T) {
 	for _, rr := range rounds {
 		require.FileExists(t, rr.PlanPath)
 		require.FileExists(t, filepath.Join(rr.OutputDir, MetricsFileName))
+		require.FileExists(t, filepath.Join(rr.OutputDir, ActionTxMapFileName))
 	}
 
 	// Identity continuity: round 2 re-joins alice who was already active, so

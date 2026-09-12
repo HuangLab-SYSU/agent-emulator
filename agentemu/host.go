@@ -1,7 +1,10 @@
 package agentemu
 
 import (
+	"bufio"
 	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"os"
@@ -28,6 +31,9 @@ const (
 	PlanFileName     = "agent_transactions.jsonl"
 	MetricsFileName  = "Agent_Events.csv"
 	RegistryFileName = "agent_registry.json"
+	// ActionTxMapFileName maps every trace action to the transactions it
+	// compiled into, joining payment intents (request_id) with on-chain hashes.
+	ActionTxMapFileName = "agent_action_txs.jsonl"
 )
 
 type MetricEvent struct {
@@ -42,10 +48,26 @@ type Result struct {
 	Metrics      []MetricEvent
 }
 
+// ActionTxLink is one trace action and the transactions it compiled into.
+// A merkle-audit anchor covers the buffered log entries of several actions,
+// so the same anchor hash appears in every contributing action's link.
+type ActionTxLink struct {
+	Seq        int      `json:"seq"`
+	Action     Action   `json:"action"`
+	AgentID    string   `json:"agent_id"`
+	Target     string   `json:"target"`
+	Amount     uint64   `json:"amount"`
+	TS         int64    `json:"ts"`
+	RequestID  string   `json:"request_id"`
+	ParamsHash string   `json:"params_hash"`
+	TxHashes   []string `json:"tx_hashes"`
+}
+
 type auditEntry struct {
-	hash [32]byte
-	from account.Address
-	ts   int64
+	hash    [32]byte
+	from    account.Address
+	ts      int64
+	linkIdx int
 }
 
 // Host compiles lifecycle, payment and audit actions into existing transactions.
@@ -58,6 +80,8 @@ type Host struct {
 	pending      []auditEntry
 	metrics      []MetricEvent
 	txs          []transaction.Transaction
+	links        []ActionTxLink
+	curLink      int
 }
 
 func NewHost(cfg Config) (*Host, error) {
@@ -101,6 +125,19 @@ func (h *Host) Process(records []Record) (Result, error) {
 }
 
 func (h *Host) process(record Record) error {
+	// Every transaction compiled below is attributed to this action's link.
+	h.curLink = len(h.links)
+	h.links = append(h.links, ActionTxLink{
+		Seq:        record.Seq,
+		Action:     record.Action,
+		AgentID:    record.AgentID,
+		Target:     record.Target,
+		Amount:     record.Amount,
+		TS:         record.TS,
+		RequestID:  record.RequestID,
+		ParamsHash: record.ParamsHash,
+	})
+
 	switch record.Action {
 	case ActionJoin:
 		return h.processJoin(record)
@@ -171,6 +208,7 @@ func (h *Host) processPay(record Record) error {
 	}
 
 	h.appendTx(from, to, record.Amount, nil, record.TS)
+	h.linkLastTxTo(h.curLink)
 	h.metric("pay_onchain", record)
 
 	return nil
@@ -210,9 +248,10 @@ func (h *Host) processAuditForAgent(record Record, agent Agent) error {
 			return err
 		}
 
+		h.linkLastTxTo(h.curLink)
 		h.metric("audit_onchain", record)
 	case "merkle-audit":
-		h.pending = append(h.pending, auditEntry{hash: hash, from: from, ts: record.TS})
+		h.pending = append(h.pending, auditEntry{hash: hash, from: from, ts: record.TS, linkIdx: h.curLink})
 		h.metric("audit_buffered", record)
 
 		if len(h.pending) >= h.cfg.Protocols.Audit.BatchSize {
@@ -246,6 +285,14 @@ func (h *Host) flushAudit() error {
 	if err := h.appendContractTx(last.from, h.cfg.Protocols.Audit.ContractAddress, data, last.ts); err != nil {
 		return err
 	}
+
+	// The anchor covers every buffered entry, so attribute it to all of them.
+	linkIdxs := make([]int, len(h.pending))
+	for i, entry := range h.pending {
+		linkIdxs[i] = entry.linkIdx
+	}
+
+	h.linkLastTxTo(linkIdxs...)
 
 	h.metrics = append(h.metrics, MetricEvent{Kind: "audit_anchor", TS: last.ts, Value: uint64(len(h.pending))})
 	h.pending = nil
@@ -281,6 +328,7 @@ func (h *Host) processIdentity(record Record, agent Agent, operation string) err
 		return err
 	}
 
+	h.linkLastTxTo(h.curLink)
 	h.metric("did_"+operation, record)
 
 	return nil
@@ -292,6 +340,23 @@ func (h *Host) appendTx(from, to account.Address, amount uint64, data []byte, ts
 	tx := transaction.NewTransaction(from, to, new(big.Int).SetUint64(amount), big.NewInt(0), nonce, time.UnixMilli(ts))
 	tx.Data = data
 	h.txs = append(h.txs, *tx)
+}
+
+// linkLastTxTo records the hash of the most recently appended transaction in
+// the given actions' links (an audit anchor is attributed to every action
+// whose log entry it covers).
+func (h *Host) linkLastTxTo(linkIdxs ...int) {
+	hash, err := h.txs[len(h.txs)-1].Hash()
+	if err != nil {
+		// Hashing a well-formed transaction does not fail; the plan writer
+		// surfaces such an error for every transaction anyway.
+		return
+	}
+
+	hexHash := hex.EncodeToString(hash)
+	for _, idx := range linkIdxs {
+		h.links[idx].TxHashes = append(h.links[idx].TxHashes, hexHash)
+	}
 }
 
 func (h *Host) appendContractTx(from account.Address, address string, data []byte, ts int64) error {
@@ -313,13 +378,17 @@ func (h *Host) metric(kind string, record Record) {
 }
 
 // WriteResult persists the shared agent registry and writes the round's
-// transaction plan and metric events into dir.
+// transaction plan, metric events and the action-to-transaction map into dir.
 func (h *Host) WriteResult(dir string, result Result) error {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("create result directory: %w", err)
 	}
 
 	if err := h.registry.Write(h.registryPath); err != nil {
+		return err
+	}
+
+	if err := writeActionTxMap(dir, h.links); err != nil {
 		return err
 	}
 
@@ -360,6 +429,33 @@ func merkleRoot(leaves [][32]byte) [32]byte {
 	}
 
 	return leaves[0]
+}
+
+// writeActionTxMap persists the action-to-transaction map: one JSON object
+// per trace action, carrying the payment intent (request_id) and every
+// transaction hash the action compiled into.
+func writeActionTxMap(dir string, links []ActionTxLink) error {
+	f, err := os.Create(filepath.Join(dir, ActionTxMapFileName))
+	if err != nil {
+		return fmt.Errorf("create action tx map: %w", err)
+	}
+
+	defer func() { _ = f.Close() }()
+
+	w := bufio.NewWriter(f)
+
+	for _, link := range links {
+		b, err := json.Marshal(link)
+		if err != nil {
+			return fmt.Errorf("encode action tx map entry: %w", err)
+		}
+
+		if _, err := w.Write(append(b, '\n')); err != nil {
+			return fmt.Errorf("write action tx map entry: %w", err)
+		}
+	}
+
+	return w.Flush()
 }
 
 func writeResult(dir string, result Result) error {
