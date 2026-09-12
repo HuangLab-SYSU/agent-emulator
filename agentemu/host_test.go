@@ -10,6 +10,7 @@ const contract = "0x0000000000000000000000000000000000000010"
 
 func testConfig(t *testing.T) Config {
 	t.Helper()
+
 	var cfg Config
 	cfg.Base.ResultDir = t.TempDir()
 	cfg.Experiment.Seed = 42
@@ -19,6 +20,8 @@ func testConfig(t *testing.T) Config {
 	cfg.Protocols.Audit.BatchSize = 2
 	cfg.Protocols.Identity.Plugin = "did-simple"
 	cfg.Protocols.Identity.ContractAddress = contract
+	cfg.Loop.MaxRounds = 2
+
 	return cfg
 }
 
@@ -36,7 +39,7 @@ func TestHostAssignsDIDsAndAuditsLifecycleAndPayment(t *testing.T) {
 	require.Len(t, result.Metrics, 10)
 	require.Empty(t, result.Transactions[3].Data)
 	require.EqualValues(t, 3, result.Transactions[3].Value.Int64())
-	require.NoError(t, host.WriteResult(result))
+	require.NoError(t, host.WriteResult(t.TempDir(), result))
 
 	registry, err := LoadRegistry(t.TempDir()+"/missing.json", 42)
 	require.NoError(t, err)
