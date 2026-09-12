@@ -35,21 +35,26 @@ func LoadTrace(path string) ([]Record, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open trace: %w", err)
 	}
-	defer f.Close()
+
+	defer func() { _ = f.Close() }()
 
 	var records []Record
+
 	scanner := bufio.NewScanner(f)
 	for line := 1; scanner.Scan(); line++ {
 		var record Record
 		if err := json.Unmarshal(scanner.Bytes(), &record); err != nil {
 			return nil, fmt.Errorf("decode trace line %d: %w", line, err)
 		}
+
 		if record.AgentID == "" || record.Action == "" || record.TS < 0 {
 			return nil, fmt.Errorf("invalid trace line %d", line)
 		}
+
 		record.Seq = line
 		records = append(records, record)
 	}
+
 	if err := scanner.Err(); err != nil {
 		return nil, fmt.Errorf("read trace: %w", err)
 	}
@@ -58,7 +63,9 @@ func LoadTrace(path string) ([]Record, error) {
 		if records[i].TS == records[j].TS {
 			return records[i].Seq < records[j].Seq
 		}
+
 		return records[i].TS < records[j].TS
 	})
+
 	return records, nil
 }

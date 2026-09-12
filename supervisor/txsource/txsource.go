@@ -6,6 +6,7 @@ import (
 	"github.com/HuangLab-SYSU/block-emulator-x/config"
 	"github.com/HuangLab-SYSU/block-emulator-x/pkg/core/transaction"
 	"github.com/HuangLab-SYSU/block-emulator-x/supervisor/txsource/csvsource"
+	"github.com/HuangLab-SYSU/block-emulator-x/supervisor/txsource/plansource"
 	"github.com/HuangLab-SYSU/block-emulator-x/supervisor/txsource/randomsource"
 )
 
@@ -36,6 +37,13 @@ func NewTxSource(cfg config.TxSourceCfg) (TxSource, error) {
 		ts = cs
 	case randomsource.Key:
 		ts = randomsource.NewRandomSource()
+	case plansource.Key:
+		ps, err := plansource.NewPlanSource(cfg.TxSourceFile)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create plan source: %w", err)
+		}
+
+		ts = ps
 	default:
 		ts = NoOperationTxSource{}
 	}
