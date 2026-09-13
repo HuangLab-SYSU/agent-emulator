@@ -183,6 +183,82 @@ After making the changes, simply run the script.
 For secondary development or to integrate BlockEmulator into other systems, users may also write their own custom startup scripts tailored to their needs.
 
 > -----------------------------------------------------
+### Running Agent Experiments (AgentEmulator)
+
+**AgentEmulator** is a trace-driven extension that simulates agent behavior on top of BlockEmulator-X. An agent story written as a JSONL trace is compiled into ordinary BlockEmulator-X transactions (DID registration/revocation calls, plain transfers, audit anchoring), and after the plan is produced, a private BlockEmulator-X cluster is launched automatically to run the experiment — no kernel or consensus code is modified.
+
+#### Quick start
+
+```sh
+rm -rf ./exp/agentemu-results   # clean outputs of previous runs
+go run cmd/agentemu/main.go -config agentEmuConfig.yaml
+```
+
+One command runs the whole pipeline: read the trace -> compile it into a transaction plan -> build the consensusnode/supervisor binaries -> derive a per-round config and ip table -> launch the cluster (4 shards x 4 nodes by default, matching `config.yaml`) -> replay the plan through the supervisor (`tx_source = plan_source`) -> wait until the cluster stops by itself. Cluster logs are mirrored to the console and kept in `exp/agentemu-results/chain/round_001/*.log`.
+
+#### Trace format
+
+One JSON object per line; `ts` orders the story (ties keep file order). Traces never carry DIDs — identities are assigned deterministically by the seed (`did:broker:0x...` derived from `sha256(seed:agent_id)`) and stay stable across runs and rounds.
+
+```json
+{"agent_id":"agent-alice","action":"join","params_hash":"doc-alice-v1","ts":1}
+{"agent_id":"agent-bob","action":"join","params_hash":"doc-bob-v1","ts":2}
+{"agent_id":"agent-alice","action":"pay","target":"agent-bob","amount":12,"request_id":"payment-1","ts":3}
+{"agent_id":"agent-alice","action":"append_log","params_hash":"request-1","request_id":"payment-1","ts":4}
+{"agent_id":"agent-bob","action":"leave","params_hash":"exit-bob","ts":5}
+```
+
+| action | meaning | compiled into |
+|---|---|---|
+| `join` | agent enters, gets/keeps its DID | `register` contract call (+ audit entry) |
+| `pay` | transfer to another agent (both sides must be active) | plain transfer transaction, plus audit entry |
+| `append_log` | behavior log entry | buffered and anchored as a Merkle root (`merkle-audit`) or one `append` call per entry (`onchain-audit`) |
+| `leave` | agent exits | `revoke` contract call (+ audit entry) |
+
+See `traces/minimal.jsonl` for the built-in example. A pay whose sender or target is not currently active is rejected; generators should track the active set (see `scripts/gen_pay_trace.py`).
+
+#### Configuration (`agentEmuConfig.yaml`)
+
+The agent side is configured by a separate YAML so legacy `config.yaml` experiments are untouched:
+
+```yaml
+base:
+  blockemulator_config: ./config.yaml   # cluster template (shards, nodes, consensus)
+  result_dir: ./exp/agentemu-results
+experiment:
+  seed: 20260903                        # deterministic DID allocation
+  trace: ./traces/minimal.jsonl
+chain:
+  enabled: true                         # auto-launch BlockEmulator-X after the plan
+  run_timeout_seconds: 600
+loop:
+  max_rounds: 1                         # multi-round feedback is a reserved hook
+protocols:
+  pay:     {plugin: direct-pay}
+  audit:   {plugin: merkle-audit, contract_address: "0x...20", batch_size: 2}
+  identity:{plugin: did-simple,   contract_address: "0x...30"}
+```
+
+#### Outputs
+
+| path | content |
+|---|---|
+| `exp/agentemu-results/round_001/agent_transactions.jsonl` | the compiled transaction plan (hash, sender, recipient, value, nonce, data) |
+| `exp/agentemu-results/round_001/agent_action_txs.jsonl` | action-to-transaction map: every action (with `request_id`) and the hashes of the transactions it compiled into; a Merkle anchor is attributed to all actions it covers |
+| `exp/agentemu-results/round_001/Agent_Events.csv` | per-action metric events |
+| `exp/agentemu-results/agent_registry.json` | agent_id -> DID mapping and active state |
+| `exp/agentemu-results/rounds_summary.json` | per-round record/transaction counts |
+| `exp/agentemu-results/chain/round_001/results/` | supervisor measurement CSVs (per-tx lifecycles, TPS, ...) |
+
+The action map joins payment intents with the chain: take a `request_id`'s `tx_hashes` and look them up in `relay_stats_detail_tx_info.csv` to answer whether and when the payment was confirmed.
+
+#### Notes
+
+- **Clean before re-running**: `rm -rf ./exp/agentemu-results` — output files are created exclusively, and a stale `agent_registry.json` would suppress re-registration of already-active agents.
+- **Contract placeholders**: the DID/audit contract calls target configured addresses that are not deployed in this release; the EVM executes them as no-ops, so they act as on-chain calldata records. Plain `pay` transfers are real balance moves.
+- **Multi-round loop**: the `AgentAPI`/`EndCondition` hooks in `agentemu/loop.go` are reserved for feedback-driven stories (e.g. an HTTP agent service); the default runs exactly one round.
+
+> -----------------------------------------------------
 ## 3. System Architecture Design
 
 In BlockEmulator, **nodes are divided into _Supervisor_ and _ConsensusNode (called Worker in BlockEmulator v1.0)_**.
