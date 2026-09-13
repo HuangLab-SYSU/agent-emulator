@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"os/exec"
@@ -356,6 +357,9 @@ func newProcessGroup() *processGroup {
 	return &processGroup{done: make(map[int]chan error)}
 }
 
+// start launches one cluster process. Its output is teed: every line lands
+// in the per-process log file AND on the agentemu console, mirroring what a
+// direct example_run.sh launch would print.
 func (g *processGroup) start(bin, logDir, name string, args ...string) (*os.Process, error) {
 	logFile, err := os.Create(filepath.Join(logDir, name+".log"))
 	if err != nil {
@@ -363,8 +367,8 @@ func (g *processGroup) start(bin, logDir, name string, args ...string) (*os.Proc
 	}
 
 	cmd := exec.Command(bin, args...)
-	cmd.Stdout = logFile
-	cmd.Stderr = logFile
+	cmd.Stdout = io.MultiWriter(logFile, os.Stdout)
+	cmd.Stderr = io.MultiWriter(logFile, os.Stderr)
 
 	if err := cmd.Start(); err != nil {
 		_ = logFile.Close()
