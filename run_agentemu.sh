@@ -24,16 +24,17 @@ go build ./...
 
 # Clean previous outputs: measurement files are created exclusively, and a
 # stale agent_registry.json would suppress re-registration of active agents.
-rm -rf ./exp/agentemu-results
+rm -rf ./exp
 
 # Run the whole pipeline: trace -> plan -> auto-launched cluster -> results.
 # Cluster logs are mirrored to this console and kept under
-# exp/agentemu-results/chain/round_001/.
+# exp/agentemu-results/round_001/chain/logs/.
 go run cmd/agentemu/main.go -config "${CONFIG}"
 
 echo
 echo "agentemu finished; results:"
 echo "  plan & action map : exp/agentemu-results/round_001/"
+echo "  agent csvs        : exp/agentemu-results/round_001/agents/"
 echo "  agent registry    : exp/agentemu-results/agent_registry.json"
-echo "  chain measurements: exp/agentemu-results/chain/round_001/results/"
+echo "  chain measurements: exp/agentemu-results/round_001/chain/results/"
 echo "  round summary     : exp/agentemu-results/rounds_summary.json"

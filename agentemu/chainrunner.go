@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"time"
 
@@ -31,8 +32,14 @@ type RoundSpec struct {
 
 // ChainOutcome points at the artifacts a finished chain run left behind.
 type ChainOutcome struct {
-	RoundDir  string
-	ResultDir string // supervisor measurement CSVs (relay_stats_*.csv, ...)
+	// ChainDir is the root of this round's chain execution (config, logs,
+	// data, results).
+	ChainDir string
+	// ResultDir holds the supervisor measurement CSVs (relay_stats_*.csv, ...).
+	ResultDir string
+	// ShardNum is the cluster's shard count, for post-processing the shards'
+	// block storages.
+	ShardNum int64
 }
 
 // ChainRunner launches a private BlockEmulator-X cluster (consensus nodes plus
@@ -44,7 +51,8 @@ type ChainRunner struct {
 	ModuleRoot string
 	// BaseConfig is the template BlockEmulator-X config (config.yaml).
 	BaseConfig string
-	// WorkRoot hosts per-round chain outputs (<result_dir>/chain by default).
+	// WorkRoot is the agentemu result root; one round's chain execution lands
+	// in <WorkRoot>/round_%03d/chain.
 	WorkRoot string
 
 	// RunTimeout bounds one whole chain run.
@@ -55,17 +63,18 @@ type ChainRunner struct {
 }
 
 // Build compiles the consensusnode and supervisor binaries once for all rounds.
+// They land directly in the module root, keeping the experiment output tree
+// free of build artifacts.
 func (c *ChainRunner) Build(ctx context.Context) error {
-	binDir := c.binDir()
-	if err := os.MkdirAll(binDir, 0o755); err != nil {
-		return fmt.Errorf("create bin dir: %w", err)
-	}
-
 	for _, target := range []struct{ pkg, name string }{
 		{"./cmd/consensusnode", "consensusnode"},
 		{"./cmd/supervisor", "supervisor"},
 	} {
-		binPath := filepath.Join(binDir, target.name)
+		binPath, err := c.binaryPath(target.name)
+		if err != nil {
+			return err
+		}
+
 		cmd := exec.CommandContext(ctx, "go", "build", "-o", binPath, target.pkg)
 
 		cmd.Dir = c.ModuleRoot
@@ -77,8 +86,26 @@ func (c *ChainRunner) Build(ctx context.Context) error {
 	return nil
 }
 
-func (c *ChainRunner) binDir() string {
-	return filepath.Join(c.WorkRoot, "bin")
+// binaryPath is the module-root path of a cluster binary. It is resolved to an
+// absolute path: os/exec refuses executables relative to the working dir on
+// Windows.
+func (c *ChainRunner) binaryPath(name string) (string, error) {
+	abs, err := filepath.Abs(filepath.Join(c.ModuleRoot, binaryName(name)))
+	if err != nil {
+		return "", fmt.Errorf("resolve binary path for %s: %w", name, err)
+	}
+
+	return abs, nil
+}
+
+// binaryName appends the Windows executable extension: go build writes the
+// -o name as given, and os/exec cannot start an extensionless binary there.
+func binaryName(name string) string {
+	if runtime.GOOS == "windows" {
+		return name + ".exe"
+	}
+
+	return name
 }
 
 func roundDirName(round int) string {
@@ -92,12 +119,14 @@ func (c *ChainRunner) Run(ctx context.Context, spec RoundSpec) (*ChainOutcome, e
 		c.RunTimeout = defaultChainRunTimeout
 	}
 
-	roundDir := filepath.Join(c.WorkRoot, roundDirName(spec.Round))
-	if err := os.MkdirAll(roundDir, 0o755); err != nil {
+	// The round's chain execution is nested inside the round's output
+	// directory: <WorkRoot>/round_%03d/chain/{config, logs, data, results}.
+	chainDir := filepath.Join(c.WorkRoot, roundDirName(spec.Round), "chain")
+	if err := os.MkdirAll(chainDir, 0o755); err != nil {
 		return nil, fmt.Errorf("create chain round dir: %w", err)
 	}
 
-	cfgPath, tablePath, resultDir, err := c.prepare(roundDir, spec)
+	cfgPath, tablePath, resultDir, err := c.prepare(chainDir, spec)
 	if err != nil {
 		return nil, err
 	}
@@ -113,12 +142,24 @@ func (c *ChainRunner) Run(ctx context.Context, spec RoundSpec) (*ChainOutcome, e
 	procs := newProcessGroup()
 	defer procs.killAll()
 
-	supBin := filepath.Join(c.binDir(), "supervisor")
-	nodeBin := filepath.Join(c.binDir(), "consensusnode")
+	logDir := filepath.Join(chainDir, "logs")
+	if err := os.MkdirAll(logDir, 0o755); err != nil {
+		return nil, fmt.Errorf("create chain log dir: %w", err)
+	}
+
+	supBin, err := c.binaryPath("supervisor")
+	if err != nil {
+		return nil, err
+	}
+
+	nodeBin, err := c.binaryPath("consensusnode")
+	if err != nil {
+		return nil, err
+	}
 
 	for shard := int64(0); shard < shardNum; shard++ {
 		for node := int64(0); node < nodeNum; node++ {
-			p, err := procs.start(nodeBin, roundDir, fmt.Sprintf("node_s%d_n%d", shard, node),
+			p, err := procs.start(nodeBin, logDir, fmt.Sprintf("node_s%d_n%d", shard, node),
 				"-shard_id", strconv.FormatInt(shard, 10),
 				"-node_id", strconv.FormatInt(node, 10),
 				"-config", cfgPath,
@@ -132,7 +173,7 @@ func (c *ChainRunner) Run(ctx context.Context, spec RoundSpec) (*ChainOutcome, e
 		}
 	}
 
-	sup, err := procs.start(supBin, roundDir, "supervisor",
+	sup, err := procs.start(supBin, logDir, "supervisor",
 		"-shard_id", "2147483647",
 		"-node_id", "0",
 		"-config", cfgPath,
@@ -153,14 +194,14 @@ func (c *ChainRunner) Run(ctx context.Context, spec RoundSpec) (*ChainOutcome, e
 	procs.waitGrace(c.graceDuration(), ctx.Done())
 
 	if err := ctx.Err(); err != nil {
-		return nil, fmt.Errorf("chain run for round %d aborted: %w (logs in %s)", spec.Round, err, roundDir)
+		return nil, fmt.Errorf("chain run for round %d aborted: %w (logs in %s)", spec.Round, err, logDir)
 	}
 
 	if supErr != nil {
-		return nil, fmt.Errorf("supervisor exited with error: %w (logs in %s)", supErr, roundDir)
+		return nil, fmt.Errorf("supervisor exited with error: %w (logs in %s)", supErr, logDir)
 	}
 
-	return &ChainOutcome{RoundDir: roundDir, ResultDir: resultDir}, nil
+	return &ChainOutcome{ChainDir: chainDir, ResultDir: resultDir, ShardNum: shardNum}, nil
 }
 
 func (c *ChainRunner) graceDuration() time.Duration {
@@ -171,9 +212,9 @@ func (c *ChainRunner) graceDuration() time.Duration {
 	return 15 * time.Second
 }
 
-// prepare writes the derived config.yaml and ip_table.json for one round and
-// returns their paths plus the supervisor result directory.
-func (c *ChainRunner) prepare(roundDir string, spec RoundSpec) (string, string, string, error) {
+// prepare writes the derived config.yaml and ip_table.json for one round's
+// chain directory and returns their paths plus the supervisor result directory.
+func (c *ChainRunner) prepare(chainDir string, spec RoundSpec) (string, string, string, error) {
 	doc, err := c.loadBaseConfig()
 	if err != nil {
 		return "", "", "", err
@@ -184,22 +225,24 @@ func (c *ChainRunner) prepare(roundDir string, spec RoundSpec) (string, string, 
 		return "", "", "", fmt.Errorf("abs plan path: %w", err)
 	}
 
-	resultDir := filepath.Join(roundDir, "results")
+	dataDir := filepath.Join(chainDir, "data")
+	logDir := filepath.Join(chainDir, "logs")
+	resultDir := filepath.Join(chainDir, "results")
 
-	// Point every mutable path at the round directory and switch the supervisor
-	// to replaying the produced plan.
-	setYAMLPath(doc, []string{"system", "log", "log_dir"}, roundDir)
+	// Point every mutable path at the chain directory and switch the
+	// supervisor to replaying the produced plan.
+	setYAMLPath(doc, []string{"system", "log", "log_dir"}, logDir)
 	setYAMLPath(
 		doc,
 		[]string{"consensus_node", "blockchain", "storage", "bolt", "file_path_dir"},
-		filepath.Join(roundDir, "boltdb"),
+		filepath.Join(dataDir, "boltdb"),
 	)
 	setYAMLPath(
 		doc,
 		[]string{"consensus_node", "blockchain", "storage", "eth_storage", "level_file_path_dir"},
-		filepath.Join(roundDir, "trie_db"),
+		filepath.Join(dataDir, "trie_db"),
 	)
-	setYAMLPath(doc, []string{"consensus_node", "block_record_dir"}, filepath.Join(roundDir, "block_record"))
+	setYAMLPath(doc, []string{"consensus_node", "block_record_dir"}, filepath.Join(dataDir, "block_record"))
 	setYAMLPath(doc, []string{"supervisor", "result_output_dir"}, resultDir)
 	setYAMLPath(doc, []string{"supervisor", "tx_source", "tx_source_type"}, plansource.Key)
 	setYAMLPath(doc, []string{"supervisor", "tx_source", "tx_source_file"}, planPath)
@@ -213,7 +256,7 @@ func (c *ChainRunner) prepare(roundDir string, spec RoundSpec) (string, string, 
 		return "", "", "", fmt.Errorf("marshal derived blockemulator config: %w", err)
 	}
 
-	cfgPath := filepath.Join(roundDir, "config.yaml")
+	cfgPath := filepath.Join(chainDir, "config.yaml")
 	if err := os.WriteFile(cfgPath, cfgBytes, 0o644); err != nil {
 		return "", "", "", fmt.Errorf("write derived blockemulator config: %w", err)
 	}
@@ -223,7 +266,7 @@ func (c *ChainRunner) prepare(roundDir string, spec RoundSpec) (string, string, 
 		return "", "", "", err
 	}
 
-	tablePath := filepath.Join(roundDir, "ip_table.json")
+	tablePath := filepath.Join(chainDir, "ip_table.json")
 	if err := writeIPTable(tablePath, shardNum, nodeNum); err != nil {
 		return "", "", "", err
 	}

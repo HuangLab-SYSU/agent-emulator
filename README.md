@@ -185,7 +185,7 @@ For secondary development or to integrate BlockEmulator into other systems, user
 > -----------------------------------------------------
 ### Running Agent Experiments (AgentEmulator)
 
-**AgentEmulator** is a trace-driven extension that simulates agent behavior on top of BlockEmulator-X. An agent story written as a JSONL trace is compiled into ordinary BlockEmulator-X transactions (DID registration/revocation calls, plain transfers, audit anchoring), and after the plan is produced, a private BlockEmulator-X cluster is launched automatically to run the experiment — no kernel or consensus code is modified.
+**AgentEmulator** is a trace-driven extension that simulates agent behavior on top of BlockEmulator-X. An agent story written as a JSONL trace is compiled into ordinary BlockEmulator-X transactions (DID registration/revocation calls, plain transfers), and after the plan is produced, a private BlockEmulator-X cluster is launched automatically to run the experiment — no kernel or consensus code is modified.
 
 #### Quick start
 
@@ -194,7 +194,7 @@ rm -rf ./exp/agentemu-results   # clean outputs of previous runs
 go run cmd/agentemu/main.go -config agentEmuConfig.yaml
 ```
 
-One command runs the whole pipeline: read the trace -> compile it into a transaction plan -> build the consensusnode/supervisor binaries -> derive a per-round config and ip table -> launch the cluster (4 shards x 4 nodes by default, matching `config.yaml`) -> replay the plan through the supervisor (`tx_source = plan_source`) -> wait until the cluster stops by itself. Cluster logs are mirrored to the console and kept in `exp/agentemu-results/chain/round_001/*.log`.
+One command runs the whole pipeline: read the trace -> compile it into a transaction plan -> build the consensusnode/supervisor binaries -> derive a per-round config and ip table -> launch the cluster (4 shards x 4 nodes by default, matching `config.yaml`) -> replay the plan through the supervisor (`tx_source = plan_source`) -> wait until the cluster stops by itself. The binaries land in the module root; cluster logs are mirrored to the console and kept in `exp/agentemu-results/round_001/chain/logs/`.
 
 #### Trace format
 
@@ -204,16 +204,16 @@ One JSON object per line; `ts` orders the story (ties keep file order). Traces n
 {"agent_id":"agent-alice","action":"join","params_hash":"doc-alice-v1","ts":1}
 {"agent_id":"agent-bob","action":"join","params_hash":"doc-bob-v1","ts":2}
 {"agent_id":"agent-alice","action":"pay","target":"agent-bob","amount":12,"request_id":"payment-1","ts":3}
-{"agent_id":"agent-alice","action":"append_log","params_hash":"request-1","request_id":"payment-1","ts":4}
 {"agent_id":"agent-bob","action":"leave","params_hash":"exit-bob","ts":5}
 ```
 
 | action | meaning | compiled into |
 |---|---|---|
-| `join` | agent enters, gets/keeps its DID | `register` contract call (+ audit entry) |
-| `pay` | transfer to another agent (both sides must be active) | plain transfer transaction, plus audit entry |
-| `append_log` | behavior log entry | buffered and anchored as a Merkle root (`merkle-audit`) or one `append` call per entry (`onchain-audit`) |
-| `leave` | agent exits | `revoke` contract call (+ audit entry) |
+| `join` | agent enters, gets/keeps its DID | `register` contract call |
+| `pay` | transfer to another agent (both sides must be active) | plain transfer transaction |
+| `leave` | agent exits | `revoke` contract call |
+
+A trace line carrying `sender`/`recipient`/`value` (decimal string) instead of `agent_id`/`action` is a **plain transfer**: it enters the plan at its file position, compiled exactly like an agent `pay` — the nonce comes from the same per-sender counter and `data` stays empty, so no other fields are required (extra fields on a copied plan line are ignored). Such lines carry no `ts`; they inherit the previous line's `ts` and keep their file position.
 
 See `traces/minimal.jsonl` for the built-in example. A pay whose sender or target is not currently active is rejected; generators should track the active set (see `scripts/gen_pay_trace.py`).
 
@@ -235,7 +235,6 @@ loop:
   max_rounds: 1                         # multi-round feedback is a reserved hook
 protocols:
   pay:     {plugin: direct-pay}
-  audit:   {plugin: merkle-audit, contract_address: "0x...20", batch_size: 2}
   identity:{plugin: did-simple,   contract_address: "0x...30"}
 ```
 
@@ -244,18 +243,23 @@ protocols:
 | path | content |
 |---|---|
 | `exp/agentemu-results/round_001/agent_transactions.jsonl` | the compiled transaction plan (hash, sender, recipient, value, nonce, data) |
-| `exp/agentemu-results/round_001/agent_action_txs.jsonl` | action-to-transaction map: every action (with `request_id`) and the hashes of the transactions it compiled into; a Merkle anchor is attributed to all actions it covers |
+| `exp/agentemu-results/round_001/agent_action_txs.jsonl` | action-to-transaction map: every action (with `request_id`) and the hashes of the transactions it compiled into |
 | `exp/agentemu-results/round_001/Agent_Events.csv` | per-action metric events |
+| `exp/agentemu-results/round_001/agents/<agent_id>.csv` | per-agent on-chain ledger: every committed transaction the agent took part in, with block height, tx hash, both sides, value, running balance and tx time |
+| `exp/agentemu-results/round_001/chain/logs/` | per-process cluster logs (mirrored to the console) |
+| `exp/agentemu-results/round_001/chain/data/` | the cluster's bolt/level storages and block records |
+| `exp/agentemu-results/round_001/chain/results/` | supervisor measurement CSVs (per-tx lifecycles, TPS, ...) |
 | `exp/agentemu-results/agent_registry.json` | agent_id -> DID mapping and active state |
 | `exp/agentemu-results/rounds_summary.json` | per-round record/transaction counts |
-| `exp/agentemu-results/chain/round_001/results/` | supervisor measurement CSVs (per-tx lifecycles, TPS, ...) |
+
+The per-agent CSVs are collected from the shards' committed block storages right after the cluster stops (equivalent to recording each block as it commits, without touching platform code). Balances follow the chain semantics: an account is lazily initialized to `NormalInitBalance` (10^39) on first touch; a cross-shard transfer appears as the relay1 debit in the sender's row and the relay2 credit in the recipient's row, each carrying its own leg's tx hash and block height.
 
 The action map joins payment intents with the chain: take a `request_id`'s `tx_hashes` and look them up in `relay_stats_detail_tx_info.csv` to answer whether and when the payment was confirmed.
 
 #### Notes
 
 - **Clean before re-running**: `rm -rf ./exp/agentemu-results` — output files are created exclusively, and a stale `agent_registry.json` would suppress re-registration of already-active agents.
-- **Contract placeholders**: the DID/audit contract calls target configured addresses that are not deployed in this release; the EVM executes them as no-ops, so they act as on-chain calldata records. Plain `pay` transfers are real balance moves.
+- **Contract placeholders**: the DID contract calls target configured addresses that are not deployed in this release; the EVM executes them as no-ops, so they act as on-chain calldata records. Plain `pay` transfers are real balance moves.
 - **Multi-round loop**: the `AgentAPI`/`EndCondition` hooks in `agentemu/loop.go` are reserved for feedback-driven stories (e.g. an HTTP agent service); the default runs exactly one round.
 
 > -----------------------------------------------------
