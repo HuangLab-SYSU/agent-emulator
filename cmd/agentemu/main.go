@@ -38,9 +38,10 @@ func main() {
 	var chain *agentemu.ChainRunner
 	if cfg.Chain.Enabled {
 		chain = &agentemu.ChainRunner{
-			ModuleRoot:    cfg.Base.ModuleRoot,
-			BaseConfig:    cfg.Base.BlockEmulatorConfig,
-			WorkRoot:      filepath.Join(cfg.Base.ResultDir, "chain"),
+			ModuleRoot: cfg.Base.ModuleRoot,
+			BaseConfig: cfg.Base.BlockEmulatorConfig,
+			// One round's chain execution nests in <ResultDir>/round_%03d/chain.
+			WorkRoot:      cfg.Base.ResultDir,
 			RunTimeout:    time.Duration(cfg.Chain.RunTimeoutSeconds) * time.Second,
 			NodeExitGrace: time.Duration(cfg.Chain.NodeExitGraceSeconds) * time.Second,
 		}

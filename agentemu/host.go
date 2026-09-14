@@ -20,8 +20,6 @@ import (
 )
 
 const contractABI = `[
- {"type":"function","name":"append","inputs":[{"name":"entryHash","type":"bytes32"}]},
- {"type":"function","name":"anchor","inputs":[{"name":"root","type":"bytes32"},{"name":"count","type":"uint256"}]},
  {"type":"function","name":"register","inputs":[{"name":"didHash","type":"bytes32"},{"name":"docHash","type":"bytes32"}]},
  {"type":"function","name":"revoke","inputs":[{"name":"didHash","type":"bytes32"}]}
 ]`
@@ -49,8 +47,6 @@ type Result struct {
 }
 
 // ActionTxLink is one trace action and the transactions it compiled into.
-// A merkle-audit anchor covers the buffered log entries of several actions,
-// so the same anchor hash appears in every contributing action's link.
 type ActionTxLink struct {
 	Seq        int      `json:"seq"`
 	Action     Action   `json:"action"`
@@ -63,21 +59,13 @@ type ActionTxLink struct {
 	TxHashes   []string `json:"tx_hashes"`
 }
 
-type auditEntry struct {
-	hash    [32]byte
-	from    account.Address
-	ts      int64
-	linkIdx int
-}
-
-// Host compiles lifecycle, payment and audit actions into existing transactions.
+// Host compiles lifecycle and payment actions into existing transactions.
 type Host struct {
 	cfg          Config
 	abi          abi.ABI
 	nonces       map[account.Address]uint64
 	registry     *Registry
 	registryPath string
-	pending      []auditEntry
 	metrics      []MetricEvent
 	txs          []transaction.Transaction
 	links        []ActionTxLink
@@ -115,12 +103,6 @@ func (h *Host) Process(records []Record) (Result, error) {
 		}
 	}
 
-	if h.cfg.Protocols.Audit.Plugin == "merkle-audit" {
-		if err := h.flushAudit(); err != nil {
-			return Result{}, err
-		}
-	}
-
 	return Result{Transactions: h.txs, Metrics: h.metrics}, nil
 }
 
@@ -144,13 +126,9 @@ func (h *Host) process(record Record) error {
 	case ActionLeave:
 		return h.processLeave(record)
 	case ActionPay:
-		if err := h.processPay(record); err != nil {
-			return err
-		}
-
-		return h.processAudit(record)
-	case ActionAppendLog:
-		return h.processAudit(record)
+		return h.processPay(record)
+	case ActionRawTx:
+		return h.processRawTx(record)
 	default:
 		return fmt.Errorf("unsupported action %q", record.Action)
 	}
@@ -166,11 +144,7 @@ func (h *Host) processJoin(record Record) error {
 		return nil
 	}
 
-	if err := h.processIdentity(record, agent, "register"); err != nil {
-		return err
-	}
-
-	return h.processAuditForAgent(record, agent)
+	return h.processIdentity(record, agent, "register")
 }
 
 func (h *Host) processLeave(record Record) error {
@@ -179,11 +153,7 @@ func (h *Host) processLeave(record Record) error {
 		return err
 	}
 
-	if err := h.processIdentity(record, agent, "revoke"); err != nil {
-		return err
-	}
-
-	return h.processAuditForAgent(record, agent)
+	return h.processIdentity(record, agent, "revoke")
 }
 
 func (h *Host) processPay(record Record) error {
@@ -214,90 +184,54 @@ func (h *Host) processPay(record Record) error {
 	return nil
 }
 
-func (h *Host) processAudit(record Record) error {
-	agent, err := h.registry.Active(record.AgentID)
+// processRawTx compiles a plain transfer line like any other transaction:
+// only sender, recipient and value come from the trace, while the nonce is
+// taken from the shared per-sender counter and data stays empty.
+func (h *Host) processRawTx(record Record) error {
+	spec := record.RawTx
+
+	from, err := rawTxAddr(spec.Sender, "sender")
 	if err != nil {
 		return err
 	}
 
-	return h.processAuditForAgent(record, agent)
-}
-
-func (h *Host) processAuditForAgent(record Record, agent Agent) error {
-	from, err := didAddress(agent.DID)
+	to, err := rawTxAddr(spec.Recipient, "recipient")
 	if err != nil {
 		return err
 	}
 
-	hash := sha256.Sum256(
-		[]byte(
-			string(
-				record.Action,
-			) + ":" + record.AgentID + ":" + record.Target + ":" + record.ParamsHash + ":" + record.RequestID,
-		),
-	) //nolint:golines
-
-	switch h.cfg.Protocols.Audit.Plugin {
-	case "onchain-audit":
-		data, err := h.abi.Pack("append", hash)
-		if err != nil {
-			return fmt.Errorf("pack audit append: %w", err)
-		}
-
-		if err := h.appendContractTx(from, h.cfg.Protocols.Audit.ContractAddress, data, record.TS); err != nil {
-			return err
-		}
-
-		h.linkLastTxTo(h.curLink)
-		h.metric("audit_onchain", record)
-	case "merkle-audit":
-		h.pending = append(h.pending, auditEntry{hash: hash, from: from, ts: record.TS, linkIdx: h.curLink})
-		h.metric("audit_buffered", record)
-
-		if len(h.pending) >= h.cfg.Protocols.Audit.BatchSize {
-			return h.flushAudit()
-		}
-	default:
-		return fmt.Errorf("unknown audit plugin %q", h.cfg.Protocols.Audit.Plugin)
+	value, ok := new(big.Int).SetString(spec.Value, 10)
+	if !ok {
+		return fmt.Errorf("parse raw tx value %q", spec.Value)
 	}
+
+	if !value.IsUint64() {
+		return fmt.Errorf("raw tx value %s exceeds uint64", value)
+	}
+
+	h.appendTx(from, to, value.Uint64(), nil, record.TS)
+	h.linkLastTxTo(h.curLink)
+	h.metrics = append(h.metrics, MetricEvent{Kind: "raw_tx", TS: record.TS, Value: value.Uint64()})
 
 	return nil
 }
 
-func (h *Host) flushAudit() error {
-	if len(h.pending) == 0 {
-		return nil
-	}
-
-	leaves := make([][32]byte, len(h.pending))
-	for i, entry := range h.pending {
-		leaves[i] = entry.hash
-	}
-
-	root := merkleRoot(leaves)
-
-	data, err := h.abi.Pack("anchor", root, new(big.Int).SetUint64(uint64(len(leaves))))
+// rawTxAddr parses a plain-transfer address field; utils.Hex2Addr zero-pads
+// short input, so the 20-byte length is checked explicitly.
+func rawTxAddr(hexAddr, field string) (account.Address, error) {
+	b, err := utils.Hex2Bytes(hexAddr)
 	if err != nil {
-		return fmt.Errorf("pack audit anchor: %w", err)
+		return account.Address{}, fmt.Errorf("parse raw tx %s: %w", field, err)
 	}
 
-	last := h.pending[len(h.pending)-1]
-	if err := h.appendContractTx(last.from, h.cfg.Protocols.Audit.ContractAddress, data, last.ts); err != nil {
-		return err
+	if len(b) != 20 {
+		return account.Address{}, fmt.Errorf("raw tx %s must be a 20-byte address, got %d bytes", field, len(b))
 	}
 
-	// The anchor covers every buffered entry, so attribute it to all of them.
-	linkIdxs := make([]int, len(h.pending))
-	for i, entry := range h.pending {
-		linkIdxs[i] = entry.linkIdx
-	}
+	var addr account.Address
+	copy(addr[:], b)
 
-	h.linkLastTxTo(linkIdxs...)
-
-	h.metrics = append(h.metrics, MetricEvent{Kind: "audit_anchor", TS: last.ts, Value: uint64(len(h.pending))})
-	h.pending = nil
-
-	return nil
+	return addr, nil
 }
 
 func (h *Host) processIdentity(record Record, agent Agent, operation string) error {
@@ -343,9 +277,8 @@ func (h *Host) appendTx(from, to account.Address, amount uint64, data []byte, ts
 }
 
 // linkLastTxTo records the hash of the most recently appended transaction in
-// the given actions' links (an audit anchor is attributed to every action
-// whose log entry it covers).
-func (h *Host) linkLastTxTo(linkIdxs ...int) {
+// the given action's link.
+func (h *Host) linkLastTxTo(linkIdx int) {
 	hash, err := h.txs[len(h.txs)-1].Hash()
 	if err != nil {
 		// Hashing a well-formed transaction does not fail; the plan writer
@@ -353,10 +286,7 @@ func (h *Host) linkLastTxTo(linkIdxs ...int) {
 		return
 	}
 
-	hexHash := hex.EncodeToString(hash)
-	for _, idx := range linkIdxs {
-		h.links[idx].TxHashes = append(h.links[idx].TxHashes, hexHash)
-	}
+	h.links[linkIdx].TxHashes = append(h.links[linkIdx].TxHashes, hex.EncodeToString(hash))
 }
 
 func (h *Host) appendContractTx(from account.Address, address string, data []byte, ts int64) error {
@@ -412,23 +342,6 @@ func didAddress(did string) (account.Address, error) {
 	}
 
 	return addr, nil
-}
-
-func merkleRoot(leaves [][32]byte) [32]byte {
-	for len(leaves) > 1 {
-		if len(leaves)%2 == 1 {
-			leaves = append(leaves, leaves[len(leaves)-1])
-		}
-
-		next := make([][32]byte, 0, len(leaves)/2)
-		for i := 0; i < len(leaves); i += 2 {
-			next = append(next, sha256.Sum256(append(leaves[i][:], leaves[i+1][:]...)))
-		}
-
-		leaves = next
-	}
-
-	return leaves[0]
 }
 
 // writeActionTxMap persists the action-to-transaction map: one JSON object
