@@ -24,7 +24,7 @@ go build ./...
 
 # Clean previous outputs: measurement files are created exclusively, and a
 # stale agent_registry.json would suppress re-registration of active agents.
-rm -rf ./exp/agentemu-results
+rm -rf ./exp
 
 # Run the whole pipeline: trace -> plan -> auto-launched cluster -> results.
 # Cluster logs are mirrored to this console and kept under
