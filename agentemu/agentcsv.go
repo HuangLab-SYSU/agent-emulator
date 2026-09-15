@@ -242,7 +242,17 @@ func buildAgentRows(perShard [][]*coreblock.Block, agents map[account.Address]st
 	return rows
 }
 
+// txHexHash reports the hash that identifies the LOGICAL transaction: for
+// cross-shard relay legs the blocks store the split Relay1/Relay2
+// transactions whose own hashes differ from the original, so the original
+// hash (ROriginalHash) is used instead — it is the very hash recorded in
+// relay_stats_detail_tx_info.csv and agent_action_txs.jsonl, keeping the
+// per-agent rows joinable with both.
 func txHexHash(tx transaction.Transaction) string {
+	if len(tx.ROriginalHash) != 0 {
+		return hex.EncodeToString(tx.ROriginalHash)
+	}
+
 	hash, err := tx.Hash()
 	if err != nil {
 		return ""

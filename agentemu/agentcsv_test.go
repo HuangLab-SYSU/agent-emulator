@@ -1,6 +1,7 @@
 package agentemu
 
 import (
+	"encoding/hex"
 	"math/big"
 	"testing"
 	"time"
@@ -92,11 +93,14 @@ func TestBuildAgentRowsCrossShardRelayRecordsEachSideOnce(t *testing.T) {
 	require.EqualValues(t, 2, rows["alice"][0].blockHeight)
 	require.EqualValues(t, 4, rows["bob"][0].blockHeight)
 
-	// Each row carries its own leg's hash: the relay stage is part of the
-	// tx encoding, so relay1 and relay2 hash differently on chain.
-	require.Equal(t, txHexHash(relay1), rows["alice"][0].txHash)
-	require.Equal(t, txHexHash(relay2), rows["bob"][0].txHash)
-	require.NotEqual(t, rows["alice"][0].txHash, rows["bob"][0].txHash)
+	// Both rows carry the LOGICAL transaction's hash (the original, which
+	// relay_stats_detail_tx_info.csv and agent_action_txs.jsonl also record);
+	// heights stay the real per-leg ones, and the timestamp is the shared
+	// creation time of the one logical transaction.
+	require.Equal(t, hex.EncodeToString([]byte("orig")), rows["alice"][0].txHash)
+	require.Equal(t, rows["alice"][0].txHash, rows["bob"][0].txHash)
+	require.EqualValues(t, 1000, rows["alice"][0].txTimeMs)
+	require.EqualValues(t, 1000, rows["bob"][0].txTimeMs)
 
 	expected := initBalance(t)
 	require.Equal(t, new(big.Int).Sub(expected, big.NewInt(5)).String(), rows["alice"][0].balance)
