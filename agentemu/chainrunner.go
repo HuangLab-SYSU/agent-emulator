@@ -62,10 +62,22 @@ type ChainRunner struct {
 	NodeExitGrace time.Duration
 }
 
+// BinDirName hosts the cluster binaries inside the module root. A bare
+// "supervisor" binary cannot live in the root itself: the module root already
+// contains the supervisor Go package directory, and on POSIX (no .exe suffix)
+// `go build -o ./supervisor` writes the binary INSIDE that directory instead
+// of failing, leaving a directory where the runner then expects a file.
+const BinDirName = "agentemu-bin"
+
 // Build compiles the consensusnode and supervisor binaries once for all rounds.
-// They land directly in the module root, keeping the experiment output tree
+// They land in <module root>/agentemu-bin/, keeping the experiment output tree
 // free of build artifacts.
 func (c *ChainRunner) Build(ctx context.Context) error {
+	binDir := filepath.Join(c.ModuleRoot, BinDirName)
+	if err := os.MkdirAll(binDir, 0o755); err != nil {
+		return fmt.Errorf("create bin dir: %w", err)
+	}
+
 	for _, target := range []struct{ pkg, name string }{
 		{"./cmd/consensusnode", "consensusnode"},
 		{"./cmd/supervisor", "supervisor"},
@@ -86,11 +98,11 @@ func (c *ChainRunner) Build(ctx context.Context) error {
 	return nil
 }
 
-// binaryPath is the module-root path of a cluster binary. It is resolved to an
-// absolute path: os/exec refuses executables relative to the working dir on
-// Windows.
+// binaryPath is the path of a cluster binary inside the module root's
+// agentemu-bin directory. It is resolved to an absolute path: os/exec refuses
+// executables relative to the working dir on Windows.
 func (c *ChainRunner) binaryPath(name string) (string, error) {
-	abs, err := filepath.Abs(filepath.Join(c.ModuleRoot, binaryName(name)))
+	abs, err := filepath.Abs(filepath.Join(c.ModuleRoot, BinDirName, binaryName(name)))
 	if err != nil {
 		return "", fmt.Errorf("resolve binary path for %s: %w", name, err)
 	}
