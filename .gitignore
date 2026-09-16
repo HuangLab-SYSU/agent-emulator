@@ -8,6 +8,10 @@
 expTest
 exp
 
+# 自动生成的实验图表与 HTML 图册
+# Auto-generated experiment figures and HTML gallery.
+figs/figs_results/
+
 # 不要上传可执行文件！
 # Do not upload your executable files!
 **/*.exe
