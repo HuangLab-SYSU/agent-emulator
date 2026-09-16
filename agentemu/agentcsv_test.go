@@ -62,7 +62,7 @@ func TestBuildAgentRowsInnerShardTransfer(t *testing.T) {
 	expected, _ := new(big.Int).SetString(account.NormalInitBalanceStr, 10)
 	require.Equal(t, new(big.Int).Sub(expected, big.NewInt(7)).String(), debit.balance)
 	require.Equal(t, new(big.Int).Add(expected, big.NewInt(7)).String(), credit.balance)
-	require.EqualValues(t, 1000, debit.txTimeMs)
+	require.EqualValues(t, 1000, debit.blockTimeMs)
 }
 
 func TestBuildAgentRowsCrossShardRelayRecordsEachSideOnce(t *testing.T) {
@@ -95,12 +95,12 @@ func TestBuildAgentRowsCrossShardRelayRecordsEachSideOnce(t *testing.T) {
 
 	// Both rows carry the LOGICAL transaction's hash (the original, which
 	// relay_stats_detail_tx_info.csv and agent_action_txs.jsonl also record);
-	// heights stay the real per-leg ones, and the timestamp is the shared
-	// creation time of the one logical transaction.
+	// heights and timestamps stay the real per-leg ones: each side records
+	// the commit time of the block that executed it.
 	require.Equal(t, hex.EncodeToString([]byte("orig")), rows["alice"][0].txHash)
 	require.Equal(t, rows["alice"][0].txHash, rows["bob"][0].txHash)
-	require.EqualValues(t, 1000, rows["alice"][0].txTimeMs)
-	require.EqualValues(t, 1000, rows["bob"][0].txTimeMs)
+	require.EqualValues(t, 1000, rows["alice"][0].blockTimeMs)
+	require.EqualValues(t, 2000, rows["bob"][0].blockTimeMs)
 
 	expected := initBalance(t)
 	require.Equal(t, new(big.Int).Sub(expected, big.NewInt(5)).String(), rows["alice"][0].balance)
@@ -122,31 +122,54 @@ func TestBuildAgentRowsContractTxKeepsBalance(t *testing.T) {
 	require.Equal(t, initBalance(t).String(), rows["alice"][0].balance)
 }
 
-func TestBuildAgentRowsOrdersByTxCreateTime(t *testing.T) {
+func TestBuildAgentRowsOrdersByBlockCommitTime(t *testing.T) {
 	alice := agentCSVAddr(1)
 	agents := map[account.Address]string{alice: "alice"}
 
-	// Same sender: later CreateTime but lower shard/height must come second.
-	early := time.UnixMilli(1000)
-	late := time.UnixMilli(2000)
-
-	t1 := *transaction.NewTransaction(alice, agentCSVAddr(2), big.NewInt(1), big.NewInt(0), 0, early)
-	t2 := *transaction.NewTransaction(alice, agentCSVAddr(3), big.NewInt(1), big.NewInt(0), 1, late)
+	// t1 was created earlier but its block committed later: rows must follow
+	// the blocks' commit order, not the transactions' creation order.
+	t1 := *transaction.NewTransaction(alice, agentCSVAddr(2), big.NewInt(1), big.NewInt(0), 0, time.UnixMilli(1000))
+	t2 := *transaction.NewTransaction(alice, agentCSVAddr(3), big.NewInt(1), big.NewInt(0), 1, time.UnixMilli(4000))
 
 	perShard := [][]*block.Block{
-		{newBlock(9, late, t2)},
-		{newBlock(1, early, t1)},
+		{newBlock(9, time.UnixMilli(2000), t2)},
+		{newBlock(1, time.UnixMilli(3000), t1)},
 	}
 
 	rows := buildAgentRows(perShard, agents)
 
 	require.Len(t, rows["alice"], 2)
-	require.EqualValues(t, 1, rows["alice"][0].blockHeight)
-	require.EqualValues(t, 9, rows["alice"][1].blockHeight)
+	require.EqualValues(t, 9, rows["alice"][0].blockHeight)
+	require.EqualValues(t, 2000, rows["alice"][0].blockTimeMs)
+	require.EqualValues(t, 1, rows["alice"][1].blockHeight)
+	require.EqualValues(t, 3000, rows["alice"][1].blockTimeMs)
 
 	expected := initBalance(t)
 	require.Equal(t, new(big.Int).Sub(expected, big.NewInt(1)).String(), rows["alice"][0].balance)
 	require.Equal(t, new(big.Int).Sub(expected, big.NewInt(2)).String(), rows["alice"][1].balance)
+}
+
+func TestBuildAgentRowsSameBlockTimeTieBreaksByShardHeight(t *testing.T) {
+	alice := agentCSVAddr(1)
+	agents := map[account.Address]string{alice: "alice"}
+
+	// Blocks can be stamped within the same instant; the order then falls
+	// back to (shard, height, in-block index) to stay deterministic.
+	same := time.UnixMilli(1000)
+	t1 := *transaction.NewTransaction(alice, agentCSVAddr(2), big.NewInt(1), big.NewInt(0), 0, same)
+	t2 := *transaction.NewTransaction(alice, agentCSVAddr(3), big.NewInt(1), big.NewInt(0), 1, same)
+
+	perShard := [][]*block.Block{
+		{newBlock(7, same, t2)},
+		{newBlock(3, same, t1)},
+	}
+
+	rows := buildAgentRows(perShard, agents)
+
+	require.Len(t, rows["alice"], 2)
+	// Shard 0 wins the tie even though its height is the higher one.
+	require.EqualValues(t, 7, rows["alice"][0].blockHeight)
+	require.EqualValues(t, 3, rows["alice"][1].blockHeight)
 }
 
 func TestAgentFileNameSanitizes(t *testing.T) {
