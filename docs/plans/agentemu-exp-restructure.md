@@ -98,9 +98,9 @@ relay2 所在区块的行——高度与时间各自真实，且不重复计数�
 
 - 路径：`round_%03d/agents/<agent_id>.csv`（文件名做字符消毒，仅写过至少
   一行的 Agent；用 `encoding/csv` 写出）；
-- 表头：`block_height,tx_hash,sender,recipient,value,balance,tx_time_ms`
-  （时间戳为链上 CreateTime 毫秒——plansource 注入时重打，即真实上链时刻，
-  非 trace 的 ts）；
+- 表头：`block_height,tx_hash,sender,recipient,value,balance,block_time_ms`
+  （时间戳为打包该交易的区块 Header.CreateTime 毫秒，即交易上链时刻；
+  行序也按此上链时间排序，同一毫秒内以 shard、height、块内序号决胜）；
 - 地址→Agent 映射来自 Host 的 registry（`agent_registry.json`）。
 
 ## 4. 配套更新

@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/HuangLab-SYSU/block-emulator-x/config"
 	"github.com/HuangLab-SYSU/block-emulator-x/pkg/core/account"
@@ -28,7 +29,7 @@ var agentCSVHeader = []string{
 	"recipient",
 	"value",
 	"balance",
-	"tx_time_ms",
+	"block_time_ms",
 }
 
 // agentTxRow is one committed transaction seen from one agent's perspective.
@@ -39,7 +40,7 @@ type agentTxRow struct {
 	recipient   string
 	value       string
 	balance     string
-	txTimeMs    int64
+	blockTimeMs int64
 }
 
 // WriteAgentCSVs reads the committed blocks of a finished chain run and writes
@@ -148,16 +149,20 @@ func readShardBlocks(ctx context.Context, boltDir string, shard int64) ([]*coreb
 }
 
 // buildAgentRows turns the shards' committed blocks into per-agent row lists.
-// Transactions are processed in one deterministic global pass, ordered by
-// (chain CreateTime, shard, height, in-block index), so balances accumulate
-// reproducibly: an account is lazily initialized to NormalInitBalance on its
-// first appearance, exactly like the chain does.
+// Transactions are processed in one deterministic global pass, ordered by the
+// commit time of the block that packaged them (Header.CreateTime, i.e. the
+// on-chain time), then by (shard, height, in-block index) as tie-breakers for
+// blocks stamped within the same instant, so balances accumulate reproducibly
+// in the order the chain actually executed the transactions. An account is
+// lazily initialized to NormalInitBalance on its first appearance, exactly
+// like the chain does.
 func buildAgentRows(perShard [][]*coreblock.Block, agents map[account.Address]string) map[string][]agentTxRow {
 	type txRef struct {
-		shard  int
-		height uint64
-		index  int
-		tx     transaction.Transaction
+		blockTime time.Time
+		shard     int
+		height    uint64
+		index     int
+		tx        transaction.Transaction
 	}
 
 	var refs []txRef
@@ -165,13 +170,19 @@ func buildAgentRows(perShard [][]*coreblock.Block, agents map[account.Address]st
 	for shard, blocks := range perShard {
 		for _, b := range blocks {
 			for i := range b.TxList {
-				refs = append(refs, txRef{shard: shard, height: b.Number, index: i, tx: b.TxList[i]})
+				refs = append(refs, txRef{
+					blockTime: b.Header.CreateTime,
+					shard:     shard,
+					height:    b.Number,
+					index:     i,
+					tx:        b.TxList[i],
+				})
 			}
 		}
 	}
 
 	sort.SliceStable(refs, func(i, j int) bool {
-		ti, tj := refs[i].tx.CreateTime, refs[j].tx.CreateTime
+		ti, tj := refs[i].blockTime, refs[j].blockTime
 		if !ti.Equal(tj) {
 			return ti.Before(tj)
 		}
@@ -209,7 +220,8 @@ func buildAgentRows(perShard [][]*coreblock.Block, agents map[account.Address]st
 
 		// A cross-shard transfer executes as relay1 (debit, sender's shard)
 		// and relay2 (credit, recipient's shard); each side is recorded once,
-		// from the block that actually executed it.
+		// from the block that actually executed it, at that block's commit
+		// time.
 		if senderIsAgent && tx.RelayStage != transaction.Relay2Tx {
 			balance := touch(tx.Sender)
 			balance.Sub(balance, tx.Value)
@@ -220,7 +232,7 @@ func buildAgentRows(perShard [][]*coreblock.Block, agents map[account.Address]st
 				recipient:   fmt.Sprintf("%x", tx.Recipient),
 				value:       tx.Value.String(),
 				balance:     balance.String(),
-				txTimeMs:    tx.CreateTime.UnixMilli(),
+				blockTimeMs: ref.blockTime.UnixMilli(),
 			})
 		}
 
@@ -234,7 +246,7 @@ func buildAgentRows(perShard [][]*coreblock.Block, agents map[account.Address]st
 				recipient:   fmt.Sprintf("%x", tx.Recipient),
 				value:       tx.Value.String(),
 				balance:     balance.String(),
-				txTimeMs:    tx.CreateTime.UnixMilli(),
+				blockTimeMs: ref.blockTime.UnixMilli(),
 			})
 		}
 	}
@@ -283,7 +295,7 @@ func writeAgentCSV(path string, rows []agentTxRow) error {
 			row.recipient,
 			row.value,
 			row.balance,
-			fmt.Sprintf("%d", row.txTimeMs),
+			fmt.Sprintf("%d", row.blockTimeMs),
 		}
 		if err := w.Write(record); err != nil {
 			return fmt.Errorf("write agent csv row: %w", err)
