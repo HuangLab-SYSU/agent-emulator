@@ -35,8 +35,8 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 RESULTS_ROOT = REPO_ROOT / "exp" / "agentemu-results"
 DEFAULT_FIG_DIR = REPO_ROOT / "figs" / "figs_results"
 
-Y_LABEL = "Δbalance (raw units)"
-X_LABEL = "Transaction index (sorted by block height, then time)"
+Y_LABEL = "Δbalance"
+X_LABEL = "Transaction index"
 
 
 def latest_agents_dir() -> Path:
@@ -55,13 +55,15 @@ def latest_agents_dir() -> Path:
 # ---------------------------------------------------------------------------
 def apply_style():
     plt.rcParams.update({
-        "font.sans-serif": ["Arial Unicode MS", "Helvetica", "DejaVu Sans"],
-        "font.size": 13,
-        "axes.titlesize": 15,
-        "axes.labelsize": 13.5,
-        "xtick.labelsize": 12,
-        "ytick.labelsize": 12,
-        "legend.fontsize": 12,
+        "font.family": "serif",
+        "font.serif": ["Times New Roman", "Times", "STIXGeneral"],
+        "mathtext.fontset": "stix",
+        "font.size": 18,
+        "axes.titlesize": 20,
+        "axes.labelsize": 18.5,
+        "xtick.labelsize": 17,
+        "ytick.labelsize": 17,
+        "legend.fontsize": 18,   # 图例放大为原来的 1.5 倍(12 -> 18)
         "axes.unicode_minus": False,
         "figure.dpi": 110,
         "savefig.dpi": 200,
@@ -126,36 +128,10 @@ def main():
           f"区块高度: {sorted(all_df['block_height'].unique())}")
     rebuild_block_colors(all_df["block_height"].unique())
     hs_all = sorted(BLOCK_COLORS)
-    blabel = (f" Avg. block {hs_all[0]}→{hs_all[1]} boundary"
-              if len(hs_all) > 1 else "")
 
     # ------------------------------------------------------------------ 图 1
-    # 全部 agent 总览: 轨迹叠加 + 按 agent 序号 / 按 Δbalance 排序 的期末分布
-    fig = plt.figure(figsize=(13, 10.5))
-    gs = fig.add_gridspec(2, 2, height_ratios=[2.2, 1])
-    ax1 = fig.add_subplot(gs[0, :])
-    ax_bar_id = fig.add_subplot(gs[1, 0])
-    ax_bar_sorted = fig.add_subplot(gs[1, 1])
-
-    max_len = max(len(d) for d in dfs)
-    stack = np.full((len(dfs), max_len), np.nan)
-    for i, d in enumerate(dfs):
-        stack[i, : len(d)] = d["delta"]
-        ax1.plot(np.arange(len(d)), d["delta"], color="grey", alpha=0.18, lw=0.8)
-    ax1.plot(np.arange(max_len), np.nanmean(stack, axis=0),
-             color="#C44E52", lw=2.2, label="Mean of all agents")
-
-    # 平均区块边界位置
-    avg_b = int(np.mean([block_boundary_idx(d) for d in dfs]))
-    ax1.axvline(avg_b - 0.5, color="grey", ls="--", lw=1.2)
-    ax1.text(avg_b, ax1.get_ylim()[1], blabel, fontsize=12.5,
-             color="grey", va="top")
-    ax1.axhline(0, color="k", lw=0.6, alpha=0.5)
-    ax1.set_title(f"Balance trajectories of all {len(dfs)} agents "
-                  f"(grey) and mean (red)", fontsize=15)
-    ax1.set_xlabel(X_LABEL)
-    ax1.set_ylabel(Y_LABEL)
-    ax1.legend(loc="upper right")
+    # 全部 agent 期末余额分布: 按 agent 序号 / 按 Δbalance 排序 两个面板
+    fig, (ax_bar_id, ax_bar_sorted) = plt.subplots(1, 2, figsize=(15, 6.5))
 
     finals = np.array([d["delta"].iloc[-1] for d in dfs])
     ids = [d["agent"].iloc[0] for d in dfs]
@@ -164,21 +140,21 @@ def main():
     ax_bar_id.bar(np.arange(len(finals)), finals,
                   color=np.where(finals >= 0, "#55A868", "#C44E52"))
     ax_bar_id.axhline(0, color="k", lw=0.8)
-    ax_bar_id.set_title("Final Δbalance per agent (by agent ID)", fontsize=14)
+    ax_bar_id.set_title("Final Δbalance per agent (by agent ID)", fontsize=19)
     ax_bar_id.set_xlabel("Agent ID")
     ax_bar_id.set_ylabel("Final Δbalance")
     id_ticks = np.arange(0, len(finals), 10)
     ax_bar_id.set_xticks(id_ticks)
     ax_bar_id.set_xticklabels([ids[i].replace("agent-", "") for i in id_ticks],
-                              fontsize=11.5)
+                              fontsize=16.5)
 
     # 按期末 Δbalance 升序
     ax_bar_sorted.bar(np.arange(len(finals)), np.sort(finals),
                       color=np.where(np.sort(finals) >= 0, "#55A868", "#C44E52"))
     ax_bar_sorted.axhline(0, color="k", lw=0.8)
     ax_bar_sorted.set_title("Distribution of final Δbalance (ascending)",
-                            fontsize=14)
-    ax_bar_sorted.set_xlabel("Agent (sorted by final Δbalance)")
+                            fontsize=19)
+    ax_bar_sorted.set_xlabel("Agent")
     ax_bar_sorted.set_ylabel("Final Δbalance")
 
     # 两个柱状面板统一 y 轴范围, 便于对比
@@ -213,10 +189,10 @@ def main():
         ax.axhline(0, color="k", lw=0.6, alpha=0.5)
         ax.set_title(f"Agents {first_no}–{last_no}: balance change\n"
                      f"(dashed line / star = own block {hs_all[0]}→{hs_all[1]} "
-                     f"boundary)", fontsize=25)
-        ax.set_xlabel(X_LABEL, fontsize=22.5)
-        ax.set_ylabel(Y_LABEL, fontsize=22.5)
-        ax.tick_params(labelsize=20)
+                     f"boundary)", fontsize=30)
+        ax.set_xlabel(X_LABEL, fontsize=27.5)
+        ax.set_ylabel(Y_LABEL, fontsize=27.5)
+        ax.tick_params(labelsize=25)
         ax.legend(loc="best", ncol=2, fontsize=20)
         fig.tight_layout()
         fig.savefig(fig_dir / f"fig2_agents_{first_no}-{last_no}.png")
@@ -238,12 +214,12 @@ def main():
     ax.plot(grid, mean_curve, color="#C44E52", lw=2.2, label="Mean of all agents")
     ax.axhline(0, color="k", lw=0.6, alpha=0.5)
     ax.annotate(f"Endpoint mean = {mean_curve[-1]:+.0f}", xy=(1.0, mean_curve[-1]),
-                xytext=(-12, 16), textcoords="offset points", fontsize=12.5,
+                xytext=(-12, 16), textcoords="offset points", fontsize=17.5,
                 ha="right", color="#C44E52")
-    ax.set_xlabel("Transaction progress (each agent's own tx index normalized to 0–1)")
+    ax.set_xlabel("Transaction progress")
     ax.set_ylabel(Y_LABEL)
     ax.set_title("Balance change aligned by normalized transaction progress",
-                 fontsize=15)
+                 fontsize=20)
     ax.legend(loc="upper left")
     fig.tight_layout()
     fig.savefig(fig_dir / "fig3_normalized_progress.png")
@@ -272,7 +248,7 @@ def main():
             tx_meta.setdefault(tx, (bh, s, r, v))
     emitted = set()
     cur = np.zeros(len(dfs))
-    snaps_g, snaps_block, snaps_state = [], [], []
+    snaps_g, snaps_state = [], []
     for h_block in hs_all:
         seqs = [d.loc[d["block_height"] == h_block, "tx_hash"].tolist() for d in dfs]
         for k in range(max(len(s) for s in seqs)):
@@ -287,13 +263,11 @@ def main():
                 if rcv in addr2idx:
                     cur[addr2idx[rcv]] += v
                 snaps_g.append(len(emitted))
-                snaps_block.append(bh)
                 snaps_state.append(cur.copy())
     finals_diff = max(abs(cur[i] - dfs[i]["delta"].iloc[-1]) for i in range(len(dfs)))
     n_unique = len(emitted)
     states = np.array(snaps_state)            # (全局交易数, agent数)
     g = np.array(snaps_g)
-    blocks = np.array(snaps_block)
     mean_line = states.mean(axis=1)
     p25, p75 = np.percentile(states, [25, 75], axis=1)
     lo, hi = states.min(axis=1), states.max(axis=1)
@@ -304,23 +278,12 @@ def main():
     ax.fill_between(g, p25, p75, color="#4C72B0", alpha=0.30, lw=0,
                     label="Interquartile range (P25–P75)")
     ax.plot(g, mean_line, color="#C44E52", lw=2.0, label="Mean of all agents")
-    m_next = blocks == hs_all[1]
-    if m_next.any():
-        b_pos = g[m_next][0]
-        ax.axvline(b_pos - 0.5, color="grey", ls="--", lw=1.2)
-        ax.text(b_pos, ax.get_ylim()[1], blabel, fontsize=12.5, color="grey",
-                va="top")
     ax.axhline(0, color="k", lw=0.6, alpha=0.5)
-    ax.set_xlabel(f"Global transaction index ({n_unique:,} unique transactions)")
+    ax.set_xlabel("Global transaction index")
     ax.set_ylabel(Y_LABEL)
     ax.set_title("Distribution of balance changes across agents "
-                 "by global transaction order", fontsize=15)
+                 "by global transaction order", fontsize=20)
     ax.legend(loc="upper left")
-    ax.text(0.98, 0.03,
-            "Intra-block order is a deterministic illustrative interleaving "
-            "(no intra-block timestamps in data)",
-            transform=ax.transAxes, ha="right", va="bottom",
-            fontsize=11.5, color="#555555")
     fig.tight_layout()
     fig.savefig(fig_dir / "fig4_global_tx_order.png")
     plt.close(fig)

@@ -3,10 +3,11 @@
 """
 将 figs_results 目录下 plot_agent_balance.py 生成的 PNG 汇编成一个 HTML 图册页面。
 
-页面为纯静态 HTML + 内联 CSS, 图片使用相对路径引用, 通过 file:// 直接打开即可查看:
-  - 图 1(全部 agent 总览)、图 3(按交易进度归一化对齐)、图 4(按全局交易顺序统计)
-    整幅展示
-  - 图 2(每 5 个 agent 一组的余额轨迹)以缩略图网格展示, 点击在新标签页打开原图
+页面为纯静态 HTML + 内联 CSS/JS, 图片使用相对路径引用, 通过 file:// 直接打开即可查看:
+  - 页面顺序: 总览 -> 全局交易顺序分布 -> 归一化进度 -> 分组轨迹网格,
+    图 1–4 编号按展示位置连续排列(与 PNG 文件名前缀 fig1/fig2/... 不一一对应)
+  - 页面文字(标题/章节/元信息/页脚)支持中英文切换, 右上角按钮或按 L 键切换,
+    偏好通过 localStorage 记忆; 图内文字由画图脚本决定, 不受切换影响
 
 用法:
   python3 build_fig_html.py                       # 默认扫描 figs/figs_results/
@@ -21,14 +22,40 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_FIG_DIR = REPO_ROOT / "figs" / "figs_results"
 
-PAGE_TITLE = "AgentEmulator 实验 · Agent 余额生命周期图表"
+PAGE_TITLE_ZH = "AgentEmulator 实验 · Agent 余额生命周期图表"
+PAGE_TITLE_EN = "AgentEmulator Experiment · Agent Balance Lifecycle Figures"
+
+# 图 1: 排在最前(文件名前缀, 中文标题, 英文标题)
+FIG1_ENTRY = ("fig1_all_agents_overview",
+              "图 1 · 全部 Agent 总览",
+              "Fig. 1 · Overview of All Agents")
+
+# 分组轨迹网格(文件名前缀 fig2_*): 展示在页面最后, 编号为图 4
+GROUPS_HEAD_ZH = "图 4 · 分组余额轨迹（每 5 个 Agent 一组）"
+GROUPS_HEAD_EN = "Fig. 4 · Grouped Balance Trajectories (5 Agents per Subfig)"
+
+# 其余单幅图: 展示在图 1(总览)之后、分组网格之前, 按展示位置编号
+TAIL_SINGLES = [
+    ("fig4_global_tx_order",
+     "图 2 · 按全局交易顺序统计的全体 Agent 余额分布",
+     "Fig. 2 · Balance Distribution of All Agents by Global Transaction Order"),
+    ("fig3_normalized_progress",
+     "图 3 · 按交易进度归一化对齐的余额变化",
+     "Fig. 3 · Balance Change Aligned by Normalized Transaction Progress"),
+]
 
 CSS = """
 body { font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", sans-serif;
        margin: 0; background: #f5f6f8; color: #222; }
-header { background: #1f2937; color: #fff; padding: 20px 28px; }
+header { background: #1f2937; color: #fff; padding: 20px 28px;
+         display: flex; align-items: center; justify-content: space-between;
+         gap: 16px; }
 header h1 { margin: 0 0 6px; font-size: 22px; }
 header .meta { font-size: 13px; color: #b7bcc4; line-height: 1.7; }
+.lang-btn { flex: none; background: #3b4657; color: #fff; border: 1px solid #5b6675;
+            border-radius: 16px; padding: 8px 18px; font-size: 14px;
+            cursor: pointer; user-select: none; }
+.lang-btn:hover { background: #4a566a; }
 main { max-width: 1280px; margin: 0 auto; padding: 20px 24px 48px; }
 h2 { font-size: 17px; margin: 28px 0 12px; border-left: 4px solid #4C72B0;
      padding-left: 10px; }
@@ -44,37 +71,67 @@ a img { border: 0; }
 footer { text-align: center; font-size: 12px; color: #999; padding-bottom: 24px; }
 """
 
-
-# 单幅展示的图(按页面出现顺序排列), 文件名前缀 -> 中文标题
-SINGLE_FIGS = [
-    ("fig1_all_agents_overview", "图 1 · 全部 Agent 总览"),
-    ("fig3_normalized_progress", "图 3 · 按交易进度归一化对齐的余额变化"),
-    ("fig4_global_tx_order", "图 4 · 按全局交易顺序统计的全体 Agent 余额分布"),
-]
+JS = """
+(function () {
+  var btn = document.getElementById('lang-toggle');
+  var ZH = %s, EN = %s;
+  function apply(lang) {
+    var zh = lang === 'zh';
+    document.querySelectorAll('[data-zh]').forEach(function (el) {
+      el.textContent = zh ? el.getAttribute('data-zh') : el.getAttribute('data-en');
+    });
+    document.title = zh ? ZH : EN;
+    document.documentElement.lang = zh ? 'zh-CN' : 'en';
+    btn.textContent = zh ? 'EN' : '中文';
+    try { localStorage.setItem('gallery-lang', lang); } catch (e) {}
+  }
+  function toggle() {
+    apply(document.documentElement.lang === 'zh-CN' ? 'en' : 'zh');
+  }
+  btn.addEventListener('click', toggle);
+  document.addEventListener('keydown', function (ev) {
+    if ((ev.key === 'l' || ev.key === 'L') && !ev.metaKey && !ev.ctrlKey && !ev.altKey) toggle();
+  });
+  var saved = null;
+  try { saved = localStorage.getItem('gallery-lang'); } catch (e) {}
+  apply(saved === 'en' ? 'en' : 'zh');
+})();
+"""
 
 
 def collect_pngs(fig_dir: Path):
-    """收集 PNG: 单幅图(图1/图3/图4)按页面顺序在前, 图2分组按文件名排序
-    (编号零填充, 字典序即数值序), 其余未知命名的图归入 others 兜底展示。"""
+    """收集 PNG: 返回 (fig1路径, 其余单幅图[(路径,中文,英文)...], 图2分组列表, 未知图列表)。"""
     pngs = sorted(fig_dir.glob("*.png"))
-    known = {prefix for prefix, _ in SINGLE_FIGS} | {"fig2"}
-    singles = []
-    for prefix, caption in SINGLE_FIGS:
+    fig1 = next((p for p in pngs if p.name.startswith(FIG1_ENTRY[0])), None)
+    tail = []
+    for prefix, zh, en in TAIL_SINGLES:
         match = [p for p in pngs if p.name.startswith(prefix)]
         if match:
-            singles.append((match[0], caption))
+            tail.append((match[0], zh, en))
+    known = {FIG1_ENTRY[0]} | {p for p, _, _ in TAIL_SINGLES} | {"fig2"}
     groups = [p for p in pngs if p.name.startswith("fig2_")]
     others = [p for p in pngs if not any(p.name.startswith(k) for k in known)]
-    return singles, groups, others
+    return fig1, tail, groups, others
 
 
 def fig2_caption(name: str) -> str:
-    """fig2_agents_001-005.png -> Agent 001–005"""
+    """fig2_agents_001-005.png -> Agent 001–005(语言无关)"""
     stem = name[:-4] if name.endswith(".png") else name
     if stem.startswith("fig2_agents_"):
         pair = stem[len("fig2_agents_"):]
         return f"Agent {pair.replace('-', '–')}"
     return stem
+
+
+def h2(zh: str, en: str) -> str:
+    return (f'<h2 data-zh="{html.escape(zh)}" data-en="{html.escape(en)}">'
+            f'{html.escape(zh)}</h2>')
+
+
+def overview_img(p: Path, alt: str) -> str:
+    name = html.escape(p.name)
+    return (f'<div class="overview"><a href="{name}" target="_blank">'
+            f'<img src="{name}" alt="{html.escape(alt)}"></a></div>')
 
 
 def main():
@@ -86,18 +143,25 @@ def main():
     args = parser.parse_args()
 
     fig_dir = args.fig_dir
-    singles, groups, others = collect_pngs(fig_dir)
-    if not singles and not groups and not others:
+    fig1, tail, groups, others = collect_pngs(fig_dir)
+    n_figs = (1 if fig1 else 0) + len(tail) + len(groups) + len(others)
+    if n_figs == 0:
         raise SystemExit(f"未在 {fig_dir} 找到任何 PNG, 请先运行 plot_agent_balance.py")
 
     n_agents = len(list(args.data_dir.glob("agent-*.csv"))) if args.data_dir else None
     gen_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    meta_bits = [f"生成时间：{gen_time}",
-                 f"图表数量：{len(singles) + len(groups) + len(others)} 张"]
+    meta_bits = [(f"生成时间：{gen_time}", f"Generated: {gen_time}"),
+                 (f"图表数量：{n_figs} 张", f"Figures: {n_figs}")]
     if args.data_dir:
-        src = html.escape(str(args.data_dir))
-        meta_bits.append(f"数据来源：{src}" + (f"（{n_agents} 个 agent）" if n_agents else ""))
+        src = str(args.data_dir)
+        meta_bits.append((f"数据来源：{src}（{n_agents} 个 agent）"
+                          if n_agents else f"数据来源：{src}",
+                          f"Data source: {src} ({n_agents} agents)"
+                          if n_agents else f"Data source: {src}"))
+    meta_html = ' <span class="sep">|</span> '.join(
+        f'<span data-zh="{html.escape(z)}" data-en="{html.escape(e)}">{html.escape(z)}</span>'
+        for z, e in meta_bits)
 
     parts = [
         "<!DOCTYPE html>",
@@ -105,24 +169,34 @@ def main():
         "<head>",
         '<meta charset="utf-8">',
         '<meta name="viewport" content="width=device-width, initial-scale=1">',
-        f"<title>{html.escape(PAGE_TITLE)}</title>",
+        f"<title>{html.escape(PAGE_TITLE_ZH)}</title>",
         f"<style>{CSS}</style>",
         "</head>",
         "<body>",
-        f"<header><h1>{html.escape(PAGE_TITLE)}</h1>",
-        f'<div class="meta">{" &nbsp;|&nbsp; ".join(meta_bits)}</div></header>',
+        "<header><div>",
+        f'<h1 id="page-title" data-zh="{html.escape(PAGE_TITLE_ZH)}" '
+        f'data-en="{html.escape(PAGE_TITLE_EN)}">{html.escape(PAGE_TITLE_ZH)}</h1>',
+        f'<div class="meta">{meta_html}</div>',
+        "</div>",
+        '<button id="lang-toggle" class="lang-btn" type="button" '
+        'title="切换中英文 / Toggle language (L)">EN</button>',
+        "</header>",
         "<main>",
     ]
 
-    for p, caption in singles:
-        name = html.escape(p.name)
-        cap = html.escape(caption)
-        parts.append(f'<h2>{cap}</h2>')
-        parts.append(f'<div class="overview"><a href="{name}" target="_blank">'
-                     f'<img src="{name}" alt="{cap}"></a></div>')
+    # 图 1
+    if fig1:
+        parts.append(h2(*FIG1_ENTRY[1:]))
+        parts.append(overview_img(fig1, FIG1_ENTRY[1]))
 
+    # 图 4 / 图 3 等其余单幅图
+    for p, zh, en in tail:
+        parts.append(h2(zh, en))
+        parts.append(overview_img(p, zh))
+
+    # 图 2 分组网格(语言无关的 Agent 编号作说明), 排在页面最后
     if groups:
-        parts.append("<h2>图 2 · 分组余额轨迹（每 5 个 Agent 一组）</h2>")
+        parts.append(h2(GROUPS_HEAD_ZH, GROUPS_HEAD_EN))
         parts.append('<div class="grid">')
         for p in groups:
             name = html.escape(p.name)
@@ -133,19 +207,22 @@ def main():
         parts.append("</div>")
 
     for p in others:  # 兜底: 展示任何其他命名的图
-        name = html.escape(p.name)
-        parts.append(f'<h2>{html.escape(p.stem)}</h2>')
-        parts.append(f'<div class="overview"><a href="{name}" target="_blank">'
-                     f'<img src="{name}" alt="{name}"></a></div>')
+        parts.append(f"<h2>{html.escape(p.stem)}</h2>")
+        parts.append(overview_img(p, p.stem))
 
+    footer_zh = ("由 figs/python_code/build_fig_html.py 自动生成 · "
+                 "点击任意图片可在新标签页查看原图")
+    footer_en = ("Auto-generated by figs/python_code/build_fig_html.py · "
+                 "Click any figure to open the full-size image in a new tab")
     parts.append("</main>")
-    parts.append("<footer>由 figs/python_code/build_fig_html.py 自动生成 · "
-                 "点击任意图片可在新标签页查看原图</footer>")
+    parts.append(f'<footer data-zh="{html.escape(footer_zh)}" '
+                 f'data-en="{html.escape(footer_en)}">{html.escape(footer_zh)}</footer>')
+    parts.append("<script>" + JS % (repr(PAGE_TITLE_ZH), repr(PAGE_TITLE_EN)) + "</script>")
     parts.append("</body></html>")
 
     out = fig_dir / "index.html"
     out.write_text("\n".join(parts), encoding="utf-8")
-    print(f"已生成 HTML 图册: {out}（共 {len(singles) + len(groups) + len(others)} 张图）")
+    print(f"已生成 HTML 图册: {out}（共 {n_figs} 张图, 编号按展示顺序: 总览=图1, 全局顺序=图2, 归一化=图3, 分组=图4）")
 
 
 if __name__ == "__main__":
