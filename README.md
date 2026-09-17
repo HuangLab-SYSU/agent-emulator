@@ -190,6 +190,14 @@ For secondary development or to integrate BlockEmulator into other systems, user
 #### Quick start
 
 ```sh
+bash run_agentemu.sh            # or: bash run_agentemu.sh <your-config.yaml>
+```
+
+The launcher builds the module, cleans previous outputs, runs the whole pipeline below, and — after a successful run — automatically generates the agent balance figures and opens the HTML gallery in your browser (see [Automatic figures & HTML gallery](#automatic-figures--html-gallery)). The plotting step needs Python 3 with `matplotlib`/`numpy`/`pandas`.
+
+The equivalent manual invocation is:
+
+```sh
 rm -rf ./exp/agentemu-results   # clean outputs of previous runs
 go run cmd/agentemu/main.go -config agentEmuConfig.yaml
 ```
@@ -215,7 +223,7 @@ One JSON object per line; `ts` orders the story (ties keep file order). Traces n
 
 A trace line carrying `sender`/`recipient`/`value` (decimal string) instead of `agent_id`/`action` is a **plain transfer**: it enters the plan at its file position, compiled exactly like an agent `pay` — the nonce comes from the same per-sender counter and `data` stays empty, so no other fields are required (extra fields on a copied plan line are ignored). Such lines carry no `ts`; they inherit the previous line's `ts` and keep their file position.
 
-See `traces/minimal.jsonl` for the built-in example. A pay whose sender or target is not currently active is rejected; generators should track the active set (see `scripts/gen_pay_trace.py`).
+See `traces/minimal.jsonl` for the built-in example (larger ones: `traces/agent=100_txs=10000.jsonl`, `traces/pay_10k.jsonl`). A pay whose sender or target is not currently active is rejected; trace generators should track the active set.
 
 #### Configuration (`agentEmuConfig.yaml`)
 
@@ -245,16 +253,39 @@ protocols:
 | `exp/agentemu-results/round_001/agent_transactions.jsonl` | the compiled transaction plan (hash, sender, recipient, value, nonce, data) |
 | `exp/agentemu-results/round_001/agent_action_txs.jsonl` | action-to-transaction map: every action (with `request_id`) and the hashes of the transactions it compiled into |
 | `exp/agentemu-results/round_001/Agent_Events.csv` | per-action metric events |
-| `exp/agentemu-results/round_001/agents/<agent_id>.csv` | per-agent on-chain ledger: every committed transaction the agent took part in, with block height, tx hash, both sides, value, running balance and tx time |
+| `exp/agentemu-results/round_001/agents/<agent_id>.csv` | per-agent on-chain ledger: every committed transaction the agent took part in, with block height, tx hash, both sides, value, running balance and block time (`block_time_ms`) |
 | `exp/agentemu-results/round_001/chain/logs/` | per-process cluster logs (mirrored to the console) |
 | `exp/agentemu-results/round_001/chain/data/` | the cluster's bolt/level storages and block records |
 | `exp/agentemu-results/round_001/chain/results/` | supervisor measurement CSVs (per-tx lifecycles, TPS, ...) |
 | `exp/agentemu-results/agent_registry.json` | agent_id -> DID mapping and active state |
 | `exp/agentemu-results/rounds_summary.json` | per-round record/transaction counts |
+| `figs/figs_results/` | auto-generated balance figures and the `index.html` gallery (gitignored) |
 
 The per-agent CSVs are collected from the shards' committed block storages right after the cluster stops (equivalent to recording each block as it commits, without touching platform code). Balances follow the chain semantics: an account is lazily initialized to `NormalInitBalance` (10^39) on first touch; a cross-shard transfer appears as the relay1 debit in the sender's row and the relay2 credit in the recipient's row, each carrying its own leg's tx hash and block height.
 
 The action map joins payment intents with the chain: take a `request_id`'s `tx_hashes` and look them up in `relay_stats_detail_tx_info.csv` to answer whether and when the payment was confirmed.
+
+#### Automatic figures & HTML gallery
+
+After a successful `run_agentemu.sh` run, the launcher automatically:
+
+1. picks the latest round's `agents/` CSVs and clears stale figures;
+2. runs `figs/python_code/plot_agent_balance.py`, which draws publication-style figures (Times New Roman, enlarged fonts) of each agent's balance change Δbalance = balance − initial balance:
+   - final Δbalance per agent (two bar panels: by agent ID / sorted ascending, shared y-axis),
+   - the distribution of balance changes across agents by deduplicated global transaction order (min–max band, interquartile range, and the mean line, which stays at zero in this closed system),
+   - balance change aligned by normalized transaction progress,
+   - grouped trajectories, 5 agents per subfigure, each with its own block-boundary dashed line and star marker;
+3. runs `figs/python_code/build_fig_html.py`, which assembles the PNGs into a static `figs/figs_results/index.html` gallery (display order: overview → global order → normalized progress → grouped; figures are numbered by display position) and opens it in the default browser. The page offers a Chinese/English toggle (top-right button or the `L` key) and remembers the choice.
+
+Both scripts can be re-run standalone at any time; without arguments they pick the latest round's results:
+
+```sh
+python3 figs/python_code/plot_agent_balance.py   # --data-dir / --fig-dir to override
+python3 figs/python_code/build_fig_html.py       # --fig-dir / --data-dir to override
+open figs/figs_results/index.html
+```
+
+Figures are regenerated from scratch on every experiment run; a failed experiment skips plotting, and `figs/figs_results/` is gitignored.
 
 #### Notes
 
