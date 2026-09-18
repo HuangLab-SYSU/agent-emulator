@@ -223,7 +223,7 @@ One JSON object per line; `ts` orders the story (ties keep file order). Traces n
 
 A trace line carrying `sender`/`recipient`/`value` (decimal string) instead of `agent_id`/`action` is a **plain transfer**: it enters the plan at its file position, compiled exactly like an agent `pay` — the nonce comes from the same per-sender counter and `data` stays empty, so no other fields are required (extra fields on a copied plan line are ignored). Such lines carry no `ts`; they inherit the previous line's `ts` and keep their file position.
 
-See `traces/minimal.jsonl` for the built-in example (larger ones: `traces/agent=100_txs=10000.jsonl`, `traces/pay_10k.jsonl`). A pay whose sender or target is not currently active is rejected; trace generators should track the active set.
+See `traces/minimal.jsonl` for the built-in example (a larger one: `traces/agent=100_txs=10000.jsonl`). A pay whose sender or target is not currently active is rejected; trace generators should track the active set.
 
 #### Configuration (`agentEmuConfig.yaml`)
 
