@@ -186,16 +186,18 @@ func (h *Host) processPay(record Record) error {
 
 // processRawTx compiles a plain transfer line like any other transaction:
 // only sender, recipient and value come from the trace, while the nonce is
-// taken from the shared per-sender counter and data stays empty.
+// taken from the shared per-sender counter and data stays empty. Either
+// address side may name a currently active agent by id instead of a raw
+// address, enabling normal-account <-> agent transfers.
 func (h *Host) processRawTx(record Record) error {
 	spec := record.RawTx
 
-	from, err := rawTxAddr(spec.Sender, "sender")
+	from, fromAgent, err := h.resolveTraceAddr(spec.Sender, "sender")
 	if err != nil {
 		return err
 	}
 
-	to, err := rawTxAddr(spec.Recipient, "recipient")
+	to, toAgent, err := h.resolveTraceAddr(spec.Recipient, "recipient")
 	if err != nil {
 		return err
 	}
@@ -210,28 +212,54 @@ func (h *Host) processRawTx(record Record) error {
 	}
 
 	h.appendTx(from, to, value.Uint64(), nil, record.TS)
+
+	if fromAgent != nil {
+		h.links[h.curLink].AgentID = fromAgent.AgentID
+	}
+
+	if toAgent != nil {
+		h.links[h.curLink].Target = toAgent.AgentID
+	}
+
+	h.links[h.curLink].Amount = value.Uint64()
 	h.linkLastTxTo(h.curLink)
 	h.metrics = append(h.metrics, MetricEvent{Kind: "raw_tx", TS: record.TS, Value: value.Uint64()})
 
 	return nil
 }
 
-// rawTxAddr parses a plain-transfer address field; utils.Hex2Addr zero-pads
-// short input, so the 20-byte length is checked explicitly.
-func rawTxAddr(hexAddr, field string) (account.Address, error) {
-	b, err := utils.Hex2Bytes(hexAddr)
-	if err != nil {
-		return account.Address{}, fmt.Errorf("parse raw tx %s: %w", field, err)
+// resolveTraceAddr resolves a plain-transfer address field: the id of a
+// registered agent (which must be active, like for pay) or a 20-byte hex
+// address. The registry lookup goes first so an agent id is never shadowed by
+// hex parsing; utils.Hex2Addr zero-pads short input, so the 20-byte length is
+// checked explicitly.
+func (h *Host) resolveTraceAddr(field, name string) (account.Address, *Agent, error) {
+	if agent, ok := h.registry.Get(field); ok {
+		if !agent.Active {
+			return account.Address{}, nil, fmt.Errorf("agent %q is not active; a join action is required", field)
+		}
+
+		addr, err := didAddress(agent.DID)
+		if err != nil {
+			return account.Address{}, nil, err
+		}
+
+		return addr, &agent, nil
 	}
 
-	if len(b) != 20 {
-		return account.Address{}, fmt.Errorf("raw tx %s must be a 20-byte address, got %d bytes", field, len(b))
+	b, err := utils.Hex2Bytes(field)
+	if err != nil || len(b) != 20 {
+		return account.Address{}, nil, fmt.Errorf(
+			"raw tx %s must be a 20-byte address or an active agent id, got %q",
+			name,
+			field,
+		)
 	}
 
 	var addr account.Address
 	copy(addr[:], b)
 
-	return addr, nil
+	return addr, nil, nil
 }
 
 func (h *Host) processIdentity(record Record, agent Agent, operation string) error {

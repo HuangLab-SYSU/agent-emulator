@@ -6,7 +6,7 @@ base:
   module_root: "."
 experiment:
   seed: 20260903
-  trace: ./traces/agent=100_txs=10000.jsonl
+  trace: ./traces/random_mix_traces.jsonl
 chain:
   # When true, each round's transaction plan is automatically executed on a
   # freshly launched BlockEmulator-X cluster (consensus nodes + supervisor):

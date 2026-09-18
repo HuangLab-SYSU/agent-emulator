@@ -147,6 +147,94 @@ func TestHostCompilesPlainTransfersWithSharedNonces(t *testing.T) {
 	require.Equal(t, planHashes, mapped)
 }
 
+// TestHostResolvesAgentIdsInPlainTransfers verifies that plain transfer lines
+// may name a currently active agent by id on either side, compiling to a
+// transfer from/to that agent's DID address within the shared nonce space, and
+// that the action link records the resolved agent ids and value.
+func TestHostResolvesAgentIdsInPlainTransfers(t *testing.T) {
+	cfg := testConfig(t)
+
+	aliceAddr, err := didAddress(allocatedDID(cfg.Experiment.Seed, "alice"))
+	require.NoError(t, err)
+	bobAddr, err := didAddress(allocatedDID(cfg.Experiment.Seed, "bob"))
+	require.NoError(t, err)
+	normalAddr, err := utils.Hex2Addr("0x" + strings.Repeat("22", 20))
+	require.NoError(t, err)
+
+	host, err := NewHost(cfg)
+	require.NoError(t, err)
+
+	result, err := host.Process([]Record{
+		{AgentID: "alice", Action: ActionJoin, ParamsHash: "doc-a", TS: 1, Seq: 1},
+		{AgentID: "bob", Action: ActionJoin, ParamsHash: "doc-b", TS: 2, Seq: 2},
+		// agent -> normal account, agent named by id
+		{Action: ActionRawTx, RawTx: &RawTxSpec{
+			Sender: "alice", Recipient: fmt.Sprintf("0x%x", normalAddr), Value: "7",
+		}, TS: 3, Seq: 3},
+		// normal account -> agent, agent named by id
+		{Action: ActionRawTx, RawTx: &RawTxSpec{
+			Sender: fmt.Sprintf("0x%x", normalAddr), Recipient: "bob", Value: "4",
+		}, TS: 4, Seq: 4},
+		// a later agent pay continues the sender's nonce sequence
+		{AgentID: "alice", Target: "bob", Action: ActionPay, Amount: 5, TS: 5, Seq: 5},
+	})
+	require.NoError(t, err)
+	require.Len(t, result.Transactions, 5)
+
+	agentToNormal := result.Transactions[2]
+	require.Equal(t, aliceAddr, agentToNormal.Sender)
+	require.Equal(t, normalAddr, agentToNormal.Recipient)
+	require.EqualValues(t, 7, agentToNormal.Value.Int64())
+	require.Empty(t, agentToNormal.Data)
+	// alice's register took nonce 0; this mixed line continues with 1.
+	require.EqualValues(t, 1, agentToNormal.Nonce)
+
+	normalToAgent := result.Transactions[3]
+	require.Equal(t, normalAddr, normalToAgent.Sender)
+	require.Equal(t, bobAddr, normalToAgent.Recipient)
+	require.EqualValues(t, 4, normalToAgent.Value.Int64())
+	// the normal account's own nonce space starts at 0.
+	require.EqualValues(t, 0, normalToAgent.Nonce)
+
+	require.EqualValues(t, 2, result.Transactions[4].Nonce)
+
+	require.Equal(t, "alice", host.links[2].AgentID)
+	require.Empty(t, host.links[2].Target)
+	require.EqualValues(t, 7, host.links[2].Amount)
+	require.Empty(t, host.links[3].AgentID)
+	require.Equal(t, "bob", host.links[3].Target)
+	require.EqualValues(t, 4, host.links[3].Amount)
+}
+
+func TestPlainTransferRejectsUnknownAndInactiveAgents(t *testing.T) {
+	t.Run("unknown id that is not an address", func(t *testing.T) {
+		host, err := NewHost(testConfig(t))
+		require.NoError(t, err)
+
+		_, err = host.Process([]Record{
+			{AgentID: "alice", Action: ActionJoin, ParamsHash: "doc-a", TS: 1, Seq: 1},
+			{Action: ActionRawTx, RawTx: &RawTxSpec{
+				Sender: "alice", Recipient: "carol", Value: "1",
+			}, TS: 2, Seq: 2},
+		})
+		require.ErrorContains(t, err, "must be a 20-byte address or an active agent id")
+	})
+
+	t.Run("agent id inactive at that point", func(t *testing.T) {
+		host, err := NewHost(testConfig(t))
+		require.NoError(t, err)
+
+		_, err = host.Process([]Record{
+			{AgentID: "alice", Action: ActionJoin, ParamsHash: "doc-a", TS: 1, Seq: 1},
+			{AgentID: "alice", Action: ActionLeave, ParamsHash: "exit-a", TS: 2, Seq: 2},
+			{Action: ActionRawTx, RawTx: &RawTxSpec{
+				Sender: "alice", Recipient: "0x" + strings.Repeat("22", 20), Value: "1",
+			}, TS: 3, Seq: 3},
+		})
+		require.ErrorContains(t, err, "join action is required")
+	})
+}
+
 // TestHostActionTxMapLinksIntentToHashes verifies the request_id -> tx hash
 // mapping: every action's link carries the hash of the transaction it
 // compiled into, and the mapped hashes equal the plan's transaction set.

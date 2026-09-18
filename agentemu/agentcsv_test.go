@@ -2,6 +2,7 @@ package agentemu
 
 import (
 	"encoding/hex"
+	"fmt"
 	"math/big"
 	"testing"
 	"time"
@@ -170,6 +171,41 @@ func TestBuildAgentRowsSameBlockTimeTieBreaksByShardHeight(t *testing.T) {
 	// Shard 0 wins the tie even though its height is the higher one.
 	require.EqualValues(t, 7, rows["alice"][0].blockHeight)
 	require.EqualValues(t, 3, rows["alice"][1].blockHeight)
+}
+
+// TestBuildAgentRowsMixedTransferRecordsAgentSideOnly verifies that a
+// normal-account <-> agent transfer produces a row only for the agent side: a
+// debit when the agent sends, a credit when the agent receives; the normal
+// account is not tracked and gets no rows.
+func TestBuildAgentRowsMixedTransferRecordsAgentSideOnly(t *testing.T) {
+	alice, normal := agentCSVAddr(1), agentCSVAddr(5)
+	agents := map[account.Address]string{alice: "alice"}
+
+	ts := time.UnixMilli(1000)
+	out := *transaction.NewTransaction(alice, normal, big.NewInt(7), big.NewInt(0), 0, ts)
+	in := *transaction.NewTransaction(normal, alice, big.NewInt(4), big.NewInt(0), 0, ts)
+
+	perShard := [][]*block.Block{
+		{newBlock(1, ts, out), newBlock(2, ts.Add(time.Second), in)},
+	}
+
+	rows := buildAgentRows(perShard, agents)
+
+	require.Len(t, rows, 1) // only alice is tracked
+	require.Len(t, rows["alice"], 2)
+
+	debit, credit := rows["alice"][0], rows["alice"][1]
+	require.Equal(t, fmt.Sprintf("%x", alice), debit.sender)
+	require.Equal(t, fmt.Sprintf("%x", normal), debit.recipient)
+	require.Equal(t, "7", debit.value)
+	require.Equal(t, new(big.Int).Sub(initBalance(t), big.NewInt(7)).String(), debit.balance)
+
+	require.Equal(t, fmt.Sprintf("%x", normal), credit.sender)
+	require.Equal(t, fmt.Sprintf("%x", alice), credit.recipient)
+	require.Equal(t, "4", credit.value)
+	require.Equal(t, new(big.Int).Sub(initBalance(t), big.NewInt(3)).String(), credit.balance)
+
+	require.NotEqual(t, debit.txHash, credit.txHash)
 }
 
 func TestAgentFileNameSanitizes(t *testing.T) {

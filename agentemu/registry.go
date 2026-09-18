@@ -89,6 +89,13 @@ func (r *Registry) Active(agentID string) (Agent, error) {
 	return agent, nil
 }
 
+// Get looks an agent up by id regardless of its active state, so callers can
+// tell "unknown id" apart from "registered but currently inactive".
+func (r *Registry) Get(agentID string) (Agent, bool) {
+	agent, exists := r.agents[agentID]
+	return agent, exists
+}
+
 func (r *Registry) Write(path string) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return fmt.Errorf("create agent registry directory: %w", err)

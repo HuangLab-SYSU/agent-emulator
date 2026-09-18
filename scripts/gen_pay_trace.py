@@ -3,8 +3,10 @@
 
 The trace is guaranteed to satisfy the Host's state machine: every pay's
 sender and target are active (joined, not left) at that point, every leave
-hits an active agent, and rejoins only happen after a leave. All randomness
-derives from --seed, so the same invocation always yields the same file.
+hits an active agent, rejoins only happen after a leave, and every plain
+transfer line emitted by --mixed-every names a currently active agent on its
+agent side. All randomness derives from --seed, so the same invocation always
+yields the same file.
 
 Example:
     python3 scripts/gen_pay_trace.py --agents 100 --pays 10000 \
@@ -21,12 +23,19 @@ def main():
     p.add_argument("--agents", type=int, default=100, help="number of agents")
     p.add_argument("--pays", type=int, default=10000, help="number of pay records")
     p.add_argument("--seed", type=int, default=20260912, help="random seed")
-    p.add_argument("--out", default="traces/pay_10k.jsonl", help="output trace file")
+    p.add_argument("--out", default="traces/random_mix_traces.jsonl", help="output trace file")
     p.add_argument(
         "--lifecycle-every",
         type=int,
         default=250,
         help="one rejoin+leave rotation every N pays (keeps >= 10 agents active)",
+    )
+    p.add_argument(
+        "--mixed-every",
+        type=int,
+        default=10,
+        help="every N pays, add one plain transfer between a random active "
+             "agent and a random normal address, direction random (0 = off)",
     )
     args = p.parse_args()
 
@@ -78,15 +87,27 @@ def main():
               "amount": rnd.randint(1, 100), "ts": ts,
               "request_id": f"pay-{n:05d}"})
 
+        if args.mixed_every > 0 and n % args.mixed_every == 0:
+            # A plain transfer between a random active agent and a fresh
+            # normal address, direction random. The line carries no ts: it
+            # inherits the pay's ts above, keeping its file position.
+            agent = pool[rnd.randrange(len(pool))]
+            normal = f"0x{rnd.getrandbits(160):040x}"
+            src, dst = ((agent, normal) if rnd.random() < 0.5
+                        else (normal, agent))
+            emit({"sender": src, "recipient": dst,
+                  "value": str(rnd.randint(1, 100))})
+
     with open(args.out, "w") as f:
         for rec in records:
             f.write(json.dumps(rec, separators=(",", ":")) + "\n")
 
-    n_pay = sum(1 for r in records if r["action"] == "pay")
-    n_join = sum(1 for r in records if r["action"] == "join")
-    n_leave = sum(1 for r in records if r["action"] == "leave")
+    n_pay = sum(1 for r in records if r.get("action") == "pay")
+    n_join = sum(1 for r in records if r.get("action") == "join")
+    n_leave = sum(1 for r in records if r.get("action") == "leave")
+    n_raw = sum(1 for r in records if "sender" in r)
     print(f"wrote {args.out}: {len(records)} records "
-          f"({n_join} joins, {n_pay} pays, {n_leave} leaves), "
+          f"({n_join} joins, {n_pay} pays, {n_leave} leaves, {n_raw} raw), "
           f"{len(active)} active / {len(left)} left at end, ts=1..{ts}")
 
 

@@ -20,8 +20,10 @@ const (
 	ActionRawTx Action = "raw_tx"
 )
 
-// RawTxSpec is a plain (non-agent) transfer line. Only sender, recipient and
-// value are inputs; the Host determines nonce and data exactly like for agent
+// RawTxSpec is a plain transfer line. Sender and recipient are each either a
+// 20-byte hex address or the id of a currently active agent (resolved by the
+// Host, enabling normal-account <-> agent transfers); value is a decimal
+// string. The Host determines nonce and data exactly like for agent
 // transactions, so extra fields on a copied plan line are ignored.
 type RawTxSpec struct {
 	Sender    string `json:"sender"`
