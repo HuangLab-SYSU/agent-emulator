@@ -5,7 +5,7 @@
 
 页面为纯静态 HTML + 内联 CSS/JS, 图片使用相对路径引用, 通过 file:// 直接打开即可查看:
   - 页面顺序: 总览 -> 全局交易顺序分布 -> 归一化进度 -> 分组轨迹网格,
-    图 1–4 编号按展示位置连续排列(与 PNG 文件名前缀 fig1/fig2/... 不一一对应)
+    图 1–4 编号与 PNG 文件名前缀(fig1_/fig2_/fig3_/fig4_)一一对应
   - 页面文字(标题/章节/元信息/页脚)支持中英文切换, 右上角按钮或按 L 键切换,
     偏好通过 localStorage 记忆; 图内文字由画图脚本决定, 不受切换影响
 
@@ -30,13 +30,13 @@ FIG1_ENTRY = ("fig1_all_agents_overview",
               "图 1 · 全部 Agent 总览",
               "Fig. 1 · Overview of All Agents")
 
-# 分组轨迹网格(文件名前缀 fig2_*): 展示在页面最后, 编号为图 4
+# 分组轨迹网格(文件名前缀 fig4_*): 展示在页面最后, 编号为图 4
 GROUPS_HEAD_ZH = "图 4 · 分组余额轨迹（每 5 个 Agent 一组）"
 GROUPS_HEAD_EN = "Fig. 4 · Grouped Balance Trajectories (5 Agents per Subfig)"
 
 # 其余单幅图: 展示在图 1(总览)之后、分组网格之前, 按展示位置编号
 TAIL_SINGLES = [
-    ("fig4_global_tx_order",
+    ("fig2_global_tx_order",
      "图 2 · 按全局交易顺序统计的全体 Agent 余额分布",
      "Fig. 2 · Balance Distribution of All Agents by Global Transaction Order"),
     ("fig3_normalized_progress",
@@ -100,7 +100,7 @@ JS = """
 
 
 def collect_pngs(fig_dir: Path):
-    """收集 PNG: 返回 (fig1路径, 其余单幅图[(路径,中文,英文)...], 图2分组列表, 未知图列表)。"""
+    """收集 PNG: 返回 (fig1路径, 其余单幅图[(路径,中文,英文)...], fig4分组列表, 未知图列表)。"""
     pngs = sorted(fig_dir.glob("*.png"))
     fig1 = next((p for p in pngs if p.name.startswith(FIG1_ENTRY[0])), None)
     tail = []
@@ -108,17 +108,17 @@ def collect_pngs(fig_dir: Path):
         match = [p for p in pngs if p.name.startswith(prefix)]
         if match:
             tail.append((match[0], zh, en))
-    known = {FIG1_ENTRY[0]} | {p for p, _, _ in TAIL_SINGLES} | {"fig2"}
-    groups = [p for p in pngs if p.name.startswith("fig2_")]
+    known = {FIG1_ENTRY[0]} | {p for p, _, _ in TAIL_SINGLES} | {"fig4"}
+    groups = [p for p in pngs if p.name.startswith("fig4_")]
     others = [p for p in pngs if not any(p.name.startswith(k) for k in known)]
     return fig1, tail, groups, others
 
 
-def fig2_caption(name: str) -> str:
-    """fig2_agents_001-005.png -> Agent 001–005(语言无关)"""
+def group_caption(name: str) -> str:
+    """fig4_agents_001-005.png -> Agent 001–005(语言无关)"""
     stem = name[:-4] if name.endswith(".png") else name
-    if stem.startswith("fig2_agents_"):
-        pair = stem[len("fig2_agents_"):]
+    if stem.startswith("fig4_agents_"):
+        pair = stem[len("fig4_agents_"):]
         return f"Agent {pair.replace('-', '–')}"
     return stem
 
@@ -200,7 +200,7 @@ def main():
         parts.append('<div class="grid">')
         for p in groups:
             name = html.escape(p.name)
-            cap = html.escape(fig2_caption(p.name))
+            cap = html.escape(group_caption(p.name))
             parts.append(f'<div class="card"><a href="{name}" target="_blank">'
                          f'<img src="{name}" alt="{cap}" loading="lazy"></a>'
                          f'<div class="cap">{cap}</div></div>')
