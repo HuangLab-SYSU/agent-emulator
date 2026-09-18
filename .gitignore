@@ -12,6 +12,11 @@ exp
 # Auto-generated experiment figures and HTML gallery.
 figs/figs_results/
 
+# 仅本地使用, 不入库的 trace 与文档
+# Local-only trace data and docs (kept out of the repository).
+traces/pay_10k.jsonl
+USER_GUIDE.md
+
 # 不要上传可执行文件！
 # Do not upload your executable files!
 **/*.exe
