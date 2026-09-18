@@ -167,8 +167,8 @@ def main():
     fig.savefig(fig_dir / "fig1_all_agents_overview.png")
     plt.close(fig)
 
-    # ------------------------------------------------------------------ 图 2
-    # 每 5 个 agent 一组的余额轨迹, 覆盖全部 agent
+    # ------------------------------------------------------------------ 图 4
+    # 每 5 个 agent 一组的余额轨迹, 覆盖全部 agent(展示在图册最后)
     group_cmap = plt.get_cmap("tab10")
     n_group_figs = 0
     for g in range(0, len(dfs), 5):
@@ -195,7 +195,7 @@ def main():
         ax.tick_params(labelsize=25)
         ax.legend(loc="best", ncol=2, fontsize=20)
         fig.tight_layout()
-        fig.savefig(fig_dir / f"fig2_agents_{first_no}-{last_no}.png")
+        fig.savefig(fig_dir / f"fig4_agents_{first_no}-{last_no}.png")
         plt.close(fig)
         n_group_figs += 1
 
@@ -225,7 +225,7 @@ def main():
     fig.savefig(fig_dir / "fig3_normalized_progress.png")
     plt.close(fig)
 
-    # ------------------------------------------------------------------ 图 4
+    # ------------------------------------------------------------------ 图 2
     # 按全局交易顺序统计: 同一笔交易按 tx_hash 去重。注意: 数据只含出块时间戳,
     # 各文件区块内的行序互不一致(存在先后矛盾), 真实执行顺序不可恢复; 这里采用
     # "区块间按高度、区块内按文件序轮转交错"的确定性顺序, 并以 ±value 增量更新
@@ -285,13 +285,14 @@ def main():
                  "by global transaction order", fontsize=20)
     ax.legend(loc="upper left")
     fig.tight_layout()
-    fig.savefig(fig_dir / "fig4_global_tx_order.png")
+    fig.savefig(fig_dir / "fig2_global_tx_order.png")
     plt.close(fig)
     print(f"全局交易序号: 去重后 {n_unique:,} 笔; "
           f"均值曲线最大绝对值 {np.abs(mean_line).max():.3e} (守恒校验); "
           f"期末与各文件末行 Δbalance 最大偏差 {finals_diff:.1f}")
 
-    print(f"已生成 fig1 总览图 + {n_group_figs} 张 fig2 分组图 + fig3 + fig4 到 {fig_dir}")
+    print(f"已生成 fig1 总览图 + fig2 全局分布图 + fig3 归一化图 "
+          f"+ {n_group_figs} 张 fig4 分组图到 {fig_dir}")
 
 
 if __name__ == "__main__":

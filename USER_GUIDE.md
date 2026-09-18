@@ -212,14 +212,14 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 ### 7.2 图的内容
 
-图片内文字为英文、Times New Roman 字体。**页面上的图 1–4 编号按展示顺序排列**，与 PNG 文件名前缀的对应关系如下：
+图片内文字为英文、Times New Roman 字体。**页面上的图 1–4 编号与 PNG 文件名前缀一一对应**：
 
 | 页面编号 | 内容 | PNG 文件 |
 |---|---|---|
 | 图 1 | 全部 Agent 总览：左"按 Agent ID"右"按 Δbalance 升序"两张期末余额柱状图（统一 y 轴） | `fig1_all_agents_overview.png` |
-| 图 2 | 按全局交易顺序统计的全体 Agent 余额分布：tx_hash 去重后按确定性顺序回放 ±value，展示最小–最大包络、四分位距与均值线（封闭系统均值恒为 0） | `fig4_global_tx_order.png` |
+| 图 2 | 按全局交易顺序统计的全体 Agent 余额分布：tx_hash 去重后按确定性顺序回放 ±value，展示最小–最大包络、四分位距与均值线（封闭系统均值恒为 0） | `fig2_global_tx_order.png` |
 | 图 3 | 按交易进度归一化对齐：各 Agent 自身交易序号拉伸到 0–1 后叠加，附终点均值标注 | `fig3_normalized_progress.png` |
-| 图 4 | 分组余额轨迹：每 5 个 Agent 一张子图，含该 Agent 自己的区块分界虚线与星标 | `fig2_agents_001-005.png` … `fig2_agents_096-100.png` |
+| 图 4 | 分组余额轨迹：每 5 个 Agent 一张子图，含该 Agent 自己的区块分界虚线与星标 | `fig4_agents_001-005.png` … `fig4_agents_096-100.png` |
 
 所有图绘制的是**相对初始余额的变化量 Δbalance = balance − 初始余额**（所有 Agent 初始余额相同且远大于波动幅度，画变化量才能看清细节）。
 
