@@ -6,7 +6,7 @@ base:
   module_root: "."
 experiment:
   seed: 20260903
-  trace: ./traces/minimal.jsonl
+  trace: ./traces/agent=100_txs=10000.jsonl
 chain:
   # When true, each round's transaction plan is automatically executed on a
   # freshly launched BlockEmulator-X cluster (consensus nodes + supervisor):
@@ -23,10 +23,6 @@ loop:
 protocols:
   pay:
     plugin: direct-pay
-  audit:
-    plugin: merkle-audit # onchain-audit | merkle-audit
-    contract_address: "0x0000000000000000000000000000000000000020"
-    batch_size: 100
   identity:
     plugin: did-simple
     contract_address: "0x0000000000000000000000000000000000000030"
