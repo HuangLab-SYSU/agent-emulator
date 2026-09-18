@@ -41,11 +41,6 @@ type Config struct {
 			Plugin          string `yaml:"plugin"`
 			ContractAddress string `yaml:"contract_address"`
 		} `yaml:"pay"`
-		Audit struct {
-			Plugin          string `yaml:"plugin"`
-			ContractAddress string `yaml:"contract_address"`
-			BatchSize       int    `yaml:"batch_size"`
-		} `yaml:"audit"`
 		Identity struct {
 			Plugin          string `yaml:"plugin"`
 			ContractAddress string `yaml:"contract_address"`
@@ -88,16 +83,12 @@ func LoadConfig(path string) (Config, error) {
 		cfg.Loop.MaxRounds = 1
 	}
 
-	if cfg.Protocols.Pay.Plugin == "" || cfg.Protocols.Audit.Plugin == "" || cfg.Protocols.Identity.Plugin == "" {
-		return Config{}, fmt.Errorf("a plugin must be selected for pay, audit, and identity")
+	if cfg.Protocols.Pay.Plugin == "" || cfg.Protocols.Identity.Plugin == "" {
+		return Config{}, fmt.Errorf("a plugin must be selected for pay and identity")
 	}
 
 	if cfg.Protocols.Pay.Plugin != "direct-pay" {
 		return Config{}, fmt.Errorf("initial release only supports protocols.pay.plugin=direct-pay")
-	}
-
-	if cfg.Protocols.Audit.BatchSize <= 0 {
-		cfg.Protocols.Audit.BatchSize = 1
 	}
 
 	return cfg, nil

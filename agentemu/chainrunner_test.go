@@ -44,19 +44,19 @@ func newTestChainRunner(t *testing.T) *ChainRunner {
 	base := filepath.Join(dir, "config.yaml")
 	require.NoError(t, os.WriteFile(base, []byte(baseConfigFixture), 0o644))
 
-	return &ChainRunner{ModuleRoot: dir, BaseConfig: base, WorkRoot: filepath.Join(dir, "chain")}
+	return &ChainRunner{ModuleRoot: dir, BaseConfig: base, WorkRoot: filepath.Join(dir, "results")}
 }
 
 func TestChainRunnerPrepareDerivesConfigAndIPTable(t *testing.T) {
 	c := newTestChainRunner(t)
 
-	roundDir := filepath.Join(c.WorkRoot, roundDirName(1))
-	require.NoError(t, os.MkdirAll(roundDir, 0o755))
+	chainDir := filepath.Join(c.WorkRoot, roundDirName(1), "chain")
+	require.NoError(t, os.MkdirAll(chainDir, 0o755))
 
-	planPath := filepath.Join(roundDir, PlanFileName)
+	planPath := filepath.Join(c.WorkRoot, roundDirName(1), PlanFileName)
 	require.NoError(t, os.WriteFile(planPath, []byte("{}\n"), 0o644))
 
-	cfgPath, tablePath, resultDir, err := c.prepare(roundDir, RoundSpec{Round: 1, PlanPath: planPath, TxCount: 7})
+	cfgPath, tablePath, resultDir, err := c.prepare(chainDir, RoundSpec{Round: 1, PlanPath: planPath, TxCount: 7})
 	require.NoError(t, err)
 
 	raw, err := os.ReadFile(cfgPath)
@@ -74,11 +74,13 @@ func TestChainRunnerPrepareDerivesConfigAndIPTable(t *testing.T) {
 	// tx_number is pinned to the plan size so the supervisor can stop.
 	require.EqualValues(t, 7, derived["supervisor"].(map[string]any)["tx_number"])
 
-	// Mutable paths are redirected into the round dir; network settings are kept.
-	require.Equal(t, roundDir, derived["system"].(map[string]any)["log"].(map[string]any)["log_dir"])
-	require.Equal(t, filepath.Join(roundDir, "boltdb"), derived["consensus_node"].(map[string]any)["blockchain"].(map[string]any)["storage"].(map[string]any)["bolt"].(map[string]any)["file_path_dir"])
-	require.Equal(t, filepath.Join(roundDir, "trie_db"), derived["consensus_node"].(map[string]any)["blockchain"].(map[string]any)["storage"].(map[string]any)["eth_storage"].(map[string]any)["level_file_path_dir"])
-	require.Equal(t, filepath.Join(roundDir, "block_record"), derived["consensus_node"].(map[string]any)["block_record_dir"])
+	// Mutable paths are redirected into the chain dir's logs/data/results
+	// subdirectories; network settings are kept.
+	require.Equal(t, filepath.Join(chainDir, "logs"), derived["system"].(map[string]any)["log"].(map[string]any)["log_dir"])
+	require.Equal(t, filepath.Join(chainDir, "data", "boltdb"), derived["consensus_node"].(map[string]any)["blockchain"].(map[string]any)["storage"].(map[string]any)["bolt"].(map[string]any)["file_path_dir"])
+	require.Equal(t, filepath.Join(chainDir, "data", "trie_db"), derived["consensus_node"].(map[string]any)["blockchain"].(map[string]any)["storage"].(map[string]any)["eth_storage"].(map[string]any)["level_file_path_dir"])
+	require.Equal(t, filepath.Join(chainDir, "data", "block_record"), derived["consensus_node"].(map[string]any)["block_record_dir"])
+	require.Equal(t, filepath.Join(chainDir, "results"), resultDir)
 	require.Equal(t, resultDir, derived["supervisor"].(map[string]any)["result_output_dir"])
 	require.Equal(t, "direct", derived["network"].(map[string]any)["communication_mode"])
 

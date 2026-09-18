@@ -124,6 +124,13 @@ func (r *Runner) Run(ctx context.Context) ([]RoundResult, error) {
 			}
 
 			rr.ChainResultDir = outcome.ResultDir
+
+			// One CSV per agent: every committed transaction it took part in,
+			// read back from the shards' block storages.
+			agentsDir := filepath.Join(outDir, AgentsDirName)
+			if err := WriteAgentCSVs(ctx, outcome.ChainDir, outcome.ShardNum, host.registry, agentsDir); err != nil {
+				return rounds, fmt.Errorf("round %d: %w", round, err)
+			}
 		}
 
 		rounds = append(rounds, rr)

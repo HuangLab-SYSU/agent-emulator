@@ -69,6 +69,8 @@ func (p *PlanSource) ReadTxs(size int64) ([]transaction.Transaction, error) {
 
 		tx, err := p.line2Tx(p.scanner.Bytes())
 		if err != nil {
+			p.close()
+
 			return nil, fmt.Errorf("decode plan line %d: %w", p.line, err)
 		}
 
