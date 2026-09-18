@@ -22,14 +22,16 @@ BlockEmulator-X 集群（plan_source 注入 → 共识 → 上链 → 自动收�
 
 ## 1. 环境准备
 
+支持 macOS / Linux / Windows 三种系统，启动命令见第 2 节，行为完全一致。
+
 | 依赖 | 版本要求 | 验证命令 | 用途 |
 |---|---|---|---|
 | Go | ≥ 1.25 | `go version` | 编译运行仿真器与集群 |
-| Python 3 | ≥ 3.8 | `python3 --version` | 实验后自动绘图 |
+| Python 3 | ≥ 3.8 | `python3 --version`（Windows：`python --version` 或 `py -3 --version`） | 实验后自动绘图 |
 | matplotlib / numpy / pandas | — | `python3 -c "import matplotlib, numpy, pandas"` | 绘图库 |
 
 ```bash
-# Python 绘图库缺失时安装
+# Python 绘图库缺失时安装（Windows 下用 pip，不带 3）
 pip3 install matplotlib numpy pandas
 ```
 
@@ -40,7 +42,7 @@ go build ./...      # 首次编译，验证环境正常
 ```
 
 不需要预先启动任何节点——集群由 agentemu 全自动拉起和回收。
-绘图对字体无额外要求：图内文字使用 Times New Roman（macOS 自带；Linux 若无此字体自动回退到近似衬线字体）。
+绘图对字体无额外要求：图内文字使用 Times New Roman（macOS 与 Windows 系统自带；Linux 若无此字体自动回退到近似衬线字体）。
 
 ## 2. 五分钟上手
 
@@ -61,6 +63,16 @@ bash run_agentemu.sh
 ```bash
 bash run_agentemu.sh my-config.yaml
 ```
+
+**Windows** 系统使用等价的批处理脚本，在 cmd 中运行（或在资源管理器中直接双击 `run_agentemu.bat`）：
+
+```bat
+run_agentemu.bat
+rem 或指定配置：
+run_agentemu.bat my-config.yaml
+```
+
+`run_agentemu.bat` 与 `.sh` 版行为完全一致：编译 → 清理旧结果 → 运行实验 → 自动绘图 → 在默认浏览器打开 HTML 图册。若 `python` 命令不可用，脚本会自动改用 `py -3`。
 
 随时 `Ctrl-C` 可安全终止，集群子进程会被一并清理。
 
@@ -190,13 +202,13 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 ### 7.1 实验结束后自动发生什么
 
-`run_agentemu.sh` 在实验成功结束后自动执行：
+`run_agentemu.sh`（Windows 为 `run_agentemu.bat`）在实验成功结束后自动执行：
 
 1. 定位 `exp/agentemu-results/` 下**编号最大一轮**的 `agents/` 目录（当前单轮即 `round_001/agents`）
 2. 清空 `figs/figs_results/` 里的旧图与旧 `index.html`（避免混入上一轮）
 3. 运行 `figs/python_code/plot_agent_balance.py` 生成全部 PNG
 4. 运行 `figs/python_code/build_fig_html.py` 生成图册页面
-5. 调用系统 `open`（macOS）/ `xdg-open`（Linux）在默认浏览器打开 `figs/figs_results/index.html`
+5. 调用系统 `open`（macOS）/ `xdg-open`（Linux）/ `start`（Windows）在默认浏览器打开 `figs/figs_results/index.html`
 
 ### 7.2 图的内容
 
@@ -239,6 +251,19 @@ python3 figs/python_code/build_fig_html.py
 
 # 打开图册
 open figs/figs_results/index.html        # macOS
+```
+
+Windows 下等价命令（cmd，路径用反斜杠；`python` 不可用时改用 `py -3`）：
+
+```bat
+python figs\python_code\plot_agent_balance.py
+python figs\python_code\build_fig_html.py
+
+python figs\python_code\plot_agent_balance.py --data-dir exp\agentemu-results\round_001\agents --fig-dir figs\figs_results
+python figs\python_code\build_fig_html.py --data-dir exp\agentemu-results\round_001\agents
+
+rem 打开图册
+start "" figs\figs_results\index.html
 ```
 
 两个脚本的参数：
@@ -321,6 +346,9 @@ df = pd.read_csv('exp/agentemu-results/round_001/agents/agent-001.csv',
 
 **Q10：结果可以复现吗？**
 可以。同 seed + 同 trace + 同代码，计划文件、映射、事件 CSV 逐字节一致；Agent 账本按确定性全局顺序生成。链上侧的打包时序受运行时影响（与 BlockEmulator-X 本身一致），因此图 2 的中间包络形态每次可能略有不同，但期末值与守恒关系不变。
+
+**Q11（Windows）：提示 "python 不是内部或外部命令"，或运行 python 却弹出了 Microsoft Store？**
+说明 Python 未真正安装或未加入 PATH：从 [python.org](https://www.python.org/downloads/windows/) 安装时勾选 "Add python.exe to PATH"；或直接改用 Windows 自带的启动器 `py -3`（`run_agentemu.bat` 已自动回退到它）。安装后记得 `pip install matplotlib numpy pandas`。
 
 ## 10. 已知限制
 
