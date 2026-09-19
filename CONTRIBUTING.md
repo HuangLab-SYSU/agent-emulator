@@ -1,6 +1,7 @@
-# Contributing to BlockEmulator
+# Contributing to AgentEmulator
 
-Welcome to BlockEmulator!
+Welcome to AgentEmulator!
+AgentEmulator is a simulation and experiment platform for trustworthy AI-agent infrastructure, built on top of BlockEmulator-X.
 This document describes how to contribute code, documentation, tests, and other improvements.
 
 ## Background
@@ -32,7 +33,7 @@ This document describes how to contribute code, documentation, tests, and other 
 
     - Communicates what contributors and behaviors are welcomed, fostering a healthy community environment.
 
-## BlockEmulator Directory Conventions
+## AgentEmulator Directory Conventions
 
 Go projects generally follow these conventions:
 
@@ -43,21 +44,30 @@ Go projects generally follow these conventions:
 
 3. The module field in `go.mod` should use a GitHub-style path that others can directly import.
 
-### BlockEmulator Directory Structure
+### AgentEmulator Directory Structure
 
 (Generated using `tree -Ld 2`)
 
 ```
+├── agentsupervisor
 ├── cmd
+│   ├── agentemu
 │   ├── consensusnode
+│   ├── generatecontracttxfile
 │   ├── loadnetwork
 │   └── supervisor
 ├── config
 ├── consensus
 │   └── pbft
+├── docs
+│   ├── figures
+│   └── scripts
+├── figs
+│   └── python_code
 ├── pkg
 │   ├── broker
 │   ├── chain
+│   ├── contractexec
 │   ├── core
 │   ├── csvwrite
 │   ├── logger
@@ -66,11 +76,15 @@ Go projects generally follow these conventions:
 │   ├── nodetopo
 │   ├── partition
 │   ├── storage
-│   └── utils
-└── supervisor
-    ├── committee
-    ├── measure
-    └── txsource
+│   ├── utils
+│   └── vm
+├── scripts
+│   └── ci
+├── supervisor
+│   ├── committee
+│   ├── measure
+│   └── txsource
+└── traces
 ```
 
 > **If updates occur in the future, regenerate the structure using: `tree -Ld 2`.**
@@ -326,15 +340,16 @@ How developers should correctly submit changes to the repository:
 
 ### Actual Required Steps
 
-1. Read all development conventions, including Go practices and BlockEmulator directory rules.
+1. Read all development conventions, including Go practices and AgentEmulator directory rules.
 
 2. Fork the repo, develop in the appropriate package, and ensure correctness via unit tests.
 
-3. Run multi-node BlockEmulator to test functionality:
-    - At least 4 × 4 nodes (4 shards × 4 nodes per shard)
+3. Run a full AgentEmulator experiment to validate your changes:
+    - `bash run_agentemu.sh` with the default trace (it launches a 4 × 4 BlockEmulator-X cluster automatically)
     - Ensure changes are valid
     - All transactions must be committed
     - No Error/Warn in logs
+    - Per-agent CSV ledgers and balance figures are produced correctly
     - Supervisor statistics match expectations
 
 4. Run lint and fix formatting: `golangci-lint run ./... --fix`
@@ -345,7 +360,7 @@ How developers should correctly submit changes to the repository:
 
 ## Thank You
 
-Thank you for taking the time to contribute to BlockEmulator.
+Thank you for taking the time to contribute to AgentEmulator.
 Every issue, pull request, line of code, and idea helps improve the project and move it forward.
 We deeply appreciate your effort, your attention to quality, and your willingness to collaborate.
-Together, we can continue building a more robust, efficient, and innovative BlockEmulator.
+Together, we can continue building a more robust, efficient, and innovative AgentEmulator.
