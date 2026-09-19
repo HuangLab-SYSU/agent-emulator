@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/HuangLab-SYSU/block-emulator-x/agentemu"
+	"github.com/HuangLab-SYSU/block-emulator-x/agentsupervisor"
 )
 
 func main() {
@@ -23,21 +23,21 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	cfg, err := agentemu.LoadConfig(*configPath)
+	cfg, err := agentsupervisor.LoadConfig(*configPath)
 	if err != nil {
 		slog.Error("load config", "err", err)
 		os.Exit(1)
 	}
 
-	records, err := agentemu.LoadTrace(cfg.Experiment.Trace)
+	records, err := agentsupervisor.LoadTrace(cfg.Experiment.Trace)
 	if err != nil {
 		slog.Error("load trace", "err", err)
 		os.Exit(1)
 	}
 
-	var chain *agentemu.ChainRunner
+	var chain *agentsupervisor.ChainRunner
 	if cfg.Chain.Enabled {
-		chain = &agentemu.ChainRunner{
+		chain = &agentsupervisor.ChainRunner{
 			ModuleRoot: cfg.Base.ModuleRoot,
 			BaseConfig: cfg.Base.BlockEmulatorConfig,
 			// One round's chain execution nests in <ResultDir>/round_%03d/chain.
@@ -54,7 +54,7 @@ func main() {
 	// After the plan is produced, the chain (when enabled) replays it on a
 	// freshly launched BlockEmulator-X cluster; the loop is reserved for
 	// multi-round feedback via the AgentAPI hook.
-	runner := &agentemu.Runner{Cfg: cfg, Records: records, Chain: chain}
+	runner := &agentsupervisor.Runner{Cfg: cfg, Records: records, Chain: chain}
 
 	rounds, err := runner.Run(ctx)
 	for _, rr := range rounds {
@@ -75,6 +75,6 @@ func main() {
 	fmt.Printf(
 		"agentemu finished %d round(s); summary at %s\n",
 		len(rounds),
-		filepath.Join(cfg.Base.ResultDir, agentemu.RoundSummaryFile),
+		filepath.Join(cfg.Base.ResultDir, agentsupervisor.RoundSummaryFile),
 	)
 }

@@ -291,7 +291,7 @@ Figures are regenerated from scratch on every experiment run; a failed experimen
 
 - **Clean before re-running**: `rm -rf ./exp/agentemu-results` — output files are created exclusively, and a stale `agent_registry.json` would suppress re-registration of already-active agents.
 - **Contract placeholders**: the DID contract calls target configured addresses that are not deployed in this release; the EVM executes them as no-ops, so they act as on-chain calldata records. Plain `pay` transfers are real balance moves.
-- **Multi-round loop**: the `AgentAPI`/`EndCondition` hooks in `agentemu/loop.go` are reserved for feedback-driven stories (e.g. an HTTP agent service); the default runs exactly one round.
+- **Multi-round loop**: the `AgentAPI`/`EndCondition` hooks in `agentsupervisor/loop.go` are reserved for feedback-driven stories (e.g. an HTTP agent service); the default runs exactly one round.
 
 > -----------------------------------------------------
 ## 3. System Architecture Design

@@ -1,4 +1,4 @@
-package agentemu
+package agentsupervisor
 
 import (
 	"context"
@@ -43,7 +43,7 @@ type ChainOutcome struct {
 }
 
 // ChainRunner launches a private BlockEmulator-X cluster (consensus nodes plus
-// supervisor) that replays the transaction plan produced by Host. It derives a
+// supervisor) that replays the transaction plan produced by AgentSupervisor. It derives a
 // self-contained config and ip table per round, so rounds never share mutable
 // state such as bolt/level databases or block records.
 type ChainRunner struct {
