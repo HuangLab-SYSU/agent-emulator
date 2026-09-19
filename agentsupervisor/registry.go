@@ -1,4 +1,4 @@
-package agentemu
+package agentsupervisor
 
 import (
 	"crypto/sha256"

@@ -1,4 +1,4 @@
-package agentemu
+package agentsupervisor
 
 import (
 	"bufio"
@@ -59,8 +59,8 @@ type ActionTxLink struct {
 	TxHashes   []string `json:"tx_hashes"`
 }
 
-// Host compiles lifecycle and payment actions into existing transactions.
-type Host struct {
+// AgentSupervisor compiles lifecycle and payment actions into existing transactions.
+type AgentSupervisor struct {
 	cfg          Config
 	abi          abi.ABI
 	nonces       map[account.Address]uint64
@@ -72,7 +72,7 @@ type Host struct {
 	curLink      int
 }
 
-func NewHost(cfg Config) (*Host, error) {
+func NewAgentSupervisor(cfg Config) (*AgentSupervisor, error) {
 	parsed, err := abi.JSON(strings.NewReader(contractABI))
 	if err != nil {
 		return nil, fmt.Errorf("parse built-in contract ABI: %w", err)
@@ -87,7 +87,7 @@ func NewHost(cfg Config) (*Host, error) {
 		return nil, err
 	}
 
-	return &Host{
+	return &AgentSupervisor{
 		cfg:          cfg,
 		abi:          parsed,
 		nonces:       make(map[account.Address]uint64),
@@ -96,20 +96,20 @@ func NewHost(cfg Config) (*Host, error) {
 	}, nil
 }
 
-func (h *Host) Process(records []Record) (Result, error) {
+func (s *AgentSupervisor) Process(records []Record) (Result, error) {
 	for _, record := range records {
-		if err := h.process(record); err != nil {
+		if err := s.process(record); err != nil {
 			return Result{}, fmt.Errorf("process trace line %d: %w", record.Seq, err)
 		}
 	}
 
-	return Result{Transactions: h.txs, Metrics: h.metrics}, nil
+	return Result{Transactions: s.txs, Metrics: s.metrics}, nil
 }
 
-func (h *Host) process(record Record) error {
+func (s *AgentSupervisor) process(record Record) error {
 	// Every transaction compiled below is attributed to this action's link.
-	h.curLink = len(h.links)
-	h.links = append(h.links, ActionTxLink{
+	s.curLink = len(s.links)
+	s.links = append(s.links, ActionTxLink{
 		Seq:        record.Seq,
 		Action:     record.Action,
 		AgentID:    record.AgentID,
@@ -122,20 +122,20 @@ func (h *Host) process(record Record) error {
 
 	switch record.Action {
 	case ActionJoin:
-		return h.processJoin(record)
+		return s.processJoin(record)
 	case ActionLeave:
-		return h.processLeave(record)
+		return s.processLeave(record)
 	case ActionPay:
-		return h.processPay(record)
+		return s.processPay(record)
 	case ActionRawTx:
-		return h.processRawTx(record)
+		return s.processRawTx(record)
 	default:
 		return fmt.Errorf("unsupported action %q", record.Action)
 	}
 }
 
-func (h *Host) processJoin(record Record) error {
-	agent, changed, err := h.registry.Join(record.AgentID)
+func (s *AgentSupervisor) processJoin(record Record) error {
+	agent, changed, err := s.registry.Join(record.AgentID)
 	if err != nil {
 		return err
 	}
@@ -144,25 +144,25 @@ func (h *Host) processJoin(record Record) error {
 		return nil
 	}
 
-	return h.processIdentity(record, agent, "register")
+	return s.processIdentity(record, agent, "register")
 }
 
-func (h *Host) processLeave(record Record) error {
-	agent, err := h.registry.Leave(record.AgentID)
+func (s *AgentSupervisor) processLeave(record Record) error {
+	agent, err := s.registry.Leave(record.AgentID)
 	if err != nil {
 		return err
 	}
 
-	return h.processIdentity(record, agent, "revoke")
+	return s.processIdentity(record, agent, "revoke")
 }
 
-func (h *Host) processPay(record Record) error {
-	fromAgent, err := h.registry.Active(record.AgentID)
+func (s *AgentSupervisor) processPay(record Record) error {
+	fromAgent, err := s.registry.Active(record.AgentID)
 	if err != nil {
 		return err
 	}
 
-	toAgent, err := h.registry.Active(record.Target)
+	toAgent, err := s.registry.Active(record.Target)
 	if err != nil {
 		return err
 	}
@@ -177,9 +177,9 @@ func (h *Host) processPay(record Record) error {
 		return err
 	}
 
-	h.appendTx(from, to, record.Amount, nil, record.TS)
-	h.linkLastTxTo(h.curLink)
-	h.metric("pay_onchain", record)
+	s.appendTx(from, to, record.Amount, nil, record.TS)
+	s.linkLastTxTo(s.curLink)
+	s.metric("pay_onchain", record)
 
 	return nil
 }
@@ -187,7 +187,7 @@ func (h *Host) processPay(record Record) error {
 // processRawTx compiles a plain transfer line like any other transaction:
 // only sender, recipient and value come from the trace, while the nonce is
 // taken from the shared per-sender counter and data stays empty.
-func (h *Host) processRawTx(record Record) error {
+func (s *AgentSupervisor) processRawTx(record Record) error {
 	spec := record.RawTx
 
 	from, err := rawTxAddr(spec.Sender, "sender")
@@ -209,9 +209,9 @@ func (h *Host) processRawTx(record Record) error {
 		return fmt.Errorf("raw tx value %s exceeds uint64", value)
 	}
 
-	h.appendTx(from, to, value.Uint64(), nil, record.TS)
-	h.linkLastTxTo(h.curLink)
-	h.metrics = append(h.metrics, MetricEvent{Kind: "raw_tx", TS: record.TS, Value: value.Uint64()})
+	s.appendTx(from, to, value.Uint64(), nil, record.TS)
+	s.linkLastTxTo(s.curLink)
+	s.metrics = append(s.metrics, MetricEvent{Kind: "raw_tx", TS: record.TS, Value: value.Uint64()})
 
 	return nil
 }
@@ -234,7 +234,7 @@ func rawTxAddr(hexAddr, field string) (account.Address, error) {
 	return addr, nil
 }
 
-func (h *Host) processIdentity(record Record, agent Agent, operation string) error {
+func (s *AgentSupervisor) processIdentity(record Record, agent Agent, operation string) error {
 	from, err := didAddress(agent.DID)
 	if err != nil {
 		return err
@@ -247,9 +247,9 @@ func (h *Host) processIdentity(record Record, agent Agent, operation string) err
 	switch operation {
 	case "register":
 		docHash := sha256.Sum256([]byte(record.ParamsHash))
-		data, err = h.abi.Pack("register", didHash, docHash)
+		data, err = s.abi.Pack("register", didHash, docHash)
 	case "revoke":
-		data, err = h.abi.Pack("revoke", didHash)
+		data, err = s.abi.Pack("revoke", didHash)
 	default:
 		return fmt.Errorf("unknown DID operation %q", operation)
 	}
@@ -258,67 +258,67 @@ func (h *Host) processIdentity(record Record, agent Agent, operation string) err
 		return fmt.Errorf("pack DID operation: %w", err)
 	}
 
-	if err := h.appendContractTx(from, h.cfg.Protocols.Identity.ContractAddress, data, record.TS); err != nil {
+	if err := s.appendContractTx(from, s.cfg.Protocols.Identity.ContractAddress, data, record.TS); err != nil {
 		return err
 	}
 
-	h.linkLastTxTo(h.curLink)
-	h.metric("did_"+operation, record)
+	s.linkLastTxTo(s.curLink)
+	s.metric("did_"+operation, record)
 
 	return nil
 }
 
-func (h *Host) appendTx(from, to account.Address, amount uint64, data []byte, ts int64) {
-	nonce := h.nonces[from]
-	h.nonces[from]++
+func (s *AgentSupervisor) appendTx(from, to account.Address, amount uint64, data []byte, ts int64) {
+	nonce := s.nonces[from]
+	s.nonces[from]++
 	tx := transaction.NewTransaction(from, to, new(big.Int).SetUint64(amount), big.NewInt(0), nonce, time.UnixMilli(ts))
 	tx.Data = data
-	h.txs = append(h.txs, *tx)
+	s.txs = append(s.txs, *tx)
 }
 
 // linkLastTxTo records the hash of the most recently appended transaction in
 // the given action's link.
-func (h *Host) linkLastTxTo(linkIdx int) {
-	hash, err := h.txs[len(h.txs)-1].Hash()
+func (s *AgentSupervisor) linkLastTxTo(linkIdx int) {
+	hash, err := s.txs[len(s.txs)-1].Hash()
 	if err != nil {
 		// Hashing a well-formed transaction does not fail; the plan writer
 		// surfaces such an error for every transaction anyway.
 		return
 	}
 
-	h.links[linkIdx].TxHashes = append(h.links[linkIdx].TxHashes, hex.EncodeToString(hash))
+	s.links[linkIdx].TxHashes = append(s.links[linkIdx].TxHashes, hex.EncodeToString(hash))
 }
 
-func (h *Host) appendContractTx(from account.Address, address string, data []byte, ts int64) error {
+func (s *AgentSupervisor) appendContractTx(from account.Address, address string, data []byte, ts int64) error {
 	to, err := utils.Hex2Addr(address)
 	if err != nil {
 		return fmt.Errorf("parse contract address: %w", err)
 	}
 
-	h.appendTx(from, to, 0, data, ts)
+	s.appendTx(from, to, 0, data, ts)
 
 	return nil
 }
 
-func (h *Host) metric(kind string, record Record) {
-	h.metrics = append(
-		h.metrics,
+func (s *AgentSupervisor) metric(kind string, record Record) {
+	s.metrics = append(
+		s.metrics,
 		MetricEvent{Kind: kind, TS: record.TS, RequestID: record.RequestID, Value: record.Amount},
 	)
 }
 
 // WriteResult persists the shared agent registry and writes the round's
 // transaction plan, metric events and the action-to-transaction map into dir.
-func (h *Host) WriteResult(dir string, result Result) error {
+func (s *AgentSupervisor) WriteResult(dir string, result Result) error {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("create result directory: %w", err)
 	}
 
-	if err := h.registry.Write(h.registryPath); err != nil {
+	if err := s.registry.Write(s.registryPath); err != nil {
 		return err
 	}
 
-	if err := writeActionTxMap(dir, h.links); err != nil {
+	if err := writeActionTxMap(dir, s.links); err != nil {
 		return err
 	}
 

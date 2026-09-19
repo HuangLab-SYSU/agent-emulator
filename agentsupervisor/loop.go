@@ -1,4 +1,4 @@
-package agentemu
+package agentsupervisor
 
 import (
 	"context"
@@ -94,18 +94,18 @@ func (r *Runner) Run(ctx context.Context) ([]RoundResult, error) {
 	rounds := make([]RoundResult, 0, 1)
 
 	for round := 1; ; round++ {
-		host, err := NewHost(r.Cfg)
+		sup, err := NewAgentSupervisor(r.Cfg)
 		if err != nil {
-			return rounds, fmt.Errorf("round %d: create host: %w", round, err)
+			return rounds, fmt.Errorf("round %d: create agent supervisor: %w", round, err)
 		}
 
-		result, err := host.Process(records)
+		result, err := sup.Process(records)
 		if err != nil {
 			return rounds, fmt.Errorf("round %d: %w", round, err)
 		}
 
 		outDir := filepath.Join(r.Cfg.Base.ResultDir, roundDirName(round))
-		if err := host.WriteResult(outDir, result); err != nil {
+		if err := sup.WriteResult(outDir, result); err != nil {
 			return rounds, fmt.Errorf("round %d: %w", round, err)
 		}
 
@@ -128,7 +128,7 @@ func (r *Runner) Run(ctx context.Context) ([]RoundResult, error) {
 			// One CSV per agent: every committed transaction it took part in,
 			// read back from the shards' block storages.
 			agentsDir := filepath.Join(outDir, AgentsDirName)
-			if err := WriteAgentCSVs(ctx, outcome.ChainDir, outcome.ShardNum, host.registry, agentsDir); err != nil {
+			if err := WriteAgentCSVs(ctx, outcome.ChainDir, outcome.ShardNum, sup.registry, agentsDir); err != nil {
 				return rounds, fmt.Errorf("round %d: %w", round, err)
 			}
 		}

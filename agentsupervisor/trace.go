@@ -1,4 +1,4 @@
-package agentemu
+package agentsupervisor
 
 import (
 	"bufio"
@@ -21,7 +21,7 @@ const (
 )
 
 // RawTxSpec is a plain (non-agent) transfer line. Only sender, recipient and
-// value are inputs; the Host determines nonce and data exactly like for agent
+// value are inputs; the AgentSupervisor determines nonce and data exactly like for agent
 // transactions, so extra fields on a copied plan line are ignored.
 type RawTxSpec struct {
 	Sender    string `json:"sender"`

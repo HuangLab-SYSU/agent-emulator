@@ -1,4 +1,4 @@
-package agentemu
+package agentsupervisor
 
 import (
 	"encoding/hex"
@@ -31,9 +31,9 @@ func testConfig(t *testing.T) Config {
 }
 
 func TestHostAssignsDIDsAndCompilesLifecycleAndPayment(t *testing.T) {
-	host, err := NewHost(testConfig(t))
+	sup, err := NewAgentSupervisor(testConfig(t))
 	require.NoError(t, err)
-	result, err := host.Process([]Record{
+	result, err := sup.Process([]Record{
 		{AgentID: "alice", Action: ActionJoin, ParamsHash: "doc-a", TS: 1, Seq: 1},
 		{AgentID: "bob", Action: ActionJoin, ParamsHash: "doc-b", TS: 2, Seq: 2},
 		{AgentID: "alice", Target: "bob", Action: ActionPay, Amount: 3, TS: 3, Seq: 3},
@@ -44,7 +44,7 @@ func TestHostAssignsDIDsAndCompilesLifecycleAndPayment(t *testing.T) {
 	require.Len(t, result.Metrics, 4)
 	require.Empty(t, result.Transactions[2].Data)
 	require.EqualValues(t, 3, result.Transactions[2].Value.Int64())
-	require.NoError(t, host.WriteResult(t.TempDir(), result))
+	require.NoError(t, sup.WriteResult(t.TempDir(), result))
 
 	registry, err := LoadRegistry(t.TempDir()+"/missing.json", 42)
 	require.NoError(t, err)
@@ -55,9 +55,9 @@ func TestHostAssignsDIDsAndCompilesLifecycleAndPayment(t *testing.T) {
 }
 
 func TestPaymentRequiresJoinedAgents(t *testing.T) {
-	host, err := NewHost(testConfig(t))
+	sup, err := NewAgentSupervisor(testConfig(t))
 	require.NoError(t, err)
-	_, err = host.Process([]Record{{AgentID: "alice", Target: "bob", Action: ActionPay, Amount: 7, TS: 1, Seq: 1}})
+	_, err = sup.Process([]Record{{AgentID: "alice", Target: "bob", Action: ActionPay, Amount: 7, TS: 1, Seq: 1}})
 	require.ErrorContains(t, err, "join action is required")
 }
 
@@ -76,10 +76,10 @@ func TestHostCompilesPlainTransfersWithSharedNonces(t *testing.T) {
 		Value:     "9",
 	}
 
-	host, err := NewHost(cfg)
+	sup, err := NewAgentSupervisor(cfg)
 	require.NoError(t, err)
 
-	result, err := host.Process([]Record{
+	result, err := sup.Process([]Record{
 		{AgentID: "alice", Action: ActionJoin, ParamsHash: "doc-a", TS: 1, Seq: 1},
 		{AgentID: "bob", Action: ActionJoin, ParamsHash: "doc-b", TS: 2, Seq: 2},
 		{Action: ActionRawTx, RawTx: spec, TS: 2, Seq: 3},
@@ -114,7 +114,7 @@ func TestHostCompilesPlainTransfersWithSharedNonces(t *testing.T) {
 	// The plain transfer appears in the action map with exactly one hash, and
 	// the mapped hashes still equal the plan's transaction set.
 	outDir := t.TempDir()
-	require.NoError(t, host.WriteResult(outDir, result))
+	require.NoError(t, sup.WriteResult(outDir, result))
 
 	rawMap, err := os.ReadFile(filepath.Join(outDir, ActionTxMapFileName))
 	require.NoError(t, err)
@@ -154,10 +154,10 @@ func TestHostActionTxMapLinksIntentToHashes(t *testing.T) {
 	cfg := testConfig(t)
 	cfg.Base.ResultDir = t.TempDir()
 
-	host, err := NewHost(cfg)
+	sup, err := NewAgentSupervisor(cfg)
 	require.NoError(t, err)
 
-	result, err := host.Process([]Record{
+	result, err := sup.Process([]Record{
 		{AgentID: "alice", Action: ActionJoin, ParamsHash: "doc-a", TS: 1, Seq: 1},
 		{AgentID: "bob", Action: ActionJoin, ParamsHash: "doc-b", TS: 2, Seq: 2},
 		{AgentID: "alice", Target: "bob", Action: ActionPay, Amount: 5, RequestID: "p1", TS: 3, Seq: 3},
@@ -167,7 +167,7 @@ func TestHostActionTxMapLinksIntentToHashes(t *testing.T) {
 	require.Len(t, result.Transactions, 4)
 
 	outDir := t.TempDir()
-	require.NoError(t, host.WriteResult(outDir, result))
+	require.NoError(t, sup.WriteResult(outDir, result))
 
 	raw, err := os.ReadFile(filepath.Join(outDir, ActionTxMapFileName))
 	require.NoError(t, err)
