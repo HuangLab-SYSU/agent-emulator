@@ -24,7 +24,7 @@ AgentEmulator 实验平台的**设计目标**是简化 AI Agent 相关的实验�
 
 
 
-![AgentEmulator 用户视角的工作流程图](docs/figures/svgs/AgentEmulator_workflow_202609201034.svg)
+![AgentEmulator 用户视角的工作流程图](docs/figures/svgs/AgentEmulator_workflow_202609201040.svg)
 
 
 **图 1.  AgentEmulator 的 general purpose** (并不只是对应于当前 v1.0 版本)。其中，“用户自定义 机制/算法” 具有非常大的自由发挥空间，是用户二次开发、自由创新之地。
