@@ -8,7 +8,7 @@ AgentEmulator 是由**中山大学·软件工程学院·黄华威研究组（[Hu
 
 
 
-AgentEmulator 是面向 AI 智能体行为与区块链相结合场景的、基于 BlockEmulator-X 构建的**实验工具**。其中，BlockEmulator-X 是 HuangLab 于2026年6月开源的区块链仿真实验工具，是初代 BlockEmulator 的升级迭代版本，其 GitHub 代码仓库地址为 https://github.com/HuangLab-SYSU/block-emulator-x 。
+AgentEmulator 是面向 AI 智能体行为与区块链相结合的场景、基于 BlockEmulator-X 构建的**实验工具**。其中，BlockEmulator-X 是 HuangLab 于2026年6月开源的区块链仿真实验工具，是初代 BlockEmulator 的升级迭代版本，其 GitHub 代码仓库地址为 [github.com/HuangLab-SYSU/block-emulator-x](https://github.com/HuangLab-SYSU/block-emulator-x) 。
 
 
 
@@ -22,7 +22,7 @@ AgentEmulator 实验平台的**设计目标**是简化 AI Agent 相关的实验�
 
 
 
-![AgentEmulator 用户视角的工作流程图](docs/figures/svgs/AgentEmulator_workflow_202609201040.svg)
+![AgentEmulator 用户视角的工作流程图](docs/figures/svgs/AgentEmulator_workflow_202609202005.svg)
 
 **图 1.  AgentEmulator 的 general purpose** (并不只是对应于当前 v1.0 版本)。其中，“用户自定义 机制/算法” 具有非常大的自由发挥空间，是用户二次开发、自由创新之地。
 
@@ -48,11 +48,11 @@ AgentEmulator 将围绕 AI Agent 的“身份”“结算”“审计”“激�
 
 ## 当前发布版本 v1.0
 
-**当前发布的是 AgentEmulator v1.0，支持基于 Trace（实验输入数据）的基础行为回放、身份注册与注销留痕、逐笔直接支付，以及实验数据记录和可视化。** 实验人员使用 JSONL 格式的 Trace 文件描述 Agent 的**加入**、**转账**和**退出**行为；AgentEmulator 中的 agentSupervisor 模块将 Trace 文件编译为交易数据集，并调用 BlockEmulator-X 启动区块链环境、执行交易、并将交易执行结果上链记录。实验完成后，AgentEmulator 系统会记录交易与 Agent 账户的相关数据，自动绘制余额变化图集，并生成支持中英文切换的 HTML 实验结果页面（由启动脚本在默认浏览器中打开展示）。
+**当前发布的是 AgentEmulator v1.0，支持基于 Trace（实验输入数据）的基础行为回放、身份注册与注销留痕、逐笔直接支付，以及实验数据记录和可视化。** 实验人员使用 JSONL 格式的 Trace 文件描述 Agent 的“**加入**”、“**转账**”和“**退出**”行为；AgentEmulator 中的 agentSupervisor 模块将 Trace 文件编译为交易数据集，并调用 BlockEmulator-X 启动区块链环境、执行交易、并将交易执行结果上链记录。实验完成后，AgentEmulator 系统会记录交易与 Agent 账户的相关数据，自动绘制余额变化图集，并生成支持中英文切换的 HTML 实验结果页面（由启动脚本在默认浏览器中打开展示）。
 
 
 
-AgentEmulator v1.0 中，Agent 行为由 Trace 文件预先定义，采用“原始用户指定顺序”（Original User-specified Sequence）策略，按照实验输入中指定的交易顺序执行交易，尚未集成额外的交易编排机制或调度算法。实验人员可在此基础上探索和实现自定义机制，例如调整交易的执行顺序，或根据交易优先级、Agent 权重等规则编排交易。
+AgentEmulator v1.0 中，Agent 行为由 Trace 文件预先定义，采用“用户原始指定顺序”（User-specified Original Sequence）策略，按照实验输入中指定的交易顺序执行交易，尚未集成额外的交易编排机制或调度算法。实验人员可在此基础上探索和实现自定义机制，例如调整交易的执行顺序，或根据交易优先级、Agent 权重等规则编排交易。
 
 AgentEmulator 后续版本将持续升级迭代，逐步扩展协议、实验场景和评测能力。欢迎实验人员结合具体研究需求扩展示例代码，设计并验证不同机制或算法对实验结果的影响。
 
@@ -70,18 +70,18 @@ GitHub 代码仓库地址为：https://github.com/HuangLab-SYSU/agent-emulator
 
 本节介绍 AgentEmulator 中的主要术语，帮助实验人员理解系统组成、输入文件和配置文件之间的关系。AgentEmulator 的基本工作流程是：**实验人员通过 Trace 文件描述 Agent 行为；AgentEmulator 中的 agentSupervisor 模块将 Trace 文件编译为交易数据集，并调用 BlockEmulator-X 执行其中的交易；AgentEmulator 随后记录实验数据并展示实验结果。**
 
-|术语|说明|
-|---|---|
-|AgentEmulator|基于 BlockEmulator-X 构建的 Agent 行为仿真模拟器，将输入的 Agent 行为转换为区块链交易并记录上链，自动记录实验日志并展示实验结果。|
-|Agent|实验中执行行为的主体，可按照 Trace 文件中的描述执行“加入”、“支付”和“退出”操作。|
-|BlockEmulator-X|AgentEmulator 的底层区块链仿真平台，负责节点运行、共识出块、交易执行和链上数据记录。（GitHub 代码仓库地址为 github.com/HuangLab-SYSU/block-emulator-x）|
-|Trace 文件|描述 Agent 行为序列的实验输入文件，采用 JSONL 格式，每行记录一次 Agent 行为或一笔普通转账。|
-|agentEmuConfig.yaml 文件|AgentEmulator 的实验配置文件，用于指定 Trace 文件、身份派生种子、结果目录，以及是否启动区块链等参数。|
-|config.yaml 文件|BlockEmulator-X 的区块链配置模板，用于设置分片数量、节点数量、出块间隔等底层参数。|
-|agentSupervisor|AgentEmulator 的实验调度模块，负责读取配置和 Trace 文件、将行为编译为交易数据集，并组织底层区块链运行及实验数据输出。|
-|agent_id|实验人员在 Trace 文件中为 Agent 指定的唯一标识，例如 agent-alice，用于区分不同 Agent 并关联其行为记录。|
-|seed|在 agentEmuConfig.yaml 中设置的身份派生种子，系统将其与 agent_id 结合生成 DID。相同的种子与 Agent 标识会生成相同的 DID。|
-|DID|去中心化 ID（Decentralized Identifier），用于标识 Agent 的身份，由系统根据 seed 和 agent_id 自动生成，无需在 Trace 文件中手动填写。|
+|术语| 说明                                                                                                          |
+|---|-------------------------------------------------------------------------------------------------------------|
+|AgentEmulator| 基于 BlockEmulator-X 构建的 Agent 行为仿真模拟器，将输入的 Agent 行为转换为区块链交易并记录上链，自动记录实验日志并展示实验结果。                            |
+|Agent| 实验中执行行为的主体，可按照 Trace 文件中的描述执行“加入”、“支付”和“退出”操作。                                                              |
+|BlockEmulator-X| AgentEmulator 的底层区块链仿真平台，负责节点运行、共识出块、交易执行和链上数据记录。（GitHub 代码仓库地址为 github.com/HuangLab-SYSU/block-emulator-x） |
+|Trace 文件| 描述 Agent 行为序列的实验输入文件，采用 JSONL 格式，每行记录一次 Agent 行为或一笔普通转账。                                                    |
+|agentEmuConfig.yaml 文件| AgentEmulator 的实验配置文件，用于指定 Trace 文件、身份派生 seed、结果目录，以及是否启动区块链等参数。                                            |
+|config.yaml 文件| BlockEmulator-X 的区块链配置模板，用于设置区块链的分片数量、节点数量、出块间隔等底层参数。                                                       |
+|agentSupervisor| AgentEmulator 的实验调度模块，负责读取配置和 Trace 文件、将行为编译为交易数据集，并组织底层区块链运行及实验数据输出。                                       |
+|agent_id| 实验人员在 Trace 文件中为 Agent 指定的唯一标识，例如 agent-alice，用于区分不同 Agent 并关联其行为记录。                                        |
+|seed| 在 agentEmuConfig.yaml 中设置的身份派生种子，系统将其与 agent_id 结合生成 DID。相同的种子与 Agent 标识会生成相同的 DID。                         |
+|DID| 去中心化 ID（Decentralized Identifier），用于标识 Agent 的身份，由系统根据 seed 和 agent_id 自动生成，无需在 Trace 文件中手动填写。              |
 
 
 
@@ -93,9 +93,9 @@ GitHub 代码仓库地址为：https://github.com/HuangLab-SYSU/agent-emulator
 
 
 
+
+
 ![AgentEmulator 的模块架构图](docs/figures/svgs/AgentEmulator_模块架构图_202609201346.svg)
-
-
 
 ---
 
@@ -144,9 +144,9 @@ run_agentemu.bat my-config.yaml
 
 
 
-实验人员可随时按下 `Ctrl-C` 安全终止实验，随后 BlockEmulator-X 启动的节点子进程会被一并清理。
+实验人员可随时按下 `Ctrl-C` 安全终止实验，随后 BlockEmulator-X 启动的共识节点子进程将一并被清理。
 
-> **注意**：实验失败时不会执行绘图步骤；另外，每次运行前，脚本文件会先清空 `figs/figs_results/` 里的旧实验图，绘制的实验图永远只反映最近一次成功的实验结果。
+> **注意**：实验失败时不会执行绘图步骤；另外，每次运行前，脚本文件会先清空 `figs/figs_results/` 路径中的旧实验图，绘制的实验图永远只反映**最近一次成功的实验结果**。
 
 
 
@@ -164,7 +164,7 @@ bash run_agentemu.sh
 
 2. **清理旧的实验数据**：删除 `./exp` 目录
 
-3. **运行实验**：读取 `agentEmuConfig.yaml` → 编译 trace 为交易数据集 → 自动启动 BlockEmulator-X 区块链（默认 4 分片，每份片 4 节点）→ 交易数据全部上链 → 实验完成，区块链自动停止
+3. **实验运行步骤**：读取 `agentEmuConfig.yaml` → 编译 trace 为交易数据集 → 自动启动 BlockEmulator-X 区块链（默认 4 分片，每分片 4 节点）→ 交易数据全部上链 → 实验完成，区块链自动停止
 
 4. **自动绘制实验图**：读取最新一轮的数据记录表，生成 PNG 格式的数据图到 `figs/figs_results/`目录中
 
@@ -199,11 +199,11 @@ trace 文件（实验的全部意图）
 
 使用 Trace 文件时，实验人员应注意以下事项：
 
-1. **行为描述与交易生成。** 实验人员通过 Trace 文件描述 Agent 的行为，无需手动构造区块链交易。AgentEmulator 根据行为记录和 `seed`，以确定性方式生成 Agent 身份标识（DID）、交易 nonce 及相关数据字段。
+1. **行为描述与交易生成。** 实验人员通过 Trace 文件描述 Agent 的行为，无需手动构造区块链交易。AgentEmulator 根据行为记录和 `seed`，以确定性方式生成 Agent 身份标识（DID）、交易 nonce 以及相关数据字段。
 
-2. **可复现条件与执行顺序。** 在 Trace 文件、`seed` 和代码版本均相同的条件下，AgentEmulator 生成一致的交易计划，具体说明见 Q10。Trace 文件中的 `ts` 用于确定行为的逻辑执行顺序；对于 `ts` 相同的记录，系统按照其在文件中的出现顺序执行。`ts` 不表示交易的实际上链时间，调整其数值间隔也不等同于调整交易的上链时间。
+2. **可复现条件与执行顺序。** 在 Trace 文件、`seed` 和代码版本均相同的条件下，AgentEmulator 生成一致的交易计划，具体说明见 FAQ Q10。Trace 文件中的 `ts` 用于确定行为的逻辑执行顺序；对于 `ts` 相同的记录，系统按照其在文件中的出现顺序执行。`ts` 不表示交易的实际上链时间，调整其数值间隔也不等同于调整交易的上链时间。
 
-3. **Agent 生命周期与支付约束。** Trace 文件中的 `join`、`leave` 和 `pay` 记录分别描述 Agent 的加入、退出和支付行为。AgentEmulator 按顺序处理这些记录，并更新 `agent_registry.json` 中各 Agent 的 `active` 状态。执行 `pay` 操作时，付款方和收款方均须处于 `active` 状态。
+3. **Agent 生命周期与支付约束。** Trace 文件中的 `join`、`leave` 和 `pay` 记录分别描述 Agent 的“加入”、“退出”和“支付”行为。AgentEmulator 按顺序处理这些记录，并更新 `agent_registry.json` 中各 Agent 的 `active` 状态。执行 `pay` 操作时，付款方和收款方均须处于 `active` 状态。
 
 4. **实验数据关联与版本标记。** `request_id` 用于关联支付行为、链上交易和 Agent 账本记录，建议实验人员为其设置全局唯一值。`params_hash` 用于标记行为参数的版本，系统将该字段原样写入映射文件，以支持多轮实验的数据管理。
 
@@ -211,7 +211,7 @@ trace 文件（实验的全部意图）
 
 
 
-Trace 文件以 JSONL 格式给出，每一行表示一个 agent 执行的某个行为或者是普通转账交易，按 `ts` （TimeStamp）排序（`ts` 相同则按照文件中的行序进行执行）。仓库自带两个示例：`traces/minimal.jsonl`（最小示例）、`traces/agent=100_txs=10000.jsonl`（配置文件中默认使用的 trace 文件，包含100 个 Agent ，1w 笔交易），以下展示一份 trace 文件的示例。
+Trace 文件以 JSONL 格式给出，每一行表示一个 Agent 执行的某个行为或者是普通转账交易，按 `ts` （TimeStamp）排序（`ts` 相同则按照文件中的行序进行执行）。仓库自带两个示例：`traces/minimal.jsonl`（只包含 2 个 Agent 加入 / 转账 的最小实验规模示例）、`traces/agent=100_txs=10000.jsonl`（配置文件中默认使用的 trace 文件，包含100 个 Agent ，1w 笔交易），以下展示一份 trace 文件的示例。
 
 ```JSON
 {"agent_id":"agent-alice","action":"join","params_hash":"doc-alice-v1","ts":1}
@@ -229,11 +229,11 @@ Trace 文件以 JSONL 格式给出，每一行表示一个 agent 执行的某个
 |类型|含义|编译成的交易|
 |---|---|---|
 |`join`|Agent 注册“加入”|DID `register` 智能合约调用|
-|`pay`|向另一个 agent 转账|普通转账交易|
+|`pay`|向另一个 Agent 转账|普通转账交易|
 |`leave`|Agent 注销“退出”|DID `revoke` 智能合约调用|
-|普通转账交易|由区块链节点而非 Agent 发起的转账交易|普通转账交易|
+|普通转账交易|由区块链账户而非 Agent 发起的转账交易|普通转账交易|
 
-普通转账交易行中不包含 `action` 字段，靠 trace 文件中的结构（`sender` 键中使用的是账户地址）自动识别，只有三个输入字段， `ts`直接继承 trace 文件中上一行的 `ts`，示例如下：
+普通转账交易行中不包含 `action` 字段，靠 trace 文件中的结构（`sender` 字段中使用的是账户地址）自动识别，只有三个输入字段， 该普通转账交易的执行顺序严格按照 trace 文件中的行序执行，示例如下：
 
 ```JSON
 {"sender":"0xabc...","recipient":"0xdef...","value":"12345"}
@@ -245,15 +245,15 @@ Trace 文件以 JSONL 格式给出，每一行表示一个 agent 执行的某个
 
 ### Trace 文件编写时应该遵守的规则
 
-1. **`pay` 行为的双方 agent（`agent_id` 和 `target`）当时必须处于 active 状态**（已 join 且未 leave），否则整场仿真实验将报错终止。
+1. **`pay` 行为的双方 Agent（`agent_id` 和 `target`）当时必须处于 active 状态**（已 join 且未 leave），否则整场仿真实验将报错终止。
 
-2. `leave` 操作只能作用于处于 `active` 状态的 agent；已经 `leave` 的 agent 再次 `join` 需要重新注册。
+2. `leave` 操作只能作用于处于 `active` 状态的 Agent；已经 `leave` 的 Agent 再次 `join` 需要重新注册。
 
 3. `amount` 字段的填写必须为正整数。链上新账户地址会自动获得 10^36 wei 的初始余额，正常实验无需担心账户余额不足。
 
-4. **trace 文件中不需要写 DID**——身份由 `seed + agent_id` 确定性派生，同 seed、同 ID 永远得到同一 DID。
+4. **trace 文件中不需要写 DID** —— Agent 的身份由 `seed + agent_id` 确定性派生，同 seed、同 ID 永远得到同一 DID。
 
-5. `request_id` 建议全局唯一，因为后续需要使用它来检索每个 agent 的"支付意图"数据。
+5. `request_id` 建议全局唯一，因为后续需要使用它来检索每个 Agent 的“支付意图”数据。
 
 
 
@@ -265,11 +265,11 @@ Trace 文件以 JSONL 格式给出，每一行表示一个 agent 执行的某个
 
 ## 实验参数配置说明
 
-AgentEmulator 包含两层参数配置：1）Agent 侧的参数配置，由 agentEmuConfig.yaml 配置文档体现；2）底层区块链的参数配置，由 config.yaml 负责对 BlockEmulator-X 中链相关的参数进行配置。
+AgentEmulator 包含两层参数配置：1）Agent 侧的参数配置，由 agentEmuConfig.yaml 配置文档体现；2）底层区块链的参数配置，由 config.yaml 负责对 BlockEmulator-X 中区块链相关的参数进行配置。
 
 
 
-### Agent 侧配置：agentEmuConfig.yaml（当前默认值）
+### 对 Agent 侧的配置：agentEmuConfig.yaml
 
 ```YAML
 base:
@@ -295,11 +295,11 @@ protocols:
 
 
 
-### BlockEmulator-X 侧配置：config.yaml（默认使用 BlockEmulator-X 的原生配置）
+### 对 BlockEmulator-X 侧的配置：config.yaml（默认使用 BlockEmulator-X 的原生配置）
 
-agentSupervisor 以 `config.yaml` 文件为模板，为每次实验生成独立的 BlockEmulator-X 区块链配置。系统自动调整数据存储路径和日志路径，将交易源设置为 `plan_source`，并将 `tx_number` 设置为 Trace 文件对应的交易数量。实验人员可根据需要修改以下常用配置项：
+agentSupervisor 以 `config.yaml` 文件为模板，用于为每次实验生成独立的 BlockEmulator-X 区块链配置。系统自动调整数据存储路径和日志路径，将交易源设置为 `plan_source`，并将 `tx_number` 设置为 Trace 文件对应的交易数量。实验人员可根据需要修改以下常用配置项：
 
-- `system.shard_num` / `system.node_num`：进行实验的分片数量和每个分片中的节点数量
+- `system.shard_num` / `system.node_num`：进行实验的区块链分片数量，以及每个分片中的节点数量
 
 - `consensus_node.block_interval`：出块间隔（ms）
 
@@ -315,7 +315,7 @@ agentSupervisor 以 `config.yaml` 文件为模板，为每次实验生成独立�
 
 
 
-## 启动运行实验与观察实验结果
+## 启动运行实验与观察实验结果相关的配置
 
 实验人员可通过以下命令启动实验，具体详情见 “五分钟上手：使用 AgentEmulator 的操作流程” 章节。
 
@@ -325,9 +325,9 @@ bash run_agentemu.sh            # 或 bash run_agentemu.sh <配置文件>
 
 - **BlockEmulator-X 区块链运行过程中的日志会实时镜像到控制台中输出。**同时，完整的实验日志会保存在 `exp/agentemu-results/round_001/chain/logs/`目录中。
 
-- 如果实验人员只想预览编译出的交易数据集、不启动 **BlockEmulator-X** 运行区块链进行实验：在 agentEmuConfig.yaml 配置文件中把 `chain.enabled` 改为 `false`即可（此时不会启动 BlockEmulator-X 运行区块链进行实验，只会产生 agentSupervisor 将 trace 文件编译完成后生成的交易数据集）
+- 如果实验人员只想预览编译出的交易数据集，而不启动 **BlockEmulator-X** 运行区块链进行实验，请在 agentEmuConfig.yaml 配置文件中把 `chain.enabled` 改为 `false`即可（该配置下，agentSupervisor 仅将 trace 文件编译成交易数据集，而不会启动 BlockEmulator-X 运行区块链）
 
-- 实验结束时会在控制台打印各结果的输出路径与绘图路径（`figs/figs_results/index.html`）
+- 实验结束时，实验运行脚本文件会在控制台中打印实验运行结果的输出路径，与使用 python 脚本绘制的实验图的存储路径
 
 
 
@@ -337,7 +337,7 @@ bash run_agentemu.sh            # 或 bash run_agentemu.sh <配置文件>
 
 ## 实验结束后输出的文件一览
 
-### 实验结束后生成的结果文件
+### 实验结束后生成的  results 文件
 
 ```Plaintext
 exp/agentemu-results/
@@ -362,21 +362,21 @@ exp/agentemu-results/
 
 ### 数据记录表 CSV（`agents/agent-XXX.csv`）格式说明
 
-该数据记录表 csv 文件中的每一行代表一条 Agent 操作的记录，数据格式如下：
+该数据记录表中的一行对应 Agent 的一次操作，数据格式如下：
 
 ```Plaintext
 block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 ```
 
-- `balance` 为该交易执行后对应 Agent 的余额，数值约 10^36、**超出 int64 数据类型可表示的范围，需按字符串读入**
+- `balance` 为该交易执行后对应 Agent 的余额，数值约 10^36 (**超出 int64 数据类型可表示的范围，需按字符串读入**)
 
 - `block_time_ms` 为打包该交易的区块出块时间
 
-- 数据记录表中的行序按照区块出块时间排序，同一时间内以分片/高度/块内的序号决定最后的顺序
+- 数据记录表中的行序按照区块出块时间排序，同一时间内以“分片/高度/块内”的序号决定最后的顺序
 
 ![agent_csv.png](docs/figures/pngs/agent_csv.png)
 
-**`agent_action_txs.jsonl`**（每个 Agent 动作用一行来表示）文件的示例如下：
+**`agent_action_txs.jsonl`**文件的示例如下（每个 Agent 动作用一行来表示）：
 
 ```JSON
 {"seq":3,"action":"pay","agent_id":"agent-alice","target":"agent-bob","amount":12,
@@ -395,9 +395,11 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 ## 实验结果的展示
 
-每次实验成功完成后，AgentEmulator 自动读取本轮实验的 Agent 账本 CSV 文件，生成采用论文排版风格的余额变化图，并以 PNG 格式保存至 `figs/figs_results/` 目录。随后，系统将图表整合为支持中英文切换的静态 HTML 图册页面（`figs/figs_results/index.html`），并在默认浏览器中自动打开该页面。
+每次实验成功完成后，AgentEmulator 自动读取本轮实验的 Agent 账本 CSV 文件，生成论文排版风格的余额变化图，并以 PNG 格式保存至 `figs/figs_results/` 目录。随后，系统将图表整合为支持中英文切换的静态 HTML 图册页面（`figs/figs_results/index.html`），并在默认浏览器中自动打开该页面。
 
-以下各小节依次介绍自动绘图流程、四张图表的展示内容、图册页面的使用方法，以及无需重新运行实验的手动绘图方法。
+
+
+以下各小节依次介绍自动绘图流程、四张实验图表的展示内容、图册页面的使用方法，以及无需重新运行实验的手动绘图方法。
 
 
 
@@ -405,15 +407,15 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 `run_agentemu.sh`（Windows 下为 `run_agentemu.bat`）脚本文件在实验成功结束后将自动执行以下操作：
 
-1. 定位 `exp/agentemu-results/` 下 round 编号最大一轮的 `agents/` 目录
+1. 定位 `exp/agentemu-results/` 路径下 round 编号最大一轮的 `agents/` 目录
 
 2. 清空 `figs/figs_results/` 里的旧实验图与旧 `index.html`文件
 
 3. 运行 `figs/python_code/plot_agent_balance.py` 生成全部实验图的 PNG 格式图片
 
-4. 运行 `figs/python_code/build_fig_html.py` 生成展示实验图表的 html 页面
+4. 运行 `figs/python_code/build_fig_html.py` 生成展示实验结果图表的 html 页面
 
-5. 调用系统的 `open`（macOS）/ `xdg-open`（Linux）/ `start`（Windows）命令，在实验人员电脑中的默认浏览器打开 `figs/figs_results/index.html` 页面，展示绘图结果
+5. 模拟器调用网页打开命令在实验人员计算机的默认浏览器中打开 `figs/figs_results/index.html` 页面，展示绘图结果。根据实验人员设备的操作系统类型不同，网页打开命令具体如下：macOS 使用 `open`命令，Linux 使用 `xdg-open`命令，Windows 使用 `start`命令。
 
 
 
@@ -421,18 +423,28 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 ### 实验图绘制的内容
 
-| 页面中实验图编号 |内容|对应的 PNG 文件|
-|----------|---|---|
-| 图 1      |全部 Agent 余额变化总览：左图"按 Agent ID"，右图"按 Δbalance 升序"展示所有 agent 余额变化的柱状图|`fig1_all_agents_overview.png`|
-| 图 2      |按照交易顺序统计全体 Agent 的余额分布。主要过程如下：先按照 tx_hash 去重后按确定性顺序回放 每个 agent 的余额变化，然后展示最小\最大位置线、四分位线与均值线|`fig2_global_tx_order.png`|
-| 图 3      |按不同 agent 的交易进度归一化对齐：各 agent 自身交易序号拉伸到 0–1 后叠加，附终点均值标注|`fig3_normalized_progress.png`|
-| 图 4      |分组展示各个 agent 的余额变化：每 5 个 Agent 一张子图，含该 Agent 自己的区块分界虚线|`fig4_agents_001-005.png` … `fig4_agents_096-100.png`|
+|实验结果图表的 HTML 页面中实验图编号|内容|对应的 PNG 文件|
+|---|---|---|
+|图 1|全部 Agent 余额变化总览：左图“按 Agent ID”，右图“按 Δbalance 升序”展示所有 Agent 余额变化的柱状图|`fig1_all_agents_overview.png`|
+|图 2|按照交易顺序统计所有 Agent 的余额分布。主要过程如下：先按照 tx_hash 去重后按确定性顺序回放 每个 Agent 的余额变化，然后展示所有 Agent 余额变化最小/最大位置线、四分位线与均值线|`fig2_global_tx_order.png`|
+|图 3|按不同 Agent 的交易进度归一化对齐：各 Agent 自身交易序号拉伸到 0–1 后叠加，另附所有 Agent 的交易处理完成后所有 Agent 余额变化均值标注|`fig3_normalized_progress.png`|
+|图 4|分组展示各个 Agent 的余额变化：每 5 个 Agents 一张子图，使用虚线标注每个 Agent 所在分片相邻两个区块的分界点|`fig4_agents_001-005.png` … `fig4_agents_096-100.png`|
 
 请注意，所有实验图绘制的是**相对初始余额的变化量 Δbalance = balance − 初始余额**。
 
 
 
-以下展示的实验结果是在一台 Mac mini（macOS 15.6）上运行的，硬件为 Apple M4 Pro 芯片（12 核：8 个性能核 + 4 个能效核）、24 GB 统一内存。区块链环境基于课题组自研的 BlockEmulator-X（Go 语言版本为 1.25.7，GitHub 代码仓库地址为 `github.com/HuangLab-SYSU/block-emulator-x`）。本次实验采用单机多进程模拟部署：共 4 个分片、每分片 4 个共识节点（合计 16 个共识节点）外加 1 个 supervisor 节点，均以 127.0.0.1 IP 下的不同端口（32217–32547，BlockEmulator-X 中的 supervisor 节点端口号为 38800）通过 direct 模式通信；共识与跨分片协议为 static_relay（账户分布静态、跨片交易由 Relay 处理），出块间隔设置为 2000 ms，交易池按交易数量打包、每块上限 5000 笔，区块存储采用 BoltDB、世界状态采用以太坊式 LevelDB，布隆过滤器位图长度 4096；在此之上的 AgentEmulator 实验层以随机种子 20260903 回放包含 100 个 agent、10,000 笔交易的 trace（`plan_source` 方式），每轮实验自动编译并运行全新的 BlockEmulator-X 区块链模拟实验。
+以下展示的实验结果是在一台 Mac mini（macOS 15.6）上运行的。该 Mac mini 的硬件为 Apple M4 Pro 芯片（12 核：8 个性能核 + 4 个能效核）、24 GB 内存。区块链环境基于黄华威研究组自研的 BlockEmulator-X（Go 语言版本为 1.25.7，GitHub 代码仓库地址为 `github.com/HuangLab-SYSU/block-emulator-x`）。
+
+本次实验采用单机多进程模拟部署，实验相关设置如下：
+
+1）本次实验共模拟 4 个分片、每分片 4 个共识节点（合计 16 个共识节点）外加 1 个 supervisor 节点，均以 127.0.0.1 IP 下的不同端口（32217–32547，BlockEmulator-X 中的 supervisor 节点端口号为 38800）通过 direct 模式通信；
+
+2）共识与跨分片协议为 `static_relay`（账户分布静态、跨片交易由 Relay 处理），出块间隔设置为 2000 ms，交易池按交易数量打包，每块上限 5000 笔；
+
+3）区块存储采用 BoltDB，世界状态采用以太坊式 LevelDB，布隆过滤器位图长度 4096；
+
+4）在 AgentEmulator 实验层以随机种子 20260903 回放包含 100 个 Agent、10,000 笔交易的 trace（`plan_source` 方式），每轮实验自动编译并重新启动 BlockEmulator-X 区块链模拟实验。
 
 
 
@@ -460,7 +472,7 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 - 顶部深色页眉：标题、生成时间、图表数量、数据来源目录与 Agent 数
 
-- 绘制出的实验图中，图 1/2/3 整幅展示，图 4 为缩略图网格；**点击任意图片可在新标签页打开原图**
+- 绘制出的实验图中，图 1/2/3 整幅展示，图 4 为所有 Agents 按照每 5 个 Agent 为一组绘制的 Agent 余额变化图；实验人员可**点击任意图片即可打开对应的原图**
 
 - **中英文切换**：右上角按钮（当前中文时显示 "EN"，英文时显示"中文"），或按键盘 `L` 键；切换作用于页面标题、章节标题、元信息与页脚，语言偏好自动记忆，下次打开该 html 页面时保持上一次的设置
 
@@ -474,7 +486,7 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 ### 手动 / 独立运行绘图脚本
 
-实验人员不重跑整个实验也可以随时重新画图。绘图脚本路径按 `figs/python_code/` 相对路径进行定位，在仓库任意目录下运行均可：
+实验人员不重跑整个实验也可以随时使用以下命令重新画图。绘图脚本路径按 `figs/python_code/` 相对路径进行定位，在 AgentEmulator 项目中任意目录下运行以下命令均可：
 
 ```Bash
 # 默认：自动选取最新一轮实验结果，输出到 figs/figs_results/
@@ -495,7 +507,7 @@ python3 figs/python_code/build_fig_html.py
 open figs/figs_results/index.html        # macOS
 ```
 
-Windows 下等价命令（实验人员可通过 cmd 运行，路径使用反斜杠；`python` 不可用时改用 `py -3`）：
+Windows 下等价命令（实验人员可通过 cmd 运行以下命令，路径使用反斜杠；`python` 不可用时改用 `py -3`）：
 
 ```Plaintext
 python figs\python_code\plot_agent_balance.py
@@ -512,7 +524,7 @@ start "" figs\figs_results\index.html
 
 |脚本|参数|默认值|说明|
 |---|---|---|---|
-|`plot_agent_balance.py`|`--data-dir`|自动选最新一轮 `agents/`|agent CSV 所在目录|
+|`plot_agent_balance.py`|`--data-dir`|自动选最新一轮 `agents/`|Agent CSV 所在目录|
 ||`--fig-dir`|`figs/figs_results/`|绘图结果的 PNG 图片输出目录|
 |`build_fig_html.py`|`--fig-dir`|`figs/figs_results/`|扫描 PNG 并在此生成 `index.html`页面|
 ||`--data-dir`|无|仅用于页面显示数据来源与 Agent 数量|
@@ -549,9 +561,11 @@ for line in open('exp/agentemu-results/round_001/agent_action_txs.jsonl'):
 print(f'支付意图 {confirmed}/{total} 全部确认')
 ```
 
-延迟的统计口径为：`Tx finally commit time − Tx create time`；跨片交易在 CSV 表格中有 Relay1/Relay2 两段提议/提交时间进行细分。
 
-实验人员也可以直接使用 pandas 库进行 Agent 账本分析，相关代码如下：
+
+每笔交易的延迟统计口径为：`Tx finally commit time − Tx create time`；对于跨片交易，在实验结束生成的 CSV 结果表格中使用了 Relay1/Relay2 两段 提议/提交 时间对跨片交易的处理进行细分。
+
+实验人员也可以直接使用 pandas 库对 Agent 账本进行分析，相关代码如下：
 
 ```Python
 import pandas as pd
@@ -567,84 +581,68 @@ df = pd.read_csv('exp/agentemu-results/round_001/agents/agent-001.csv',
 
 # 常见问题（FAQ）
 
-**Q1：重跑报 `file already exists: .../block_record.csv`？**
-上一次的产物没清理，而测量文件是独占创建的。`run_agentemu.sh` 已自动清理；手动运行 `go run cmd/agentemu/main.go` 前需实验人员先执行 `rm -rf exp/agentemu-results`。
+**Q1：实验人员重新启动 AgentEmulator 运行实验时，报 `file already exists: .../block_record.csv` 错误？**
+出现这个问题表示上一次使用 AgentEmulator 进行实验的 results 文件没有清理，而这些 results 文件都是独占创建的。实验人员可使用`run_agentemu.sh` 脚本文件启动实验则不会出现该问题。如果实验人员想通过手动运行 `go run cmd/agentemu/main.go` 命令启动 AgentEmulator，则需要先执行 `rm -rf exp/agentemu-results`命令清理旧实验产生的 results 文件。
 
 
 
 **Q2：为什么有时 join 操作没有生成注册交易？**
-`agent_registry.json` 里该 Agent 已是 active。join 只在身份**首次出现或离场后重入**时生成注册交易。完整清理旧结果即可复现全量注册。
+join 操作只有在 Agent **首次加入或离开后重新加入**时才会生成对应的注册交易。出现这个问题，实验人员可在 `agent_registry.json` 文件中查找到该 Agent 是否已是 active 状态。如果实验人员想复现所有 agents 在 join 时生成对应的注册交易，则需要将旧的 results 文件删除。
 
 
 
-**Q3：转账是智能合约调用吗？**
-不是。`pay` 编译为**普通转账**；`join`/`leave` 是智能合约调用形式。这些智能合约当前未部署，调用在 EVM 层只是做了一个记录，而非真实智能合约状态；不过 `pay` 的余额转移是真实生效的。
+**Q3：Agent 之间的互相转账是通过调用智能合约实现的吗？**
+不是。Agent 之间的`pay` 操作会被 agentSupervisor 编译为**普通转账交易**；只有Agent 的 `join`/`leave` 操作是通过调用智能合约实现的。不过，相关的智能合约当前暂未部署，调用相关的智能合约目前只是在 EVM 层做了一个记录，而非真实调用智能合约的状态。但 Agent 之间的`pay` 操作的转账操作是真实有效的。
 
 
 
-**Q4：控制台日志输出太多？**
-`config.yaml` 里 `system.log.log_level: warn`，或运行时重定向 `bash run_agentemu.sh > run.log 2>&1`。
+**Q4：控制台日志输出太多，无法查看到关键信息怎么办？**
+实验人员可在 `config.yaml` 配置文件中，修改`system.log.log_level `部分的配置为 `warn`，或在运行脚本文件时使用 `bash run_agentemu.sh > run.log 2>&1`命令进行重定向，即可减少控制台输出的日志内容。
 
 
 
-**Q5：想跑单分片小规模实验？**
-`config.yaml` 的 `system.shard_num` 改为 `1`，也可以按需设计 `Trace`文件调整交易输入规模。
+**Q5：实验人员如何运行单分片的小规模实验？**
+
+实验人员可将 `config.yaml` 中的 `system.shard_num` 设置为 `1`，使区块链以单分片模式运行，并根据实验需求调整 Trace 文件中的行为记录和交易数量，以控制实验的输入规模。
 
 
 
-**Q6：实验跑完但没有弹出 HTML 页面？**
-先看控制台末尾是否有 `figures & gallery: ./figs/figs_results/index.html`：
+**Q6：实验运行结束但是没有弹出 HTML 页面是为什么？**
+实验人员可先查看控制台末尾是否有输出 `figures & gallery: ./figs/figs_results/index.html`：
 
-- 没有这行且出现 `warn: no agent CSVs ...`：本轮没有生成 Agent 数据记录（例如 `chain.enabled: false` 的预览运行），属正常
+- 没有输出这行且出现 `warn: no agent CSVs ...`：表示本次实验没有生成 Agent 相关的数据记录（例如实验人员在 `agentEmuConfig.yaml` 文件中将配置设置为` chain.enabled: false` ，表示只通过 agentSupervisor 将 trace 文件编译成对应的交易数据，而不启动 BlockEmulator-X 模拟区块链运行），属于正常现象；
 
-- 有这行但 HTML 页面没出现：手动 `open figs/figs_results/index.html` 即可；无图形界面的服务器上请把目录拷回本地查看
-
-
-
-**Q7：绘图脚本报 `ModuleNotFoundError: matplotlib`？**
-`pip3 install matplotlib numpy pandas`，或换用已装好这些库的解释器。
+- 有这行但 HTML 页面没有弹出：实验人员可手动使用以下命令 `open figs/figs_results/index.html` 打开该 HTML 页面。
 
 
 
-**Q8：想用上一轮的历史数据重新画实验图？**
-见 “手动/独立运行绘图脚本” 章节，`--data-dir` 指向对应的 `round_XXX/agents/` 即可；注意 `run_agentemu.sh` 每次运行会清空 `exp/` 与 `figs/figs_results/`，历史数据需提前备份。
+**Q7：绘图脚本提示 `ModuleNotFoundError: matplotlib`，应如何处理？**
+
+该错误表示当前运行绘图脚本的 Python 环境缺少 `matplotlib` 库。实验人员应在该环境中执行 `pip3 install matplotlib numpy pandas`命令，安装绘图所需的依赖库；也可以使用已安装上述依赖库的 Python 解释器运行脚本。
 
 
 
-**Q9：绘制出的实验图中的图 4 的 20 张子图太多，能只看某几个 Agent 吗？**
-当前按每 5 个 Agent 固定分组，分组逻辑在 `figs/python_code/plot_agent_balance.py` 中绘制实验图的图 4 部分（`range(0, len(dfs), 5)`），可自行修改分组大小后手动重跑（见 “手动/独立运行绘图脚本” 节）。
+**Q8：实验人员如何使用历史数据重新绘制实验图？**
+
+实验人员可将 `--data-dir` 参数设置为目标实验轮次的 `round_XXX/agents/` 目录，并手动执行绘图脚本。由于 `run_agentemu.sh` 每次运行时都会清空 `exp/` 和 `figs/figs_results/` 目录，实验人员应在运行前备份需要保留的历史数据和图表。
 
 
 
-**Q10：实验结果可以复现吗？**
-可以。同 seed + 同 trace + 同代码，计划文件、映射、事件 CSV 逐字节一致；Agent 数据记录按确定性全局顺序生成。链上侧的打包时序受运行时影响（与 BlockEmulator-X 本身一致），因此图 2 的中间包络形态每次可能略有不同，但期末值与守恒关系不变。
+**Q9：实验图图 4 包含较多子图，实验人员如何调整 Agent 的展示范围或分组方式？**
+
+当前绘图脚本按照每组 5 个 Agent 的规则生成实验图图 4 的子图。实验人员可修改 `figs/python_code/plot_agent_balance.py` 文件中图 4 对应的绘图代码，筛选需要展示的 Agent，或调整分组大小。其中，`range(0, len(dfs), 5)` 中的 `5` 表示每组包含的 Agent 数量。
 
 
 
-**Q11（Windows）：提示“python 不是内部或外部命令”，或运行 python 却弹出了 Microsoft Store？**
-说明 Python 未真正安装或未加入 PATH：从 [python.org](https://www.python.org/downloads/windows/) 安装时勾选 "Add python.exe to PATH"；或直接改用 Windows 自带的启动器 `py -3`（`run_agentemu.bat` 已自动回退到它）。安装完成后执行 `pip install matplotlib numpy pandas`。
+**Q10：AgentEmulator 的实验结果是否具有可复现性？**
+
+在 `seed`、Trace 文件和代码版本均相同的条件下，AgentEmulator 生成的交易数据集文件和 Agent 行为 CSV 文件逐字节一致，Agent 数据记录也按照确定性的全局顺序生成。链上交易的打包时序受运行时条件影响，这一特性与 BlockEmulator-X 一致。
 
 
 
----
+**Q11：Windows 系统提示“python 不是内部或外部命令”，或执行 `python` 后打开 Microsoft Store，应如何处理？**
 
-# 附录
+上述情况通常表示系统尚未安装可用的 Python，或 Python 的安装路径未加入 `PATH` 环境变量。实验人员可从 [Python 官方网站](https://www.python.org/downloads/windows/)下载安装程序，并在安装时勾选“Add python.exe to PATH”。
 
-## 未来可完善的一些问题
-
-- **智能合约为留痕模式**：DID 智能合约未部署，`join`/`leave` 调用是数据上链占位（智能合约部署在路线图上）；`pay` 的余额转移是真实生效的。
-
-- **单轮运行**：多轮反馈循环（AgentAPI/EndCondition 接口）已预留，但默认单轮，因此自动绘图固定取最新（即唯一）一轮。
-
-- **错误即终止**：trace 中出现非法动作（如给未 join 的 Agent 转账）会终止整场仿真，错误信息带行号。
-
-- 绘图依赖实验数据形状：BlockEmulator-X 为链上每个 Agent 的账户地址设置相同初始余额；当 trace 中混入大量原始转账行时，绘制的实验图中图 2 的确定性回放顺序仅作示意（数据无区块内时间戳）。
-
-
-
-## 对实验室结果展示的 HTML页面样例
-
-[AgentEmulator Experiment · Agent Balance Lifecycle Figures.pdf](docs/figures/pdfs/AgentEmulator%20Experiment%20·%20Agent%20Balance%20Lifecycle%20Figures.pdf)
-
-
+如果系统已安装 Python 启动器，实验人员也可以使用 `py -3` 调用 Python 3；`run_agentemu.bat` 脚本中已提供自动回退至该启动器的逻辑。安装完成后，实验人员应使用所选解释器安装绘图依赖库：使用 `python` 时，执行 `python -m pip install matplotlib numpy pandas`；使用 `py -3` 时，执行 `py -3 -m pip install matplotlib numpy pandas`。
 
