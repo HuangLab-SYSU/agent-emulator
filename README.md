@@ -18,14 +18,11 @@ AgentEmulator 实验平台的**设计目标**是简化 AI Agent 相关的实验�
 
 
 
-
-
 下图展示了 AgentEmulator 用户视角的工作流程图。
 
 
 
 ![AgentEmulator 用户视角的工作流程图](docs/figures/svgs/AgentEmulator_workflow_202609201040.svg)
-
 
 **图 1.  AgentEmulator 的 general purpose** (并不只是对应于当前 v1.0 版本)。其中，“用户自定义 机制/算法” 具有非常大的自由发挥空间，是用户二次开发、自由创新之地。
 
@@ -47,8 +44,6 @@ AgentEmulator 将围绕 AI Agent 的“身份”“结算”“审计”“激�
 
 
 
-
-
 ---
 
 ## 当前发布版本 v1.0
@@ -57,7 +52,9 @@ AgentEmulator 将围绕 AI Agent 的“身份”“结算”“审计”“激�
 
 
 
-AgentEmulator v1.0 中，Agent 行为由 Trace 文件预先定义；身份注册与注销目前仅用于链上留痕，尚未实现完整的 DID 智能合约状态管理。后续版本将持续升级迭代，逐步扩展协议、实验场景和评测能力。
+AgentEmulator v1.0 中，Agent 行为由 Trace 文件预先定义，采用“原始用户指定顺序”（Original User-specified Sequence）策略，按照实验输入中指定的交易顺序执行交易，尚未集成额外的交易编排机制或调度算法。实验人员可在此基础上探索和实现自定义机制，例如调整交易的执行顺序，或根据交易优先级、Agent 权重等规则编排交易。
+
+AgentEmulator 后续版本将持续升级迭代，逐步扩展协议、实验场景和评测能力。欢迎实验人员结合具体研究需求扩展示例代码，设计并验证不同机制或算法对实验结果的影响。
 
 
 
@@ -92,9 +89,11 @@ GitHub 代码仓库地址为：https://github.com/HuangLab-SYSU/agent-emulator
 
 下图展示了 AgentEmulator 的模块架构。
 
-![AgentEmulator 的模块架构图](docs/figures/svgs/AgentEmulator_模块架构图_202609192038.svg)
 
 
+
+
+![AgentEmulator 的模块架构图](docs/figures/svgs/AgentEmulator_模块架构图_202609201346.svg)
 
 
 
@@ -151,7 +150,7 @@ run_agentemu.bat my-config.yaml
 
 
 
-使用 **MacOS** 和 **Linux** 系统的实验人员使用 bash 运行脚本：
+使用 **MacOS** 和 **Linux** 系统的实验人员可使用 bash 运行脚本，示例如下：
 
 ```Bash
 bash run_agentemu.sh
@@ -206,7 +205,7 @@ trace 文件（实验的全部意图）
 
 3. **Agent 生命周期与支付约束。** Trace 文件中的 `join`、`leave` 和 `pay` 记录分别描述 Agent 的加入、退出和支付行为。AgentEmulator 按顺序处理这些记录，并更新 `agent_registry.json` 中各 Agent 的 `active` 状态。执行 `pay` 操作时，付款方和收款方均须处于 `active` 状态。
 
-4. **实验数据关联与版本标记。** `request_id` 用于关联支付行为、链上交易和 Agent 账本记录，建议实验人员为其设置全局唯一值，具体分析方法见第 8 章。`params_hash` 用于标记行为参数的版本，系统将该字段原样写入映射文件，以支持多轮实验的数据管理。
+4. **实验数据关联与版本标记。** `request_id` 用于关联支付行为、链上交易和 Agent 账本记录，建议实验人员为其设置全局唯一值。`params_hash` 用于标记行为参数的版本，系统将该字段原样写入映射文件，以支持多轮实验的数据管理。
 
 5. **普通区块链转账交易。** Trace 文件支持包含 `sender`、`recipient` 和 `value` 字段的普通转账记录。实验人员可以将此类记录与 Agent 行为记录组合使用，从而构造包含不同交易类型的实验负载。
 
@@ -229,10 +228,10 @@ Trace 文件以 JSONL 格式给出，每一行表示一个 agent 执行的某个
 
 |类型|含义|编译成的交易|
 |---|---|---|
-|`join`|Agent 注册|DID `register` 智能合约调用|
+|`join`|Agent 注册“加入”|DID `register` 智能合约调用|
 |`pay`|向另一个 agent 转账|普通转账交易|
-|`leave`|Agent 注销|DID `revoke` 智能合约调用|
-|普通转账交易|非 Agent 的普通转账|普通转账交易|
+|`leave`|Agent 注销“退出”|DID `revoke` 智能合约调用|
+|普通转账交易|由区块链节点而非 Agent 发起的转账交易|普通转账交易|
 
 普通转账交易行中不包含 `action` 字段，靠 trace 文件中的结构（`sender` 键中使用的是账户地址）自动识别，只有三个输入字段， `ts`直接继承 trace 文件中上一行的 `ts`，示例如下：
 
@@ -318,7 +317,7 @@ agentSupervisor 以 `config.yaml` 文件为模板，为每次实验生成独立�
 
 ## 启动运行实验与观察实验结果
 
-实验人员可通过以下命令启动实验，具体详情见 2.2 节。
+实验人员可通过以下命令启动实验，具体详情见 “五分钟上手：使用 AgentEmulator 的操作流程” 章节。
 
 ```Bash
 bash run_agentemu.sh            # 或 bash run_agentemu.sh <配置文件>
@@ -398,7 +397,7 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 每次实验成功完成后，AgentEmulator 自动读取本轮实验的 Agent 账本 CSV 文件，生成采用论文排版风格的余额变化图，并以 PNG 格式保存至 `figs/figs_results/` 目录。随后，系统将图表整合为支持中英文切换的静态 HTML 图册页面（`figs/figs_results/index.html`），并在默认浏览器中自动打开该页面。
 
-以下各小节依次介绍自动绘图流程（7.1）、四张图表的展示内容（7.2）、图册页面的使用方法（7.3），以及无需重新运行实验的手动绘图方法（7.4）。
+以下各小节依次介绍自动绘图流程、四张图表的展示内容、图册页面的使用方法，以及无需重新运行实验的手动绘图方法。
 
 
 
@@ -422,12 +421,12 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 ### 实验图绘制的内容
 
-|页面编号|内容|对应的 PNG 文件|
-|---|---|---|
-|图 1|全部 Agent 余额变化总览：左图"按 Agent ID"，右图"按 Δbalance 升序"展示所有 agent 余额变化的柱状图|`fig1_all_agents_overview.png`|
-|图 2|按照交易顺序统计全体 Agent 的余额分布。主要过程如下：先按照 tx_hash 去重后按确定性顺序回放 每个 agent 的余额变化，然后展示最小\最大位置线、四分位线与均值线|`fig2_global_tx_order.png`|
-|图 3|按不同 agent 的交易进度归一化对齐：各 agent 自身交易序号拉伸到 0–1 后叠加，附终点均值标注|`fig3_normalized_progress.png`|
-|图 4|分组展示各个 agent 的余额变化：每 5 个 Agent 一张子图，含该 Agent 自己的区块分界虚线|`fig4_agents_001-005.png` … `fig4_agents_096-100.png`|
+| 页面中实验图编号 |内容|对应的 PNG 文件|
+|----------|---|---|
+| 图 1      |全部 Agent 余额变化总览：左图"按 Agent ID"，右图"按 Δbalance 升序"展示所有 agent 余额变化的柱状图|`fig1_all_agents_overview.png`|
+| 图 2      |按照交易顺序统计全体 Agent 的余额分布。主要过程如下：先按照 tx_hash 去重后按确定性顺序回放 每个 agent 的余额变化，然后展示最小\最大位置线、四分位线与均值线|`fig2_global_tx_order.png`|
+| 图 3      |按不同 agent 的交易进度归一化对齐：各 agent 自身交易序号拉伸到 0–1 后叠加，附终点均值标注|`fig3_normalized_progress.png`|
+| 图 4      |分组展示各个 agent 的余额变化：每 5 个 Agent 一张子图，含该 Agent 自己的区块分界虚线|`fig4_agents_001-005.png` … `fig4_agents_096-100.png`|
 
 请注意，所有图绘制的是**相对初始余额的变化量 Δbalance = balance − 初始余额**。
 
@@ -461,7 +460,7 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 - 顶部深色页眉：标题、生成时间、图表数量、数据来源目录与 Agent 数
 
-- 图 1/2/3 整幅展示，图 4 为缩略图网格；**点击任意图片可在新标签页打开原图**
+- 绘制出的实验图中，图 1/2/3 整幅展示，图 4 为缩略图网格；**点击任意图片可在新标签页打开原图**
 
 - **中英文切换**：右上角按钮（当前中文时显示 "EN"，英文时显示"中文"），或按键盘 `L` 键；切换作用于页面标题、章节标题、元信息与页脚，语言偏好自动记忆，下次打开该 html 页面时保持上一次的设置
 
@@ -608,12 +607,12 @@ df = pd.read_csv('exp/agentemu-results/round_001/agents/agent-001.csv',
 
 
 **Q8：想用上一轮的历史数据重新画图？**
-见 7.4 节，`--data-dir` 指向对应的 `round_XXX/agents/` 即可；注意 `run_agentemu.sh` 每次运行会清空 `exp/` 与 `figs/figs_results/`，历史数据需提前备份。
+见 “手动/独立运行绘图脚本” 章节，`--data-dir` 指向对应的 `round_XXX/agents/` 即可；注意 `run_agentemu.sh` 每次运行会清空 `exp/` 与 `figs/figs_results/`，历史数据需提前备份。
 
 
 
-**Q9：图 4 的 20 张子图太多，能只看某几个 Agent 吗？**
-当前按每 5 个 Agent 固定分组，分组逻辑在 `figs/python_code/plot_agent_balance.py` 的图 4 段（`range(0, len(dfs), 5)`），可自行修改分组大小后手动重跑（7.4 节）。
+**Q9：绘制出的实验图中的图 4 的 20 张子图太多，能只看某几个 Agent 吗？**
+当前按每 5 个 Agent 固定分组，分组逻辑在 `figs/python_code/plot_agent_balance.py` 中绘制实验图的图 4 部分（`range(0, len(dfs), 5)`），可自行修改分组大小后手动重跑（见 “手动/独立运行绘图脚本” 节）。
 
 
 
