@@ -95,7 +95,7 @@ GitHub 代码仓库地址为：https://github.com/HuangLab-SYSU/agent-emulator
 
 
 
-![AgentEmulator 的模块架构图](docs/figures/svgs/AgentEmulator_模块架构图_202609201346.svg)
+![AgentEmulator 的模块架构图](docs/figures/svgs/AgentEmulator_模块架构图_202609202212.svg)
 
 ---
 
