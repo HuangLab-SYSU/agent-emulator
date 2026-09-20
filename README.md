@@ -146,7 +146,7 @@ run_agentemu.bat my-config.yaml
 
 实验人员可随时按下 `Ctrl-C` 安全终止实验，随后 BlockEmulator-X 启动的节点子进程会被一并清理。
 
-> **注意**：实验失败时不会执行绘图步骤；另外，每次运行前，脚本文件会先清空 `figs/figs_results/` 里的旧图，绘制的图永远只反映最近一次成功的实验结果。
+> **注意**：实验失败时不会执行绘图步骤；另外，每次运行前，脚本文件会先清空 `figs/figs_results/` 里的旧实验图，绘制的实验图永远只反映最近一次成功的实验结果。
 
 
 
@@ -166,7 +166,7 @@ bash run_agentemu.sh
 
 3. **运行实验**：读取 `agentEmuConfig.yaml` → 编译 trace 为交易数据集 → 自动启动 BlockEmulator-X 区块链（默认 4 分片，每份片 4 节点）→ 交易数据全部上链 → 实验完成，区块链自动停止
 
-4. **自动绘图**：读取最新一轮的数据记录表，生成 PNG 格式的数据图到 `figs/figs_results/`目录中
+4. **自动绘制实验图**：读取最新一轮的数据记录表，生成 PNG 格式的数据图到 `figs/figs_results/`目录中
 
 5. **将 PNG 数据图嵌入 HTML 页面中并自动在浏览器中打开**
 
@@ -407,11 +407,11 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 1. 定位 `exp/agentemu-results/` 下 round 编号最大一轮的 `agents/` 目录
 
-2. 清空 `figs/figs_results/` 里的旧图与旧 `index.html`文件
+2. 清空 `figs/figs_results/` 里的旧实验图与旧 `index.html`文件
 
 3. 运行 `figs/python_code/plot_agent_balance.py` 生成全部实验图的 PNG 格式图片
 
-4. 运行 `figs/python_code/build_fig_html.py` 生成展示图表的 html 页面
+4. 运行 `figs/python_code/build_fig_html.py` 生成展示实验图表的 html 页面
 
 5. 调用系统的 `open`（macOS）/ `xdg-open`（Linux）/ `start`（Windows）命令，在实验人员电脑中的默认浏览器打开 `figs/figs_results/index.html` 页面，展示绘图结果
 
@@ -428,7 +428,7 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 | 图 3      |按不同 agent 的交易进度归一化对齐：各 agent 自身交易序号拉伸到 0–1 后叠加，附终点均值标注|`fig3_normalized_progress.png`|
 | 图 4      |分组展示各个 agent 的余额变化：每 5 个 Agent 一张子图，含该 Agent 自己的区块分界虚线|`fig4_agents_001-005.png` … `fig4_agents_096-100.png`|
 
-请注意，所有图绘制的是**相对初始余额的变化量 Δbalance = balance − 初始余额**。
+请注意，所有实验图绘制的是**相对初始余额的变化量 Δbalance = balance − 初始余额**。
 
 
 
@@ -464,7 +464,7 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 - **中英文切换**：右上角按钮（当前中文时显示 "EN"，英文时显示"中文"），或按键盘 `L` 键；切换作用于页面标题、章节标题、元信息与页脚，语言偏好自动记忆，下次打开该 html 页面时保持上一次的设置
 
-- 图内文字由绘图脚本生成，不随页面语言切换变化
+- 实验图内文字由绘图脚本生成，不随页面语言切换变化
 
 
 
@@ -606,7 +606,7 @@ df = pd.read_csv('exp/agentemu-results/round_001/agents/agent-001.csv',
 
 
 
-**Q8：想用上一轮的历史数据重新画图？**
+**Q8：想用上一轮的历史数据重新画实验图？**
 见 “手动/独立运行绘图脚本” 章节，`--data-dir` 指向对应的 `round_XXX/agents/` 即可；注意 `run_agentemu.sh` 每次运行会清空 `exp/` 与 `figs/figs_results/`，历史数据需提前备份。
 
 
