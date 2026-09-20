@@ -73,17 +73,18 @@ GitHub 代码仓库地址为：https://github.com/HuangLab-SYSU/agent-emulator
 
 本节介绍 AgentEmulator 中的主要术语，帮助实验人员理解系统组成、输入文件和配置文件之间的关系。AgentEmulator 的基本工作流程是：**实验人员通过 Trace 文件描述 Agent 行为；AgentEmulator 中的 agentSupervisor 模块将 Trace 文件编译为交易数据集，并调用 BlockEmulator-X 执行其中的交易；AgentEmulator 随后记录实验数据并展示实验结果。**
 
-|术语|含义|
+|术语|说明|
 |---|---|
-|Agent（智能体）|能够感知环境、做出决策并执行动作以达成特定目标的自主实体，可以是软件程序、机器人或人类等。|
-|AI Agent（AI 智能体）|由大语言模型（LLM）驱动或赋能的 Agent，具备理解自然语言、推理规划、使用工具等能力，是实现智能化应用的核心。|
-|Trace 文件|实验输入数据，采用 JSONL 格式，记录 Agent 行为序列（加入、转账、退出）及普通转账交易。|
-|agentSupervisor|AgentEmulator 中的核心模块，负责将 Trace 文件编译为交易数据集，并调用 BlockEmulator-X 执行交易。|
-|BlockEmulator-X|底层区块链仿真平台，负责执行交易、维护账本状态，为 AgentEmulator 提供可信的链上执行环境。|
-|agent_registry.json|记录 agent_id 与 DID 的映射及 active 状态的注册表文件，用于判断 Agent 是否处于活跃状态。|
-|DID|去中心化身份标识符（Decentralized Identifier），由 seed + agent_id 确定性派生，作为 Agent 在链上的唯一身份。|
-|Agent 账本|记录每个 Agent 的交易历史和余额变化，存于 `exp/agentemu-results/round_XXX/agents/agent-XXX.csv` 中。|
-|epoch（周期）|区块链中的时间单位，用于划分交易处理和账本迁移的时间窗口，每个 epoch 结束时可能触发账户迁移。|
+|AgentEmulator|基于 BlockEmulator-X 构建的 Agent 行为仿真模拟器，将输入的 Agent 行为转换为区块链交易并记录上链，自动记录实验日志并展示实验结果。|
+|Agent|实验中执行行为的主体，可按照 Trace 文件中的描述执行“加入”、“支付”和“退出”操作。|
+|BlockEmulator-X|AgentEmulator 的底层区块链仿真平台，负责节点运行、共识出块、交易执行和链上数据记录。（GitHub 代码仓库地址为 github.com/HuangLab-SYSU/block-emulator-x）|
+|Trace 文件|描述 Agent 行为序列的实验输入文件，采用 JSONL 格式，每行记录一次 Agent 行为或一笔普通转账。|
+|agentEmuConfig.yaml 文件|AgentEmulator 的实验配置文件，用于指定 Trace 文件、身份派生种子、结果目录，以及是否启动区块链等参数。|
+|config.yaml 文件|BlockEmulator-X 的区块链配置模板，用于设置分片数量、节点数量、出块间隔等底层参数。|
+|agentSupervisor|AgentEmulator 的实验调度模块，负责读取配置和 Trace 文件、将行为编译为交易数据集，并组织底层区块链运行及实验数据输出。|
+|agent_id|实验人员在 Trace 文件中为 Agent 指定的唯一标识，例如 agent-alice，用于区分不同 Agent 并关联其行为记录。|
+|seed|在 agentEmuConfig.yaml 中设置的身份派生种子，系统将其与 agent_id 结合生成 DID。相同的种子与 Agent 标识会生成相同的 DID。|
+|DID|去中心化 ID（Decentralized Identifier），用于标识 Agent 的身份，由系统根据 seed 和 agent_id 自动生成，无需在 Trace 文件中手动填写。|
 
 
 
