@@ -2,36 +2,54 @@
 
 # AgentEmulator 简介 / Overview of AgentEmulator
 
-## AgentEmulator 有什么用？
+## AgentEmulator 是什么？
 
 AgentEmulator 是由**中山大学·软件工程学院·黄华威研究组（[HuangLab](http://www.xintelligence.pro/)）发起的、面向 AI 智能体可信基础设施的仿真与实验平台**。平台以区块链作为可信记录与结算的基础，旨在帮助研究者和学生围绕智能体的身份、行为审计、支付结算、激励与治理机制开展实验，逐步形成支持 AI 智能体可信交互与协作的研究工具。
 
 
 
-AgentEmulator 基于 BlockEmulator-X （HuangLab 于2026年6月开源的区块链仿真实验工具，其 GitHub 代码仓库地址为 github.com/HuangLab-SYSU/block-emulator-x）构建，面向智能体行为与区块链执行相结合的实验场景。AgentEmulator 实验平台的建设目标是简化 AI Agent 相关的实验搭建、机制验证和数据分析流程，使实验人员能够描述 AI 智能体行为、配置底层区块链环境，并通过实验数据分析不同机制的运行效果。
+AgentEmulator 是面向 AI 智能体行为与区块链相结合场景的、基于 BlockEmulator-X 构建的**实验工具**。其中，BlockEmulator-X 是 HuangLab 于2026年6月开源的区块链仿真实验工具，是初代 BlockEmulator 的升级迭代版本，其 GitHub 代码仓库地址为 github.com/HuangLab-SYSU/block-emulator-x 。
+
+
+
+## AgentEmulator 有什么用？
+
+AgentEmulator 实验平台的**设计目标**是简化 AI Agent 相关的实验环境搭建配置、机制验证和数据分析，使实验人员能够轻松地配置底层区块链环境、观察 AI 智能体的行为，并通过实验数据分析在不同机制控制时的运行效果。
+
+
 
 
 
 下图展示了 AgentEmulator 用户视角的工作流程图。
 
-![AgentEmulator 用户视角的工作流程图](docs/figures/svgs/AgentEmulator_workflow_2026091911803.svg)
+
+
+![AgentEmulator 用户视角的工作流程图](docs/figures/svgs/AgentEmulator_workflow_202609201034.svg)
+
+
+**图 1.  AgentEmulator 的 general purpose** (并不只是对应于当前 v1.0 版本)。其中，“用户自定义 机制/算法” 具有非常大的自由发挥空间，是用户二次开发、自由创新之地。
+
+
+
+## 发展路线 / Roadmap
+
+AgentEmulator 将围绕 AI Agent 的“身份”“结算”“审计”“激励”“治理”五个方向逐步扩展。
+
+以下为拟推进的发展完善路线，具体安排将随相关研究与开发进展进行微调。
 
 
 
 
 
+---
 
+## 当前发布版本 v1.0
 
-
-## 当前发布版本
-
-**当前发布的是 AgentEmulator v1.0，支持基于 Trace（实验输入数据）的基础行为回放、身份注册与注销留痕、逐笔直接支付，以及实验数据记录和可视化。** 实验人员使用 JSONL 格式的 Trace 文件描述 Agent 的**加入**、**转账**和**退出**行为；AgentEmulator 中的 agentSupervisor 模块将 Trace 文件编译为交易数据集，并调用 BlockEmulator-X 启动区块链环境、执行交易、将交易执行结果上链记录。实验完成后，AgentEmulator 系统会记录交易与 Agent 账户的相关数据，自动绘制余额变化图集，并生成支持中英文切换的 HTML 实验结果页面（由启动脚本在默认浏览器中打开展示）。
+**当前发布的是 AgentEmulator v1.0，支持基于 Trace（实验输入数据）的基础行为回放、身份注册与注销留痕、逐笔直接支付，以及实验数据记录和可视化。** 实验人员使用 JSONL 格式的 Trace 文件描述 Agent 的**加入**、**转账**和**退出**行为；AgentEmulator 中的 agentSupervisor 模块将 Trace 文件编译为交易数据集，并调用 BlockEmulator-X 启动区块链环境、执行交易、并将交易执行结果上链记录。实验完成后，AgentEmulator 系统会记录交易与 Agent 账户的相关数据，自动绘制余额变化图集，并生成支持中英文切换的 HTML 实验结果页面（由启动脚本在默认浏览器中打开展示）。
 
 
 
 AgentEmulator v1.0 中，Agent 行为由 Trace 文件预先定义；身份注册与注销目前仅用于链上留痕，尚未实现完整的 DID 智能合约状态管理。后续版本将持续升级迭代，逐步扩展协议、实验场景和评测能力。
-
-
 
 
 
@@ -41,21 +59,19 @@ GitHub 代码仓库地址为：https://github.com/HuangLab-SYSU/agent-emulator
 
 
 
-## 发展路线 / Roadmap
-
-AgentEmulator 将围绕身份、审计、结算、激励和治理五个方向逐步扩展，以下为拟推进的发展完善路线，具体安排将随相关研究与开发进展进行微调。
-
-
-
-
-
----
-
 ## 术语解释
 
 
 
 本节介绍 AgentEmulator 中的主要术语，帮助实验人员理解系统组成、输入文件和配置文件之间的关系。AgentEmulator 的基本工作流程是：**实验人员通过 Trace 文件描述 Agent 行为；AgentEmulator 中的 agentSupervisor 模块将 Trace 文件编译为交易数据集，并调用 BlockEmulator-X 执行其中的交易；AgentEmulator 随后记录实验数据并展示实验结果。**
+
+
+
+## AgentEmulator 的系统架构
+
+下图展示了 AgentEmulator 的模块架构。
+
+![AgentEmulator 的模块架构图](docs/figures/svgs/AgentEmulator_模块架构图_202609192038.svg)
 
 
 
@@ -128,7 +144,7 @@ bash run_agentemu.sh
 
 2. **清理旧的实验数据**：删除 `./exp` 目录
 
-3. **运行实验**：读取 `agentEmuConfig.yaml` → 编译 trace 为交易数据集 → 自动启动 BlockEmulator-X 区块链（默认 4 分片 × 4 节点）→ 交易数据全部上链 → 实验完成，区块链自动停止
+3. **运行实验**：读取 `agentEmuConfig.yaml` → 编译 trace 为交易数据集 → 自动启动 BlockEmulator-X 区块链（默认 4 分片，每份片 4 节点）→ 交易数据全部上链 → 实验完成，区块链自动停止
 
 4. **自动绘图**：读取最新一轮的数据记录表，生成 PNG 格式的数据图到 `figs/figs_results/`目录中
 
@@ -188,7 +204,7 @@ Trace 文件以 JSONL 格式给出，每一行表示一个 agent 执行的某个
 
 
 
-### Trace 文件支持的行类型
+### Trace 文件支持的行为类型
 
 |类型|含义|编译成的交易|
 |---|---|---|
@@ -326,7 +342,7 @@ exp/agentemu-results/
 
 ### 数据记录表 CSV（`agents/agent-XXX.csv`）格式说明
 
-每一行代表一条 Agent 操作的记录，数据格式如下：
+该数据记录表 csv 文件中的每一行代表一条 Agent 操作的记录，数据格式如下：
 
 ```Plaintext
 block_height, tx_hash, sender, recipient, value, balance, block_time_ms
@@ -459,7 +475,7 @@ python3 figs/python_code/build_fig_html.py
 open figs/figs_results/index.html        # macOS
 ```
 
-Windows 下等价命令（cmd，路径用反斜杠；`python` 不可用时改用 `py -3`）：
+Windows 下等价命令（实验人员可通过 cmd 运行，路径使用反斜杠；`python` 不可用时改用 `py -3`）：
 
 ```Plaintext
 python figs\python_code\plot_agent_balance.py
