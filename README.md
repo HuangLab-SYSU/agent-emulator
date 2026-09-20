@@ -8,7 +8,7 @@ AgentEmulator 是由**中山大学·软件工程学院·黄华威研究组（[Hu
 
 
 
-AgentEmulator 是面向 AI 智能体行为与区块链相结合场景的、基于 BlockEmulator-X 构建的**实验工具**。其中，BlockEmulator-X 是 HuangLab 于2026年6月开源的区块链仿真实验工具，是初代 BlockEmulator 的升级迭代版本，其 GitHub 代码仓库地址为 github.com/HuangLab-SYSU/block-emulator-x 。
+AgentEmulator 是面向 AI 智能体行为与区块链相结合场景的、基于 BlockEmulator-X 构建的**实验工具**。其中，BlockEmulator-X 是 HuangLab 于2026年6月开源的区块链仿真实验工具，是初代 BlockEmulator 的升级迭代版本，其 GitHub 代码仓库地址为 https://github.com/HuangLab-SYSU/block-emulator-x 。
 
 
 
@@ -638,7 +638,7 @@ df = pd.read_csv('exp/agentemu-results/round_001/agents/agent-001.csv',
 
 - **错误即终止**：trace 中出现非法动作（如给未 join 的 Agent 转账）会终止整场仿真，错误信息带行号。
 
-- 绘图依赖实验数据形状：BlockEmulator-X 为链上每个 Agent 的账户地址设置相同初始余额；当 trace 中混入大量原始转账行时，图 2 的确定性回放顺序仅作示意（数据无区块内时间戳）。
+- 绘图依赖实验数据形状：BlockEmulator-X 为链上每个 Agent 的账户地址设置相同初始余额；当 trace 中混入大量原始转账行时，绘制的实验图中图 2 的确定性回放顺序仅作示意（数据无区块内时间戳）。
 
 
 
