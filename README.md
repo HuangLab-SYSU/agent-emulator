@@ -24,7 +24,7 @@ AgentEmulator 实验平台的**设计目标**是简化 AI Agent 相关的实验�
 
 ![AgentEmulator 用户视角的工作流程图](docs/figures/svgs/AgentEmulator_workflow_202609202005.svg)
 
-**图 1.  AgentEmulator 的 general purpose** (并不只是对应于当前 v1.0 版本)。其中，“用户自定义 机制/算法” 具有非常大的自由发挥空间，是用户二次开发、自由创新之地。
+**图 1.  AgentEmulator 的 general purpose** (并不只是对应于当前 v1.0 版本) 展示了用户与 AgentEmulator 之间的交互关系。其中，“用户自定义 机制/算法” 具有非常大的自由发挥空间，是用户二次开发、自由创新之地。
 
 
 
@@ -76,10 +76,10 @@ GitHub 代码仓库地址为：https://github.com/HuangLab-SYSU/agent-emulator
 |Agent| 实验中执行行为的主体，可按照 Trace 文件中的描述执行“加入”、“支付”和“退出”操作。                                                              |
 |BlockEmulator-X| AgentEmulator 的底层区块链仿真平台，负责节点运行、共识出块、交易执行和链上数据记录。（GitHub 代码仓库地址为 github.com/HuangLab-SYSU/block-emulator-x） |
 |Trace 文件| 描述 Agent 行为序列的实验输入文件，采用 JSONL 格式，每行记录一次 Agent 行为或一笔普通转账。                                                    |
-|agentEmuConfig.yaml 文件| AgentEmulator 的实验配置文件，用于指定 Trace 文件、身份派生 seed、结果目录，以及是否启动区块链等参数。                                            |
+|agentEmuConfig.yaml 文件| AgentEmulator 的实验配置文件，用于指定 Trace 文件、身份派生seed、结果目录，以及是否启动区块链等参数。                                            |
 |config.yaml 文件| BlockEmulator-X 的区块链配置模板，用于设置区块链的分片数量、节点数量、出块间隔等底层参数。                                                       |
 |agentSupervisor| AgentEmulator 的实验调度模块，负责读取配置和 Trace 文件、将行为编译为交易数据集，并组织底层区块链运行及实验数据输出。                                       |
-|agent_id| 实验人员在 Trace 文件中为 Agent 指定的唯一标识，例如 agent-alice，用于区分不同 Agent 并关联其行为记录。                                        |
+|agent_id| 实验人员在 Trace 文件中为 Agent 指定的唯一标识（例如 agent-alice），用于区分不同 Agent 并关联其行为记录。                                        |
 |seed| 在 agentEmuConfig.yaml 中设置的身份派生种子，系统将其与 agent_id 结合生成 DID。相同的种子与 Agent 标识会生成相同的 DID。                         |
 |DID| 去中心化 ID（Decentralized Identifier），用于标识 Agent 的身份，由系统根据 seed 和 agent_id 自动生成，无需在 Trace 文件中手动填写。              |
 
@@ -305,7 +305,11 @@ agentSupervisor 以 `config.yaml` 文件为模板，用于为每次实验生成�
 
 - `system.log.log_level`：`debug`/ `info` / `warn` / `error` 4种日志等级
 
-![config_yaml.png](docs/figures/pngs/config_yaml.png)
+<p align="center">
+  <img src="docs/figures/pngs/config_yaml.png" alt="config_yaml.png">
+  <br>
+  BlockEmulator-X 侧配置文件示例
+</p>
 
 
 
@@ -374,7 +378,11 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 - 数据记录表中的行序按照区块出块时间排序，同一时间内以“分片/高度/块内”的序号决定最后的顺序
 
-![agent_csv.png](docs/figures/pngs/agent_csv.png)
+<p align="center">
+  <img src="docs/figures/pngs/agent_csv.png" alt="agent_csv.png">
+  <br>
+  Agent 数据记录表
+</p>
 
 **`agent_action_txs.jsonl`**文件的示例如下（每个 Agent 动作用一行来表示）：
 
@@ -383,7 +391,11 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
  "ts":3,"request_id":"payment-1","params_hash":"","tx_hashes":["f58c994e..."]}
 ```
 
-![agent_action.png](docs/figures/pngs/agent_action.png)
+<p align="center">
+  <img src="docs/figures/pngs/agent_action.png" alt="agent_action.png">
+  <br>
+  Agent 操作记录文件示例
+</p>
 
 
 
@@ -448,19 +460,35 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 
 
-![fig1_all_agents_overview.png](docs/figures/pngs/fig1_all_agents_overview.png)
+<p align="center">
+  <img src="docs/figures/pngs/fig1_all_agents_overview.png" alt="fig1_all_agents_overview.png">
+  <br>
+  Agents 余额变化图
+</p>
 
 
 
-![fig2_global_tx_order.png](docs/figures/pngs/fig2_global_tx_order.png)
+<p align="center">
+  <img src="docs/figures/pngs/fig2_global_tx_order.png" alt="fig2_global_tx_order.png">
+  <br>
+  Agents 余额变化分布图
+</p>
 
 
 
-![fig3_normalized_progress.png](docs/figures/pngs/fig3_normalized_progress.png)
+<p align="center">
+  <img src="docs/figures/pngs/fig3_normalized_progress.png" alt="fig3_normalized_progress.png">
+  <br>
+  所有 Agents 余额变化总览图
+</p>
 
 
 
-![fig4_agents_001-005.png](docs/figures/pngs/fig4_agents_001-005.png)
+<p align="center">
+  <img src="docs/figures/pngs/fig4_agents_001-005.png" alt="fig4_agents_001-005.png">
+  <br>
+  不同 Agent 余额变化分组展示图
+</p>
 
 
 
@@ -480,13 +508,17 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 
 
-![agent_lifecycle_figs.png](docs/figures/pngs/agent_lifecycle_figs.png)
+<p align="center">
+  <img src="docs/figures/pngs/agent_lifecycle_figs.png" alt="agent_lifecycle_figs.png">
+  <br>
+  HTML 页面 UI 设计总览图
+</p>
 
 
 
 ### 手动 / 独立运行绘图脚本
 
-实验人员不重跑整个实验也可以随时使用以下命令重新画图。绘图脚本路径按 `figs/python_code/` 相对路径进行定位，在 AgentEmulator 项目中任意目录下运行以下命令均可：
+实验人员不重跑整个实验也可以随时使用以下命令重新画图。绘图脚本路径按 `figs/python_code/` 相对路径进行定位，在 AgentEmulator 项目根目录下运行以下命令均可：
 
 ```Bash
 # 默认：自动选取最新一轮实验结果，输出到 figs/figs_results/
@@ -645,4 +677,15 @@ join 操作只有在 Agent **首次加入或离开后重新加入**时才会生�
 上述情况通常表示系统尚未安装可用的 Python，或 Python 的安装路径未加入 `PATH` 环境变量。实验人员可从 [Python 官方网站](https://www.python.org/downloads/windows/)下载安装程序，并在安装时勾选“Add python.exe to PATH”。
 
 如果系统已安装 Python 启动器，实验人员也可以使用 `py -3` 调用 Python 3；`run_agentemu.bat` 脚本中已提供自动回退至该启动器的逻辑。安装完成后，实验人员应使用所选解释器安装绘图依赖库：使用 `python` 时，执行 `python -m pip install matplotlib numpy pandas`；使用 `py -3` 时，执行 `py -3 -m pip install matplotlib numpy pandas`。
+
+# 研究团队
+
+**本文由中山大学软件工程学院黄华威教授研究组（HuangLab）主导完成。研究组长期专注于区块链分片、共识协议、链上金融、AI 与区块链交叉等方向的研究，已在 IEEE/ACM ToN、TSC、TC、TPDS、TDSC、INFOCOM、WWW、ICDCS、SRDS 等期刊与会议发表多篇区块链论文。**
+
+- AI 智能体可信基础设施的仿真与实验平台 AgentEmulator 的 GitHub 仓库：[https://github.com/HuangLab-SYSU/agent-emulator](https://github.com/HuangLab-SYSU/agent-emulator)
+- 开源区块链分片实验平台 BlockEmulator 主页：[https://www.blockemulator.com](https://www.blockemulator.com)
+- BlockEmulator 的 GitHub 仓库：[https://github.com/HuangLab-SYSU/block-emulator](https://github.com/HuangLab-SYSU/block-emulator)
+
+HuangLab 近 7 年专注于区块链分片（Blockchain Sharding）理论与技术架构。若您对区块链分片、共识协议、DeFi 协议等方向感兴趣，欢迎关注 HuangLab 公众号（ID: Huang-Lab），或访问 HuangLab 学术主页：[http://xintelligence.pro](http://xintelligence.pro)
+
 
