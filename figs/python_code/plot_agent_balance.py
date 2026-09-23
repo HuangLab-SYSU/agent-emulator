@@ -100,12 +100,6 @@ def load_agent(path: Path) -> pd.DataFrame:
     return df
 
 
-def block_boundary_idx(df: pd.DataFrame) -> int:
-    """排序后首个(最低)区块的交易数量, 即第一区块→后续区块的分界下标。"""
-    first = int(df["block_height"].iloc[0])
-    return int((df["block_height"] == first).sum())
-
-
 def main():
     parser = argparse.ArgumentParser(description="绘制 agent 余额变化系列图")
     parser.add_argument("--data-dir", type=Path, default=None,
@@ -154,8 +148,10 @@ def main():
     ax_bar_sorted.axhline(0, color="k", lw=0.8)
     ax_bar_sorted.set_title("Distribution of final Δbalance (ascending)",
                             fontsize=19)
-    ax_bar_sorted.set_xlabel("Agent")
+    ax_bar_sorted.set_xlabel("The index of agent ordered by Δbalance")
     ax_bar_sorted.set_ylabel("Final Δbalance")
+    ax_bar_sorted.set_xticks(id_ticks)
+    ax_bar_sorted.set_xticklabels([str(i + 1) for i in id_ticks], fontsize=16.5)
 
     # 两个柱状面板统一 y 轴范围, 便于对比
     pad = (finals.max() - finals.min()) * 0.06
@@ -180,16 +176,8 @@ def main():
             color = group_cmap(i)
             ax.plot(np.arange(len(d)), d["delta"], color=color, lw=1.1,
                     marker="o", ms=2, label=d["agent"].iloc[0])
-            # 该 agent 所在分片链上的区块分界线(颜色与轨迹一致) + 分界点星标
-            b = block_boundary_idx(d)
-            if 0 < b < len(d):
-                ax.axvline(b - 0.5, color=color, ls="--", lw=1, alpha=0.45)
-                ax.plot([b - 0.5], [d["delta"].iloc[b - 1]], marker="*",
-                        ms=11, color=color, mec="white", mew=0.5, zorder=5)
         ax.axhline(0, color="k", lw=0.6, alpha=0.5)
-        ax.set_title(f"Agents {first_no}–{last_no}: balance change\n"
-                     f"(dashed line / star = block {hs_all[0]}→{hs_all[1]} "
-                     f"boundary of the agent's shard)", fontsize=30)
+        ax.set_title(f"Agents {first_no}–{last_no}: the change of balance", fontsize=30)
         ax.set_xlabel(X_LABEL, fontsize=27.5)
         ax.set_ylabel(Y_LABEL, fontsize=27.5)
         ax.tick_params(labelsize=25)
@@ -216,10 +204,10 @@ def main():
     ax.annotate(f"Endpoint mean = {mean_curve[-1]:+.0f}", xy=(1.0, mean_curve[-1]),
                 xytext=(-12, 16), textcoords="offset points", fontsize=17.5,
                 ha="right", color="#C44E52")
-    ax.set_xlabel("Transaction progress")
+    ax.set_xlabel("The progress of transaction processing")
     ax.set_ylabel(Y_LABEL)
-    ax.set_title("Balance change aligned by normalized transaction progress",
-                 fontsize=20)
+    ax.set_title("Δbalance aligned by normalized transaction processing "
+                 "progress", fontsize=20)
     ax.legend(loc="upper left")
     fig.tight_layout()
     fig.savefig(fig_dir / "fig3_normalized_progress.png")
@@ -281,8 +269,8 @@ def main():
     ax.axhline(0, color="k", lw=0.6, alpha=0.5)
     ax.set_xlabel("Global transaction index")
     ax.set_ylabel(Y_LABEL)
-    ax.set_title("Distribution of balance changes across agents "
-                 "by global transaction order", fontsize=20)
+    ax.set_title("Agent balance changes over the global transaction index",
+                 fontsize=20)
     ax.legend(loc="upper left")
     fig.tight_layout()
     fig.savefig(fig_dir / "fig2_global_tx_order.png")

@@ -325,9 +325,9 @@ All plots show **changes relative to the initial balance: Δbalance = balance �
 | Figure | Content | PNG file |
 | --- | --- | --- |
 | 1 | Balance changes for all agents, ordered by agent ID on the left and by ascending Δbalance on the right. | `fig1_all_agents_overview.png` |
-| 2 | Distribution of balance changes over global transaction order. Transactions are deduplicated by `tx_hash` and replayed in a deterministic order. The plot shows the minimum, maximum, quartiles, and mean across agents. | `fig2_global_tx_order.png` |
+| 2 | Agent balance changes over the global transaction index. Transactions are deduplicated by `tx_hash` and replayed in a deterministic order. The plot shows the minimum, maximum, quartiles, and mean across agents. | `fig2_global_tx_order.png` |
 | 3 | Agent balance changes aligned by normalized transaction progress. Each agent's transaction index is scaled to 0–1. The plot also marks the mean final balance change across all agents. | `fig3_normalized_progress.png` |
-| 4 | Individual agent balance changes in groups of five. Dashed lines mark boundaries between consecutive blocks in each agent's shard. | `fig4_agents_001-005.png` … `fig4_agents_096-100.png` |
+| 4 | Individual agent balance changes in groups of five. | `fig4_agents_001-005.png` … `fig4_agents_096-100.png` |
 
 ### Example experiment
 
