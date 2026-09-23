@@ -180,7 +180,7 @@ def main():
             color = group_cmap(i)
             ax.plot(np.arange(len(d)), d["delta"], color=color, lw=1.1,
                     marker="o", ms=2, label=d["agent"].iloc[0])
-            # 该 agent 自己的区块分界线(颜色与轨迹一致) + 分界点星标
+            # 该 agent 所在分片链上的区块分界线(颜色与轨迹一致) + 分界点星标
             b = block_boundary_idx(d)
             if 0 < b < len(d):
                 ax.axvline(b - 0.5, color=color, ls="--", lw=1, alpha=0.45)
@@ -188,8 +188,8 @@ def main():
                         ms=11, color=color, mec="white", mew=0.5, zorder=5)
         ax.axhline(0, color="k", lw=0.6, alpha=0.5)
         ax.set_title(f"Agents {first_no}–{last_no}: balance change\n"
-                     f"(dashed line / star = own block {hs_all[0]}→{hs_all[1]} "
-                     f"boundary)", fontsize=30)
+                     f"(dashed line / star = block {hs_all[0]}→{hs_all[1]} "
+                     f"boundary of the agent's shard)", fontsize=30)
         ax.set_xlabel(X_LABEL, fontsize=27.5)
         ax.set_ylabel(Y_LABEL, fontsize=27.5)
         ax.tick_params(labelsize=25)
