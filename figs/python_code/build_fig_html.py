@@ -33,17 +33,17 @@ FIG1_ENTRY = ("fig1_all_agents_overview",
               "Fig. 1 · Overview of All Agents")
 
 # 分组轨迹网格(文件名前缀 fig4_*): 展示在页面最后, 编号为图 4
-GROUPS_HEAD_ZH = "图 4 · 分组余额轨迹（每 5 个 Agent 一组）"
-GROUPS_HEAD_EN = "Fig. 4 · Grouped Balance Trajectories (5 Agents per Subfig)"
+GROUPS_HEAD_ZH = "图 4 · Agent 余额变化的组图（每 5 个 Agent 一组）"
+GROUPS_HEAD_EN = "Fig. 4 · Grouped Agent Balance Changes (5 Agents per Subfig)"
 
 # 其余单幅图: 展示在图 1(总览)之后、分组网格之前, 按展示位置编号
 TAIL_SINGLES = [
     ("fig2_global_tx_order",
-     "图 2 · 按全局交易顺序统计的全体 Agent 余额分布",
-     "Fig. 2 · Balance Distribution of All Agents by Global Transaction Order"),
+     "图 2 · 全局交易序号下的 Agent 余额变化",
+     "Fig. 2 · Agent Balance Changes over the Global Transaction Index"),
     ("fig3_normalized_progress",
-     "图 3 · 按交易进度归一化对齐的余额变化",
-     "Fig. 3 · Balance Change Aligned by Normalized Transaction Progress"),
+     "图 3 · 按交易处理进度归一化对齐的余额变化",
+     "Fig. 3 · The Change of Balance Aligned by Normalized Transaction Processing Progress"),
 ]
 
 CSS = """
