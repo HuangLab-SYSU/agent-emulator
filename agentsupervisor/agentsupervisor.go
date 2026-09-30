@@ -3,12 +3,14 @@ package agentsupervisor
 import (
 	"bufio"
 	"crypto/sha256"
+	"encoding/csv"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"math/big"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -399,6 +401,19 @@ func writeActionTxMap(dir string, links []ActionTxLink) error {
 	return w.Flush()
 }
 
+// planLine is the JSONL form of one planned transaction. The field set and
+// hex formatting are fixed: the chain's json source replays this file.
+type planLine struct {
+	Hash      string `json:"hash"`
+	Sender    string `json:"sender"`
+	Recipient string `json:"recipient"`
+	Value     string `json:"value"`
+	Nonce     uint64 `json:"nonce"`
+	Data      string `json:"data"`
+}
+
+var metricsCSVHeader = []string{"kind", "ts", "request_id", "value"}
+
 func writeResult(dir string, result Result) error {
 	plan, err := os.Create(filepath.Join(dir, PlanFileName))
 	if err != nil {
@@ -407,24 +422,33 @@ func writeResult(dir string, result Result) error {
 
 	defer func() { _ = plan.Close() }()
 
+	planBuf := bufio.NewWriter(plan)
+
 	for _, tx := range result.Transactions {
 		hash, err := tx.Hash()
 		if err != nil {
 			return fmt.Errorf("hash planned transaction: %w", err)
 		}
 
-		if _, err := fmt.Fprintf(
-			plan,
-			"{\"hash\":\"%x\",\"sender\":\"0x%x\",\"recipient\":\"0x%x\",\"value\":\"%s\",\"nonce\":%d,\"data\":\"0x%x\"}\n",
-			hash,
-			tx.Sender,
-			tx.Recipient,
-			tx.Value,
-			tx.Nonce,
-			tx.Data,
-		); err != nil {
+		line, err := json.Marshal(planLine{
+			Hash:      hex.EncodeToString(hash),
+			Sender:    fmt.Sprintf("0x%x", tx.Sender),
+			Recipient: fmt.Sprintf("0x%x", tx.Recipient),
+			Value:     tx.Value.String(),
+			Nonce:     tx.Nonce,
+			Data:      fmt.Sprintf("0x%x", tx.Data),
+		})
+		if err != nil {
+			return fmt.Errorf("encode planned transaction: %w", err)
+		}
+
+		if _, err := planBuf.Write(append(line, '\n')); err != nil {
 			return fmt.Errorf("write transaction plan: %w", err)
 		}
+	}
+
+	if err := planBuf.Flush(); err != nil {
+		return fmt.Errorf("flush transaction plan: %w", err)
 	}
 
 	metrics, err := os.Create(filepath.Join(dir, MetricsFileName))
@@ -434,22 +458,25 @@ func writeResult(dir string, result Result) error {
 
 	defer func() { _ = metrics.Close() }()
 
-	if _, err := fmt.Fprintln(metrics, "kind,ts,request_id,value"); err != nil {
+	w := csv.NewWriter(metrics)
+
+	if err := w.Write(metricsCSVHeader); err != nil {
 		return fmt.Errorf("write metrics header: %w", err)
 	}
 
 	for _, event := range result.Metrics {
-		if _, err := fmt.Fprintf(
-			metrics,
-			"%s,%d,%s,%d\n",
+		row := []string{
 			event.Kind,
-			event.TS,
+			strconv.FormatInt(event.TS, 10),
 			event.RequestID,
-			event.Value,
-		); err != nil {
+			strconv.FormatUint(event.Value, 10),
+		}
+		if err := w.Write(row); err != nil {
 			return fmt.Errorf("write metric: %w", err)
 		}
 	}
 
-	return nil
+	w.Flush()
+
+	return w.Error()
 }

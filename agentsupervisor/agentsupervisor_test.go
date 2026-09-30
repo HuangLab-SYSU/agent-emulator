@@ -1,6 +1,7 @@
 package agentsupervisor
 
 import (
+	"encoding/csv"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -305,4 +306,46 @@ func TestHostActionTxMapLinksIntentToHashes(t *testing.T) {
 	}
 
 	require.Equal(t, planHashes, mapped)
+}
+
+// TestWriteResultEscapesMetricFields verifies Agent_Events.csv round-trips a
+// request_id containing CSV metacharacters instead of corrupting the file, and
+// that the plan JSONL stays machine-readable.
+func TestWriteResultEscapesMetricFields(t *testing.T) {
+	nasty := `pay,"quoted",with,commas
+and a newline`
+
+	sup, err := NewAgentSupervisor(testConfig(t))
+	require.NoError(t, err)
+	result, err := sup.Process([]Record{
+		{AgentID: "alice", Action: ActionJoin, ParamsHash: "doc-a", TS: 1, Seq: 1},
+		{AgentID: "alice", Target: "alice", Action: ActionPay, Amount: 5, RequestID: nasty, TS: 2, Seq: 2},
+	})
+	// A self-pay is compiled like any pay; the point here is only the writer.
+	require.NoError(t, err)
+	require.Len(t, result.Metrics, 2)
+
+	dir := t.TempDir()
+	require.NoError(t, sup.WriteResult(dir, result))
+
+	f, err := os.Open(filepath.Join(dir, MetricsFileName))
+	require.NoError(t, err)
+	defer func() { _ = f.Close() }()
+
+	rows, err := csv.NewReader(f).ReadAll()
+	require.NoError(t, err)
+	require.Len(t, rows, 3) // header + did_register + pay_onchain
+	require.Equal(t, metricsCSVHeader, rows[0])
+	require.Equal(t, nasty, rows[2][2])
+	require.Equal(t, "pay_onchain", rows[2][0])
+	require.Equal(t, "5", rows[2][3])
+
+	// The plan file must still parse as one JSON object per line.
+	plan, err := os.ReadFile(filepath.Join(dir, PlanFileName))
+	require.NoError(t, err)
+	lines := strings.Split(strings.TrimSpace(string(plan)), "\n")
+	require.Len(t, lines, len(result.Transactions))
+	for _, line := range lines {
+		require.NoError(t, json.Unmarshal([]byte(line), &map[string]any{}))
+	}
 }
