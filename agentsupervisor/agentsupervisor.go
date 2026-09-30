@@ -225,7 +225,9 @@ func (s *AgentSupervisor) processRawTx(record Record) error {
 
 	s.links[s.curLink].Amount = value.Uint64()
 	s.linkLastTxTo(s.curLink)
-	s.metrics = append(s.metrics, MetricEvent{Kind: "raw_tx", TS: record.TS, RequestID: record.RequestID, Value: value.Uint64()})
+	s.metrics = append(s.metrics, MetricEvent{
+		Kind: "raw_tx", TS: record.TS, RequestID: record.RequestID, Value: value.Uint64(),
+	})
 
 	return nil
 }

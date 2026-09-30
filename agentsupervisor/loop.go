@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 // RoundSummaryFile is written at the result root when a run finishes.
@@ -23,6 +24,9 @@ type RoundResult struct {
 	// ChainResultDir points at the supervisor measurement CSVs of this round;
 	// empty when chain execution is disabled.
 	ChainResultDir string `json:"chain_result_dir,omitempty"`
+	// Metrics joins the planned actions with the chain's committed
+	// transactions; set only when chain execution is enabled.
+	Metrics *RoundMetrics `json:"metrics,omitempty"`
 }
 
 // AgentAPI is the feedback hook reserved for the multi-round loop: it receives
@@ -94,6 +98,8 @@ func (r *Runner) Run(ctx context.Context) ([]RoundResult, error) {
 	rounds := make([]RoundResult, 0, 1)
 
 	for round := 1; ; round++ {
+		roundStart := time.Now()
+
 		sup, err := NewAgentSupervisor(r.Cfg)
 		if err != nil {
 			return rounds, fmt.Errorf("round %d: create agent supervisor: %w", round, err)
@@ -118,7 +124,11 @@ func (r *Runner) Run(ctx context.Context) ([]RoundResult, error) {
 		}
 
 		if r.Chain != nil {
+			chainStart := time.Now()
+
 			outcome, err := r.Chain.Run(ctx, RoundSpec{Round: round, PlanPath: rr.PlanPath, TxCount: rr.TxCount})
+			chainWall := time.Since(chainStart)
+
 			if err != nil {
 				return rounds, fmt.Errorf("round %d: %w", round, err)
 			}
@@ -131,6 +141,15 @@ func (r *Runner) Run(ctx context.Context) ([]RoundResult, error) {
 			if err := WriteAgentCSVs(ctx, outcome.ChainDir, outcome.ShardNum, sup.registry, agentsDir); err != nil {
 				return rounds, fmt.Errorf("round %d: %w", round, err)
 			}
+
+			metrics, err := AggregateRoundMetrics(sup.links, outcome.ResultDir)
+			if err != nil {
+				return rounds, fmt.Errorf("round %d: aggregate chain metrics: %w", round, err)
+			}
+
+			metrics.ChainWallSeconds = chainWall.Seconds()
+			metrics.RoundWallSeconds = time.Since(roundStart).Seconds()
+			rr.Metrics = metrics
 		}
 
 		rounds = append(rounds, rr)
