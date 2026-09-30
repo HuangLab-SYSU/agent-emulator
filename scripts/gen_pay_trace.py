@@ -90,13 +90,16 @@ def main():
         if args.mixed_every > 0 and n % args.mixed_every == 0:
             # A plain transfer between a random active agent and a fresh
             # normal address, direction random. The line carries no ts: it
-            # inherits the pay's ts above, keeping its file position.
+            # inherits the pay's ts above, keeping its file position. Its
+            # request_id is consumed by neither the nonce nor the tx bytes,
+            # so it never changes the compiled transactions.
             agent = pool[rnd.randrange(len(pool))]
             normal = f"0x{rnd.getrandbits(160):040x}"
             src, dst = ((agent, normal) if rnd.random() < 0.5
                         else (normal, agent))
             emit({"sender": src, "recipient": dst,
-                  "value": str(rnd.randint(1, 100))})
+                  "value": str(rnd.randint(1, 100)),
+                  "request_id": f"raw-{n:05d}"})
 
     with open(args.out, "w") as f:
         for rec in records:

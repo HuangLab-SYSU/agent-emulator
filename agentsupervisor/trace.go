@@ -84,7 +84,9 @@ func LoadTrace(path string) ([]Record, error) {
 			}
 
 			spec := probe.RawTxSpec
-			record = Record{Action: ActionRawTx, TS: lastTS, RawTx: &spec}
+			// A transfer line may carry an optional request_id; it flows into
+			// the action map and metric events like a pay's does.
+			record = Record{Action: ActionRawTx, TS: lastTS, RequestID: probe.RequestID, RawTx: &spec}
 		} else {
 			record = probe.Record
 			if record.AgentID == "" || record.Action == "" || record.TS < 0 {

@@ -73,3 +73,16 @@ func TestLoadTraceRejectsBadPlainTransfers(t *testing.T) {
 		require.ErrorContains(t, err, "sender, recipient and value are required")
 	})
 }
+
+func TestLoadTraceKeepsPlainTransferRequestID(t *testing.T) {
+	path := writeTrace(t,
+		`{"agent_id":"alice","action":"join","params_hash":"doc","ts":1}`,
+		`{"sender":"0x`+strings.Repeat("11", 20)+`","recipient":"0x`+strings.Repeat("22", 20)+`","value":"7","request_id":"raw-00042"}`,
+	)
+
+	records, err := LoadTrace(path)
+	require.NoError(t, err)
+	require.Len(t, records, 2)
+	require.Equal(t, "raw-00042", records[1].RequestID)
+	require.Equal(t, ActionRawTx, records[1].Action)
+}

@@ -180,7 +180,7 @@ Example trace:
 
 In v1.0, DID contract calls are recorded. The DID contract is not deployed, so no DID contract state is updated. Payments perform actual balance transfers. See [FAQ Q3](#q3-do-agent-payments-use-smart-contracts).
 
-Plain transfer records have no `action` field. AgentEmulator identifies plain transfers by three fields: `sender`, `recipient`, and `value`. Each of `sender` and `recipient` is either a 20-byte hex address or the id of a **currently active** agent, so plain transfer lines also express normal-account ↔ agent transfers in both directions (e.g. `{"sender":"agent-001","recipient":"0xeae4...","value":"680"}`). An agent id that is unknown or not active at that point is rejected, exactly like a `pay` naming it. Plain transfers follow the record order in the trace:
+Plain transfer records have no `action` field. AgentEmulator identifies plain transfers by three fields: `sender`, `recipient`, and `value`. Each of `sender` and `recipient` is either a 20-byte hex address or the id of a **currently active** agent, so plain transfer lines also express normal-account ↔ agent transfers in both directions (e.g. `{"sender":"agent-001","recipient":"0xeae4...","value":"680"}`). An agent id that is unknown or not active at that point is rejected, exactly like a `pay` naming it. A transfer line may also carry an optional `request_id`; like a pay's, it lands in `agent_action_txs.jsonl` and `Agent_Events.csv` for payment-intent correlation, without affecting the compiled transaction. Plain transfers follow the record order in the trace:
 
 ```json
 {"sender":"0xabc...","recipient":"0xdef...","value":"12345"}

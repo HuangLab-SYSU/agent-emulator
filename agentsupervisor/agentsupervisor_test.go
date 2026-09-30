@@ -349,3 +349,29 @@ and a newline`
 		require.NoError(t, json.Unmarshal([]byte(line), &map[string]any{}))
 	}
 }
+
+// TestPlainTransferRequestIDFlowsToLinkAndMetric verifies the optional
+// request_id on a transfer line reaches the action map and the metric event.
+func TestPlainTransferRequestIDFlowsToLinkAndMetric(t *testing.T) {
+	normal := "0x" + strings.Repeat("22", 20)
+
+	sup, err := NewAgentSupervisor(testConfig(t))
+	require.NoError(t, err)
+	result, err := sup.Process([]Record{
+		{AgentID: "alice", Action: ActionJoin, ParamsHash: "doc-a", TS: 1, Seq: 1},
+		{Action: ActionRawTx, RequestID: "raw-00003", TS: 2, Seq: 2, RawTx: &RawTxSpec{
+			Sender: "alice", Recipient: normal, Value: "7",
+		}},
+	})
+	require.NoError(t, err)
+	require.Len(t, result.Metrics, 2)
+
+	raw := result.Metrics[1]
+	require.Equal(t, "raw_tx", raw.Kind)
+	require.Equal(t, "raw-00003", raw.RequestID)
+	require.EqualValues(t, 7, raw.Value)
+
+	link := sup.links[1]
+	require.Equal(t, ActionRawTx, link.Action)
+	require.Equal(t, "raw-00003", link.RequestID)
+}
