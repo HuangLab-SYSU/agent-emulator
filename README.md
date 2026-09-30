@@ -224,7 +224,7 @@ protocols:
 
 ### Blockchain configuration: `config.yaml`
 
-By default, AgentEmulator uses BlockEmulator-X's native configuration. `agentSupervisor` treats `config.yaml` as a template and generates a separate blockchain configuration for each experiment. The module adjusts storage and log paths and sets the transaction source to `plan_source`. The module also sets `tx_number` to the number of transactions compiled from the trace.
+By default, AgentEmulator uses BlockEmulator-X's native configuration. `agentSupervisor` treats `config.yaml` as a template and generates a separate blockchain configuration for each experiment. The module adjusts storage and log paths and sets the transaction source to `json_source`. The module also sets `tx_number` to the number of transactions compiled from the trace.
 
 Common settings include:
 
@@ -338,7 +338,7 @@ The experiment used multiple processes on a single machine with these settings:
 1. **Topology:** 4 shards with 4 consensus nodes each (16 consensus nodes in total), plus one supervisor. Nodes communicated in `direct` mode over `127.0.0.1`. Consensus nodes used ports in the range 32217–32547. The supervisor used port 38800.
 2. **Consensus and cross-shard processing:** `static_relay`, with static account placement and relay-based cross-shard transactions. The block interval was 2000 ms. Transactions were packed by count, with up to 5000 transactions per block.
 3. **Storage:** BoltDB for blocks, Ethereum-style LevelDB for world state, and a Bloom filter bitmap length of 4096.
-4. **Workload:** seed `20260903`, 100 agents, and a trace containing 10,000 transactions, replayed through `plan_source`. Each round automatically compiled the transactions and started a fresh BlockEmulator-X emulation run.
+4. **Workload:** seed `20260903`, 100 agents, and a trace containing 10,000 transactions, replayed through `json_source`. Each round automatically compiled the transactions and started a fresh BlockEmulator-X emulation run.
 
 <p align="center">
   <img src="docs/figures/pngs/fig1_all_agents_overview.png" alt="Balance changes across all agents">

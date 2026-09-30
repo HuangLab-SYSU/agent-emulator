@@ -297,7 +297,7 @@ protocols:
 
 ### 对 BlockEmulator-X 侧的配置：config.yaml（默认使用 BlockEmulator-X 的原生配置）
 
-agentSupervisor 以 `config.yaml` 文件为模板，用于为每次实验生成独立的 BlockEmulator-X 区块链配置。系统自动调整数据存储路径和日志路径，将交易源设置为 `plan_source`，并将 `tx_number` 设置为 Trace 文件对应的交易数量。实验人员可根据需要修改以下常用配置项：
+agentSupervisor 以 `config.yaml` 文件为模板，用于为每次实验生成独立的 BlockEmulator-X 区块链配置。系统自动调整数据存储路径和日志路径，将交易源设置为 `json_source`，并将 `tx_number` 设置为 Trace 文件对应的交易数量。实验人员可根据需要修改以下常用配置项：
 
 - `system.shard_num` / `system.node_num`：进行实验的区块链分片数量，以及每个分片中的节点数量
 
@@ -456,7 +456,7 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 3）区块存储采用 BoltDB，世界状态采用以太坊式 LevelDB，布隆过滤器位图长度 4096；
 
-4）在 AgentEmulator 实验层以随机种子 20260903 回放包含 100 个 Agent、10,000 笔交易的 trace（`plan_source` 方式），每轮实验自动编译并重新启动 BlockEmulator-X 区块链模拟实验。
+4）在 AgentEmulator 实验层以随机种子 20260903 回放包含 100 个 Agent、10,000 笔交易的 trace（`json_source` 方式），每轮实验自动编译并重新启动 BlockEmulator-X 区块链模拟实验。
 
 
 

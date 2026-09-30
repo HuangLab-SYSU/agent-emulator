@@ -139,15 +139,15 @@ supervisor:
     ### `tx_source_type` is type of the transaction source.
     ### `random_source`: The supervisor generates random transactions and inject them to the system.
     ### `csv_source`: The supervisor reads transactions from a .csv file and inject them to the system.
-    ### `plan_source`: The supervisor replays a planned transaction file (agent_transactions.jsonl, one JSON tx per line).
+    ### `json_source`: The supervisor replays a JSONL transaction file (agent_transactions.jsonl, one JSON tx per line).
     ### Else: The supervisor will not inject any transactions.
-    tx_source_type: "random_source" # [random_source, csv_source, plan_source]
+    tx_source_type: "random_source" # [random_source, csv_source, json_source]
     ### -----------------------------------------------------------------------------------
 
     ### -----------------------------------------------------------------------------------
-    ### `tx_source_file` is the source file of transactions (.csv for csv_source, .jsonl for plan_source).
-    ### This variable is valid when `tx_source_type` is `csv_source` or `plan_source`.
-    tx_source_file: "" # valid when tx_source_type = csv_source | plan_source
+    ### `tx_source_file` is the source file of transactions (.csv for csv_source, .jsonl for json_source).
+    ### This variable is valid when `tx_source_type` is `csv_source` or `json_source`.
+    tx_source_file: "" # valid when tx_source_type = csv_source | json_source
     ### -----------------------------------------------------------------------------------
 
     ### -----------------------------------------------------------------------------------
