@@ -14,7 +14,7 @@ import (
 
 const Key = "plan_source"
 
-// planLine mirrors the JSONL layout written by agentemu's WriteResult, so a
+// planLine mirrors the JSONL layout written by agentsupervisor's WriteResult, so a
 // generated transaction plan can be replayed by the supervisor without any
 // intermediate conversion.
 type planLine struct {

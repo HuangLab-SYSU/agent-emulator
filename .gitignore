@@ -32,3 +32,7 @@ USER_GUIDE.md
 
 # AgentEmulator cluster binaries built into the module root's agentemu-bin/
 /agentemu-bin/
+
+# 不要上传 Python 缓存目录
+# Do not upload Python cache directories.
+__pycache__/

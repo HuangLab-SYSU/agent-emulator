@@ -1,212 +1,166 @@
-# BlockEmulator-X (advanced version of BlockEmulator)
+# AgentEmulator (v1.0) User Guide
 
+For the Chinese version of this guide, see [README_zh.md](README_zh.md).
 
-## A Video Tutorial of BlockEmulator & BlockEmulator-X
-Go to **[YouTube Video](https://www.youtube.com/watch?v=hrXVMKPfKQ4)**.
+## Overview
 
+### What is AgentEmulator?
 
-## 1. Introduction to both BlockEmulator and BlockEmulator-X
+AgentEmulator is an **emulation and experimentation platform for trustworthy AI agent infrastructure**. The platform was initiated by **[HuangLab](http://www.xintelligence.pro/)**, led by Professor Huawei Huang at the School of Software Engineering, Sun Yat-sen University. AgentEmulator uses blockchain as the foundation for trusted records and settlement. Researchers and students can investigate agent identity, behavioral auditing, payment settlement, incentives, and governance. AgentEmulator aims to support research into trustworthy interaction and collaboration among AI agents.
 
-> -----------------------------------------------------
-> **To provide more standardized code, facilitate more efficient user-side secondary development, and reduce potential bugs,
-we have rewritten BlockEmulator since late 2025. Finally, we have BlockEmulator-X: an advanced version of BlockEmulator.** **BlockEmulator v1.0 is here: [https://github.com/HuangLab-SYSU/block-emulator](https://github.com/HuangLab-SYSU/block-emulator).**
+AgentEmulator is built on **[BlockEmulator-X](https://github.com/HuangLab-SYSU/block-emulator-x)**, HuangLab's blockchain emulation platform. HuangLab released BlockEmulator-X as open source in June 2026 as the successor to the original BlockEmulator. AgentEmulator extends BlockEmulator-X to experiments that combine AI agent behavior with blockchain execution.
 
-> **This document outlines the getting-started guideline, design principles, and major updates of the new version of BlockEmulator (i.e., BlockEmulator-X).**
+### What does AgentEmulator support?
 
-> **The original version of BlockEmulator is referred to as BlockEmulator v1.0, and BlockEmulator-X is also called BlockEmulator v2.0.** **The major contributor of BlockEmulator-X is Mr. YE Guang (叶光). Show respect to him!**
+AgentEmulator is designed to simplify experiment setup, mechanism validation, and data analysis. Researchers can configure the underlying blockchain, observe agent behavior, and evaluate how different mechanisms affect experimental outcomes.
 
-> In July 2026, we uploaded a detailed 239-page **Chinese-version User Manual**, named "_2026Jul19-(239页)使用指南-黄华威.pdf_". Please feel free to download it from the main folder. 
+![AgentEmulator workflow from a user's perspective](docs/figures/svgs/AgentEmulator_workflow_en.svg)
 
-> -----------------------------------------------------
+**Figure 1. AgentEmulator's general workflow.** This diagram illustrates the platform's broader purpose, beyond the current v1.0 release. The user-defined mechanisms and algorithms provide scope for extensions and original research.
 
+### Roadmap
 
+Development will focus on five areas: **identity, settlement, auditing, incentives, and governance**. The roadmap below is provisional and may evolve with research and development progress.
 
-### Background of BlockEmulator
+| Stage | Focus |
+| --- | --- |
+| **v1.0: Basic behavior emulation (current release)** | Trace-driven replay of `join`, `pay`, and `leave` actions, with transaction execution, action-to-transaction mapping, account records, and visualization. |
+| **Near term: Identity and auditing** | Smart contract state management for DID registration and revocation, permission declarations, verifiable behavior logs, and traceability. |
+| **Medium term: Payments and interactions** | Micropayments, payment channels, batch settlement, experiments with feedback across multiple rounds, and richer agent service interactions. |
+| **Later: Incentives and collaborative governance** | Task allocation, behavior coordination, and accountability in multi-agent collaboration, with emulation and evaluation of different collaboration strategies. |
+| **Long term: Benchmarking** | Standardized scenarios, datasets, and metrics for comparing trustworthy infrastructure approaches through reproducible experiments. |
 
-Initiated by **[HuangLab](http://xintelligence.pro/)** (a blockchain research group at Sun Yat-sen University, China), **BlockEmulator** is a blockchain testbed that enables researchers to verify their proposed new protocols and mechanisms. It supports popular consensus protocols, such as Practical Byzantine Fault Tolerance (PBFT) and Proof-of-work (PoW), particularly the **blockchain sharding** mechanism.
+### Current release: v1.0
 
-The purpose of this testbed is to help users (researchers, students, etc.) quickly verify their own blockchain consensus protocols and blockchain-sharding protocols.
+**AgentEmulator v1.0 supports trace-driven behavior replay, records of identity registration and revocation, direct payments, experimental data collection, and visualization.** Researchers describe agent actions in a JSONL trace file. The `agentSupervisor` module compiles the trace into a transaction dataset. The module then starts a BlockEmulator-X blockchain and submits the transactions for on-chain execution and recording. After the experiment, AgentEmulator records transaction and account data and generates balance plots. AgentEmulator also creates an HTML gallery with Chinese and English interface options. The launch script opens the gallery in the default browser.
 
-**BlockEmulator** is designed as an experimental platform that adopts a lightweight system architecture. It simplifies the implementation of industrial-grade blockchains by focusing only on the core functions: the transaction pool, block packaging, consensus protocols, and on-chain transaction storage.
+In v1.0, agent behavior is predefined in the trace. Transactions follow the **User-specified Original Sequence** policy. No additional transaction orchestration or scheduling algorithm is included. Researchers can extend the default policy with mechanisms such as transaction reordering, priority rules, or agent weights.
 
-In particular, BlockEmulator offers the system-level design and implementation for blockchain-sharding mechanisms. For example, the cross-shard transaction mechanisms implemented by BlockEmulator include the following two representative solutions: i) **Relay transaction mechanism** proposed by **Monoxide** (NSDI'2019), and ii) the **BrokerChain** protocol (INFOCOM'2022) [PDF](https://www.researchgate.net/publication/356789473_BrokerChain_A_Cross-Shard_Blockchain_Protocol_for_AccountBalance-based_State_Sharding).
+Future releases will expand the supported protocols, scenarios, and evaluation capabilities. Contributions and research-specific extensions are welcome.
 
-BlockEmulator is oriented toward blockchain researchers. It offers a blockchain experimental platform for quickly implementing their own algorithms, protocols, and mechanisms. It also offers very helpful functions for collecting experimental data, facilitating the plotting of experimental figures.
+### Repository
 
+The source code is available on [GitHub](https://github.com/HuangLab-SYSU/agent-emulator).
 
-### BlockEmulator's Official Technical Paper & Citation Method
+### Terminology
 
-To provide an official handbook for BlockEmulator, we have written a technical paper titled "BlockEmulator: An Emulator Enabling to Test Blockchain Sharding Protocols" [arXiv page](https://arxiv.org/abs/2311.03612).
-**Please cite our TSC-version paper** if you use BlockEmulator as an experiment tool in your own paper, using the following **bib data**:
+The core workflow is: **describe agent behavior in a trace → compile the trace into transactions with `agentSupervisor` → execute the transactions in BlockEmulator-X → collect and visualize the results**.
 
-```
-@article{huang2025blockemulator,
-   title={BlockEmulator: An Emulator Enabling to Test Blockchain Sharding Protocols},
-   author={Huang, Huawei and Ye, Guang and Yang, Qinglin and Chen, Qinde and Yin, Zhaokang and Luo, Xiaofei and Lin, Jianru and Zheng, Jian and Li, Taotao and  Zheng, Zibin},
-   journal = {IEEE Transactions on Services Computing (TSC)},
-   volume={18},
-   number={2},
-   pages = {690--703},
-   year = {2025},
-   }
-```
+| Term | Description |
+| --- | --- |
+| AgentEmulator | An agent behavior emulator built on BlockEmulator-X. AgentEmulator converts agent actions into blockchain transactions, records experimental data, and presents the results. |
+| Agent | An experimental participant whose `join`, `pay`, and `leave` actions are defined in a trace. |
+| BlockEmulator-X | The underlying blockchain emulator, responsible for node operation, consensus, block production, transaction execution, and on-chain records. See the [BlockEmulator-X repository](https://github.com/HuangLab-SYSU/block-emulator-x). |
+| Trace file | A JSONL input file describing a sequence of agent actions. Each line contains one action or one plain transfer. |
+| `agentEmuConfig.yaml` | The agent-level experiment configuration: trace path, identity derivation seed, output directory, and blockchain execution settings. |
+| `config.yaml` | The BlockEmulator-X configuration template: shard count, node count, block interval, and other blockchain parameters. |
+| `agentSupervisor` | The experiment coordinator. `agentSupervisor` reads configurations and traces, then compiles actions into transactions. The module also manages blockchain execution and produces experiment outputs. |
+| `agent_id` | A unique identifier assigned to an agent in the trace, such as `agent-alice`. The identifier distinguishes agents and links each agent's behavior records. |
+| `seed` | The identity derivation seed in `agentEmuConfig.yaml`. The same seed and `agent_id` produce the same DID. |
+| DID | A Decentralized Identifier derived automatically from `seed` and `agent_id`. DIDs do not need to be entered in the trace. |
 
+### System architecture
 
-### Published Papers by using BlockEmulator
+The following diagram shows AgentEmulator's modules and their relationships.
 
-The following HuangLab publications adopted **BlockEmulator** as their experimental tool.
+![AgentEmulator system architecture](docs/figures/svgs/AgentEmulator_architecture_en.svg)
 
-1. **BrokerChain**: A Cross-Shard Blockchain Protocol for Account/Balance-based State Sharding **(INFOCOM 2022)** 【[PDF](https://www.researchgate.net/publication/356789473_BrokerChain_A_Cross-Shard_Blockchain_Protocol_for_AccountBalance-based_State_Sharding)】
-2. **BrokerChain-ToN**: BrokerChain: A Blockchain Sharding Protocol by Exploiting Broker Accounts **(ToN 2025)** 【[PDF](https://www.researchgate.net/publication/390218703_BrokerChain_A_Blockchain_Sharding_Protocol_by_Exploiting_Broker_Accounts)】
-3. **ShardCutter**: ShardCutter: A Blockchain Sharding Protocol Achieving Transaction Workload Balance Across State Shards **(ToN 2026)** 【[PDF](https://www.researchgate.net/publication/400699615_ShardCutter_A_Blockchain_Sharding_Protocol_achieving_Transaction_Workload_Balance_across_State_Shards)】
-4. **Broker2Earn**: Towards Maximizing Broker Revenue and System Liquidity for Sharded Blockchains **(INFOCOM 2024)** 【[PDF](https://www.researchgate.net/publication/379213048_Broker2Earn_Towards_Maximizing_Broker_Revenue_and_System_Liquidity_for_Sharded_Blockchains)】
-5. **LiquidityPool**: LiquidityPool: Game-Theoretic Analysis of Stakeholder Revenue in Ranking-Dependent DeFi **(WWW 2026)** 【[PDF](https://www.researchgate.net/publication/400068018_LiquidityPool_Game-Theoretic_Analysis_of_Stakeholder_Revenue_in_Ranking-Dependent_DeFi)】
-6. **Fine-tuned Lock (FTL)**: Account Migration across Blockchain Shards using Fine-tuned Lock Mechanism **(INFOCOM 2024)** 【[PDF](https://www.researchgate.net/publication/379210418_Account_Migration_across_Blockchain_Shards_using_Fine-tuned_Lock_Mechanism)】
-7. **Justitia**: An Incentive Mechanism towards the Fairness of Cross-shard Transactions **(INFOCOM 2025)** 【[PDF](http://xintelligence.pro/archives/1371)】
-8. **MVCom-ToN**: Scheduling Most Valuable Committees for the Sharded Blockchain **(ToN 2023)** 【[PDF](https://www.researchgate.net/publication/370671128_Scheduling_Most_Valuable_Committees_for_the_Sharded_Blockchain)】
-9. **CLPA**: Achieving Scalability and Load Balance across Blockchain Shards for State Sharding (published at SRDS 2022) [PDF](https://ieeexplore.ieee.org/document/9996899)
-10. **tMPT**: Reconfiguration across Blockchain Shards via Trimmed Merkle Patricia Trie (published at IWQoS 2023) [PDF](https://www.researchgate.net/publication/370633426_tMPT_Reconfiguration_across_Blockchain_Shards_via_Trimmed_Merkle_Patricia_Trie)
+## Getting Started
 
+### Prerequisites
 
+AgentEmulator runs on macOS, Linux, and Windows.
 
-### Highlights of BlockEmulator
+| Dependency | Required version | Verification command | Purpose |
+| --- | --- | --- | --- |
+| Go | ≥ 1.25 | `go version` | Build and run the emulator |
+| Python 3 | ≥ 3.8 | `python3 --version` (Windows: `python --version` or `py -3 --version`) | Generate plots after each experiment |
+| matplotlib / numpy / pandas | — | `python3 -c "import matplotlib, numpy, pandas"` | Plotting and data analysis |
 
-1. **Lightweight**. BlockEmulator is a lightweight testbed platform for blockchain experiments.
+Install the Python dependencies if needed (use `pip` on Windows):
 
-2. **Fast Configuration**. BlockEmulator enables users to quickly set up their environments and supports remote deployment in the Cloud.
-
-3. **Customization**. BlockEmulator is implemented in GoLand, a language that supports user customization and modification.
-
-4. **Easy to Conduct Experiments**. BlockEmulator supports replaying historical transactions from mainstream blockchains (such as Ethereum). It can automatically yield experimental log files. Using those log files, researchers can interpret metrics such as system throughput, transaction confirmation latency, and queueing in the transaction pool. This function is very useful for researchers and students to facilitate their experimental data collection and plotting of experimental charts.
-
-
-> -----------------------------------------------------
-## 2. Let us Get Started to use BlockEmulator-X
-
-### Running a built-in small-scale Experiment
-
-BlockEmulator v2.0 includes a startup script for built-in small-scale experiments (`example_run.sh`), which launches a default set of settings with 4 shards, 4 nodes per shard, plus one Supervisor. This script can also automatically download dependencies, remove historical data, and compile the code.
-
-The default small-scale script is:
-
-```sh
-#!/bin/bash
-
-SHARD_NUM=4
-NODE_NUM=4
-
-# Delete the old experiment directory.
-rm -rf ./exp/
-mkdir -p ./exp/
-
-set -ex
-
-# Download modules and pre-compile.
-go mod download
-go build ./...
-
-# Start consensus nodes.
-for ((i=0; i<SHARD_NUM; i++)); do
-  for ((j=0; j<NODE_NUM; j++)); do
-    go run cmd/consensusnode/main.go -shard_id="${i}" -node_id="${j}" &
-  done
-done
-
-# Start the supervisor.
-go run cmd/supervisor/main.go -shard_id=0x7fffffff -node_id=0 &
-
-wait
+```bash
+pip3 install matplotlib numpy pandas
 ```
 
-This script can be started by using `bash`:
+Clone and build the project:
 
-```sh
-bash example_run.sh
+```bash
+git clone https://github.com/HuangLab-SYSU/agent-emulator.git
+cd agent-emulator
+go build ./...      # Verify the build environment
 ```
 
-### Running Experiments of a Specified Scale
+### Five-minute quick start
 
-The script mentioned above only supports launching a basic-scale blockchain system.
-To run experiments with larger scales or different consensus protocols, you need to configure BlockEmulator:
+On **Windows**, run the batch script from Command Prompt or double-click `run_agentemu.bat` in File Explorer:
 
-#### Configure `config.yaml`
-
-Users can customize the system by editing the `config.yaml` file,
-where each configuration item is described in detail.
-
-Configurable parameters include, but are not limited to:
-
-- Number of shards (`system.shard_num`)
-
-- Number of nodes per shard (`system.node_num`)
-
-- Consensus protocol (`system.consensus_type`)
-
-- Total number of injected transactions (`supervisor.tx_number`)
-
-- Transaction injection rate (`supervisor.tx_injection_speed`)
-
-- ...
-
-After modifying the configuration, the settings will take effect the next time the nodes are launched.
-
-When performing secondary development, users can add new features and corresponding configuration entries to `config.yaml`.
-
-
-#### Configuring the IP Table
-
-If the user modifies the default number of shards (`system.shard_num`) or the number of nodes per shard (`system.node_num`), they must ensure that the `ip_table.json` file in the root directory contains the IP addresses for all nodes.
-
-Below is an example of `ip_table.json` for a system with 2 shards and 2 nodes per shard:
-
-```json
-{
-  "0": {
-    "0": "127.0.0.1:32217",
-    "1": "127.0.0.1:32227"
-  },
-  "1": {
-    "0": "127.0.0.1:32317",
-    "1": "127.0.0.1:32327"
-  },
-  "2147483647": {
-    "0": "127.0.0.1:38800"
-  }
-}
+```bat
+run_agentemu.bat
 ```
 
-#### Modifying example_run.sh
+To use a custom configuration:
 
-If the user changes the default number of shards (`system.shard_num`) or the number of nodes per shard (`system.node_num`), they must also update the variables `SHARD_NUM` and `NODE_NUM` in `example_run.sh.`
-After making the changes, simply run the script.
-
-For secondary development or to integrate BlockEmulator into other systems, users may also write their own custom startup scripts tailored to their needs.
-
-> -----------------------------------------------------
-### Running Agent Experiments (AgentEmulator)
-
-**AgentEmulator** is a trace-driven extension that simulates agent behavior on top of BlockEmulator-X. An agent story written as a JSONL trace is compiled into ordinary BlockEmulator-X transactions (DID registration/revocation calls, plain transfers), and after the plan is produced, a private BlockEmulator-X cluster is launched automatically to run the experiment — no kernel or consensus code is modified.
-
-#### Quick start
-
-```sh
-bash run_agentemu.sh            # or: bash run_agentemu.sh <your-config.yaml>
+```bat
+run_agentemu.bat my-config.yaml
 ```
 
-The launcher builds the module, cleans previous outputs, runs the whole pipeline below, and — after a successful run — automatically generates the agent balance figures and opens the HTML gallery in your browser (see [Automatic figures & HTML gallery](#automatic-figures--html-gallery)). The plotting step needs Python 3 with `matplotlib`/`numpy`/`pandas`.
+The Windows and Bash scripts follow the same workflow:
 
-The equivalent manual invocation is:
+Build → clear previous results → run the experiment → generate plots → open the HTML gallery.
 
-```sh
-rm -rf ./exp/agentemu-results   # clean outputs of previous runs
-go run cmd/agentemu/main.go -config agentEmuConfig.yaml
+If `python` is unavailable, the Windows script falls back to `py -3`.
+
+On **macOS and Linux**, run:
+
+```bash
+bash run_agentemu.sh
 ```
 
-One command runs the whole pipeline: read the trace -> compile it into a transaction plan -> build the consensusnode/supervisor binaries -> derive a per-round config and ip table -> launch the cluster (4 shards x 4 nodes by default, matching `config.yaml`) -> replay the plan through the supervisor (`tx_source = plan_source`) -> wait until the cluster stops by itself. The binaries land in the module root; cluster logs are mirrored to the console and kept in `exp/agentemu-results/round_001/chain/logs/`.
+Or specify a custom configuration:
 
-#### Trace format
+```bash
+bash run_agentemu.sh my-config.yaml
+```
 
-One JSON object per line; `ts` orders the story (ties keep file order). Traces never carry DIDs — identities are assigned deterministically by the seed (`did:broker:0x...` derived from `sha256(seed:agent_id)`) and stay stable across runs and rounds.
+The launch script performs these steps automatically:
+
+1. **Build** the project with `go build ./...`.
+2. **Clear previous experiment data** by deleting `./exp`.
+3. **Run the experiment:** read `agentEmuConfig.yaml` and compile the trace into transactions. Start BlockEmulator-X with 4 shards and 4 nodes per shard by default. Stop the blockchain after all transactions have been committed.
+4. **Generate plots** from the latest round's agent ledgers and save PNG files to `figs/figs_results/`.
+5. **Build and open the HTML gallery** containing the plots.
+
+Press `Ctrl-C` to stop an experiment safely. Consensus node subprocesses started by BlockEmulator-X will also be cleaned up.
+
+> **Note:** Each run clears previous data in `exp/` and plots in `figs/figs_results/`. Back up any results you wish to retain. Plotting is skipped if the experiment fails. The gallery is generated only after a successful run.
+
+## Trace File Setup
+
+A trace file provides the input for an experiment. The file uses JSONL format, with one agent action or one plain blockchain transfer per line. In agent action records, `agent_id` identifies the agent performing the action, and `ts` defines the logical order. The `action` field specifies `join`, `pay`, or `leave`.
+
+```text
+Trace file (experiment intent)
+    │  Compile intent into blockchain transactions
+    │  (DID derivation, nonces, and data fields)
+    ▼
+Transaction dataset → Emulation replay → Agent ledgers / On-chain metrics → Plots
+```
+
+### Trace Basics
+
+1. **Actions and transactions.** Describe actions in the trace. Blockchain transactions do not need to be constructed manually. AgentEmulator deterministically generates DIDs, transaction nonces, and data fields from the action records and `seed`.
+2. **Reproducibility and ordering.** The same trace, seed, and code version produce the same transaction plan (see [FAQ Q10](#q10-are-experiments-reproducible)). Records are ordered by `ts`, with ties resolved by file order. `ts` defines the logical order rather than an on-chain timestamp. Changing the gaps between `ts` values does not control transaction commit times.
+3. **Agent lifecycle.** `join` and `leave` update each agent's `active` status in `agent_registry.json`. Both parties must be active when a `pay` action is processed.
+4. **Record linkage and versioning.** `request_id` links payment actions, on-chain transactions, and ledger records. Globally unique `request_id` values are recommended. `params_hash` identifies the version of action parameters. AgentEmulator copies `params_hash` unchanged into the mapping file to support data management across rounds.
+5. **Plain transfers.** Records with `sender`, `recipient`, and `value` can be mixed with agent actions to create workloads containing different transaction types.
+
+The repository includes two sample traces:
+
+- `traces/minimal.jsonl`: a minimal example with two agents joining and making a payment.
+- `traces/agent=100_txs=10000.jsonl`: the default trace, with 100 agents and 10,000 transactions.
+
+Example trace:
 
 ```json
 {"agent_id":"agent-alice","action":"join","params_hash":"doc-alice-v1","ts":1}
@@ -215,772 +169,374 @@ One JSON object per line; `ts` orders the story (ties keep file order). Traces n
 {"agent_id":"agent-bob","action":"leave","params_hash":"exit-bob","ts":5}
 ```
 
-| action | meaning | compiled into |
-|---|---|---|
-| `join` | agent enters, gets/keeps its DID | `register` contract call |
-| `pay` | transfer to another agent (both sides must be active) | plain transfer transaction |
-| `leave` | agent exits | `revoke` contract call |
+### Action Types
 
-A trace line carrying `sender`/`recipient`/`value` (decimal string) instead of `agent_id`/`action` is a **plain transfer**: it enters the plan at its file position, compiled exactly like an agent `pay` — the nonce comes from the same per-sender counter and `data` stays empty, so no other fields are required (extra fields on a copied plan line are ignored). Such lines carry no `ts`; they inherit the previous line's `ts` and keep their file position.
+| Type | Meaning | Compiled transaction |
+| --- | --- | --- |
+| `join` | Register an agent as active | DID `register` contract call |
+| `pay` | Pay another agent | Plain transfer |
+| `leave` | Deregister an agent | DID `revoke` contract call |
+| Plain transfer | Transfer between blockchain accounts, without an agent action | Plain transfer |
 
-Each of `sender` and `recipient` is either a 20-byte hex address or the id of a **currently active** agent, so plain transfer lines also express normal-account ↔ agent transfers in both directions (e.g. `{"sender":"agent-001","recipient":"0xeae4...","value":"680"}`). An agent id that is unknown or not active at that point is rejected, exactly like a `pay` naming it.
+In v1.0, DID contract calls are recorded. The DID contract is not deployed, so no DID contract state is updated. Payments perform actual balance transfers. See [FAQ Q3](#q3-do-agent-payments-use-smart-contracts).
 
-See `traces/minimal.jsonl` for the built-in example (a larger one: `traces/agent=100_txs=10000.jsonl`). A pay whose sender or target is not currently active is rejected; trace generators should track the active set.
+Plain transfer records have no `action` field. AgentEmulator identifies plain transfers by three fields: `sender`, `recipient`, and `value`. Each of `sender` and `recipient` is either a 20-byte hex address or the id of a **currently active** agent, so plain transfer lines also express normal-account ↔ agent transfers in both directions (e.g. `{"sender":"agent-001","recipient":"0xeae4...","value":"680"}`). An agent id that is unknown or not active at that point is rejected, exactly like a `pay` naming it. Plain transfers follow the record order in the trace:
 
-#### Configuration (`agentEmuConfig.yaml`)
+```json
+{"sender":"0xabc...","recipient":"0xdef...","value":"12345"}
+```
 
-The agent side is configured by a separate YAML so legacy `config.yaml` experiments are untouched:
+### Input Requirements
+
+1. Both `agent_id` and `target` in a `pay` action must be **active** (joined and not yet left). A violation aborts the experiment.
+2. Only an active agent can `leave`. An agent that rejoins after leaving must register again.
+3. `amount` must be a positive integer. New on-chain accounts receive an initial balance of 10^36 wei, which is sufficient for typical experiments.
+4. **Do not enter DIDs in the trace.** AgentEmulator derives DIDs deterministically from `seed` and `agent_id`.
+5. Use globally unique `request_id` values to simplify payment-intent lookup and analysis.
+
+## Configuration
+
+AgentEmulator has two configuration layers. `agentEmuConfig.yaml` controls the agent experiment. `config.yaml` configures the underlying BlockEmulator-X blockchain.
+
+### Agent configuration: `agentEmuConfig.yaml`
 
 ```yaml
 base:
-  blockemulator_config: ./config.yaml   # cluster template (shards, nodes, consensus)
-  result_dir: ./exp/agentemu-results
+  blockemulator_config: ./config.yaml   # Blockchain template: shards, nodes, consensus, etc.
+  result_dir: ./exp/agentemu-results    # Root directory for agentSupervisor outputs
+  module_root: "."                      # Repository root used to build blockchain binaries
 experiment:
-  seed: 20260903                        # deterministic DID allocation
-  trace: ./traces/minimal.jsonl
+  seed: 20260903                        # DID derivation seed
+  trace: ./traces/agent=100_txs=10000.jsonl   # Trace file path
 chain:
-  enabled: true                         # auto-launch BlockEmulator-X after the plan
-  run_timeout_seconds: 600
+  enabled: true                         # Start the blockchain after compiling transactions
+  run_timeout_seconds: 600              # Experiment timeout; adjust for workload size
+  node_exit_grace_seconds: 15           # Node shutdown grace period after the supervisor exits
 loop:
-  max_rounds: 1                         # multi-round feedback is a reserved hook
+  max_rounds: 1                         # Round limit; multi-round feedback is reserved for future use
 protocols:
-  pay:     {plugin: direct-pay}
-  identity:{plugin: did-simple,   contract_address: "0x...30"}
+  pay:
+    plugin: direct-pay                  # Currently supports direct payments only
+  identity:
+    plugin: did-simple
+    contract_address: "0x0000000000000000000000000000000000000030"
 ```
 
-#### Outputs
+### Blockchain configuration: `config.yaml`
 
-| path | content |
-|---|---|
-| `exp/agentemu-results/round_001/agent_transactions.jsonl` | the compiled transaction plan (hash, sender, recipient, value, nonce, data) |
-| `exp/agentemu-results/round_001/agent_action_txs.jsonl` | action-to-transaction map: every action (with `request_id`) and the hashes of the transactions it compiled into |
-| `exp/agentemu-results/round_001/Agent_Events.csv` | per-action metric events |
-| `exp/agentemu-results/round_001/agents/<agent_id>.csv` | per-agent on-chain ledger: every committed transaction the agent took part in, with block height, tx hash, both sides, value, running balance and block time (`block_time_ms`) |
-| `exp/agentemu-results/round_001/chain/logs/` | per-process cluster logs (mirrored to the console) |
-| `exp/agentemu-results/round_001/chain/data/` | the cluster's bolt/level storages and block records |
-| `exp/agentemu-results/round_001/chain/results/` | supervisor measurement CSVs (per-tx lifecycles, TPS, ...) |
-| `exp/agentemu-results/agent_registry.json` | agent_id -> DID mapping and active state |
-| `exp/agentemu-results/rounds_summary.json` | per-round record/transaction counts |
-| `figs/figs_results/` | auto-generated balance figures and the `index.html` gallery (gitignored) |
+By default, AgentEmulator uses BlockEmulator-X's native configuration. `agentSupervisor` treats `config.yaml` as a template and generates a separate blockchain configuration for each experiment. The module adjusts storage and log paths and sets the transaction source to `plan_source`. The module also sets `tx_number` to the number of transactions compiled from the trace.
 
-The per-agent CSVs are collected from the shards' committed block storages right after the cluster stops (equivalent to recording each block as it commits, without touching platform code). Balances follow the chain semantics: an account is lazily initialized to `NormalInitBalance` (10^39) on first touch; a cross-shard transfer appears as the relay1 debit in the sender's row and the relay2 credit in the recipient's row, each carrying its own leg's tx hash and block height.
+Common settings include:
 
-The action map joins payment intents with the chain: take a `request_id`'s `tx_hashes` and look them up in `relay_stats_detail_tx_info.csv` to answer whether and when the payment was confirmed.
+- `system.shard_num` / `system.node_num`: number of shards and nodes per shard.
+- `consensus_node.block_interval`: block interval in milliseconds.
+- `system.log.log_level`: `debug`, `info`, `warn`, or `error`.
 
-#### Automatic figures & HTML gallery
+<p align="center">
+  <img src="docs/figures/pngs/config_yaml.png" alt="Example BlockEmulator-X configuration">
+  <br>
+  Example BlockEmulator-X configuration
+</p>
 
-After a successful `run_agentemu.sh` run, the launcher automatically:
+## Running and Monitoring Experiments
 
-1. picks the latest round's `agents/` CSVs and clears stale figures;
-2. runs `figs/python_code/plot_agent_balance.py`, which draws publication-style figures (Times New Roman, enlarged fonts) of each agent's balance change Δbalance = balance − initial balance:
-   - final Δbalance per agent (two bar panels: by agent ID / sorted ascending, shared y-axis),
-   - the distribution of balance changes across agents by deduplicated global transaction order (min–max band, interquartile range, and the mean line, which stays at zero in this closed system),
-   - balance change aligned by normalized transaction progress,
-   - grouped trajectories, 5 agents per subfigure, each with its own block-boundary dashed line and star marker;
-3. runs `figs/python_code/build_fig_html.py`, which assembles the PNGs into a static `figs/figs_results/index.html` gallery (display order: overview → global order → normalized progress → grouped; figures are numbered by display position) and opens it in the default browser. The page offers a Chinese/English toggle (top-right button or the `L` key) and remembers the choice.
+Start an experiment as described in the quick start:
 
-Both scripts can be re-run standalone at any time; without arguments they pick the latest round's results:
+```bash
+bash run_agentemu.sh            # Or: bash run_agentemu.sh <config-file>
+```
 
-```sh
-python3 figs/python_code/plot_agent_balance.py   # --data-dir / --fig-dir to override
-python3 figs/python_code/build_fig_html.py       # --fig-dir / --data-dir to override
+- **Blockchain logs stream to the console.** Full logs are also saved to `exp/agentemu-results/round_001/chain/logs/`.
+- To preview the compiled transaction dataset without running the blockchain, set `chain.enabled` to `false` in `agentEmuConfig.yaml`.
+- At the end of a run, the script prints the output paths for experiment data and generated figures.
+
+## Output Files
+
+### Results directory
+
+```text
+exp/agentemu-results/
+├── agent_registry.json            # agent_id ↔ DID mapping and active status
+├── rounds_summary.json            # Record and transaction counts per round
+└── round_001/
+    ├── agent_transactions.jsonl   # Transactions: hash, parties, value, nonce, data
+    ├── agent_action_txs.jsonl     # Action-to-transaction mapping: intent ↔ on-chain hashes
+    ├── Agent_Events.csv           # Agent action event stream
+    ├── agents/                    # Per-agent ledgers used for plotting
+    │   ├── agent-001.csv
+    │   └── ...                    # One file per active agent
+    └── chain/                     # Blockchain run outputs
+        ├── config.yaml / ip_table.json
+        ├── logs/                  # Runtime logs from BlockEmulator-X nodes
+        └── results/
+            ├── relay_stats_detail_tx_info.csv   # Lifecycle of each on-chain transaction
+            └── relay_stats_brief_info.csv       # TPS/TCL summary by epoch
+```
+
+### Agent ledger format: `agents/agent-XXX.csv`
+
+Each row records an agent operation, using the following columns:
+
+```text
+block_height, tx_hash, sender, recipient, value, balance, block_time_ms
+```
+
+- `balance` is the agent's balance after the transaction. Balance values are approximately 10^36 and **exceed the range of `int64`**. **Read balance values as strings**.
+- `block_time_ms` is the production time of the block containing the transaction.
+- Rows are ordered by block time, with ties resolved by shard, block height, and position within the block.
+
+<p align="center">
+  <img src="docs/figures/pngs/agent_csv.png" alt="Example agent ledger">
+  <br>
+  Agent ledger
+</p>
+
+The following example shows a record from **`agent_action_txs.jsonl`**. Each action occupies one line in the file. The example is wrapped for readability.
+
+```json
+{"seq":3,"action":"pay","agent_id":"agent-alice","target":"agent-bob","amount":12,
+ "ts":3,"request_id":"payment-1","params_hash":"","tx_hashes":["f58c994e..."]}
+```
+
+<p align="center">
+  <img src="docs/figures/pngs/agent_action.png" alt="Example action-to-transaction mapping">
+  <br>
+  Agent action record
+</p>
+
+## Visualizing Results
+
+After a successful experiment, AgentEmulator reads the agent ledger CSV files and generates balance plots styled for academic publications. PNG files are saved to `figs/figs_results/` and assembled into a static HTML gallery at `figs/figs_results/index.html`. The gallery supports Chinese and English interface text and opens automatically in the default browser.
+
+### Automatic plotting workflow
+
+After a successful run, `run_agentemu.sh` (or `run_agentemu.bat` on Windows):
+
+1. Locates the `agents/` directory in the highest-numbered round under `exp/agentemu-results/`.
+2. Clears previous plots and `index.html` from `figs/figs_results/`.
+3. Runs `figs/python_code/plot_agent_balance.py` to generate the PNG figures.
+4. Runs `figs/python_code/build_fig_html.py` to build the gallery.
+5. Opens the gallery using `open` on macOS, `xdg-open` on Linux, or `start` on Windows.
+
+### Generated figures
+
+All plots show **changes relative to the initial balance: Δbalance = balance − initial balance**.
+
+| Figure | Content | PNG file |
+| --- | --- | --- |
+| 1 | Balance changes for all agents, ordered by agent ID on the left and by ascending Δbalance on the right. | `fig1_all_agents_overview.png` |
+| 2 | Agent balance changes over the global transaction index. Transactions are deduplicated by `tx_hash` and replayed in a deterministic order. The plot shows the minimum, maximum, quartiles, and mean across agents. | `fig2_global_tx_order.png` |
+| 3 | Agent balance changes aligned by normalized transaction progress. Each agent's transaction index is scaled to 0–1. The plot also marks the mean final balance change across all agents. | `fig3_normalized_progress.png` |
+| 4 | Individual agent balance changes in groups of five. | `fig4_agents_001-005.png` … `fig4_agents_096-100.png` |
+
+### Example experiment
+
+The results below were generated on a Mac mini running macOS 15.6. The Mac mini had an Apple M4 Pro processor and 24 GB of memory. The processor had 12 cores: 8 performance cores and 4 efficiency cores. The blockchain layer used HuangLab's [BlockEmulator-X](https://github.com/HuangLab-SYSU/block-emulator-x) with Go 1.25.7.
+
+The experiment used multiple processes on a single machine with these settings:
+
+1. **Topology:** 4 shards with 4 consensus nodes each (16 consensus nodes in total), plus one supervisor. Nodes communicated in `direct` mode over `127.0.0.1`. Consensus nodes used ports in the range 32217–32547. The supervisor used port 38800.
+2. **Consensus and cross-shard processing:** `static_relay`, with static account placement and relay-based cross-shard transactions. The block interval was 2000 ms. Transactions were packed by count, with up to 5000 transactions per block.
+3. **Storage:** BoltDB for blocks, Ethereum-style LevelDB for world state, and a Bloom filter bitmap length of 4096.
+4. **Workload:** seed `20260903`, 100 agents, and a trace containing 10,000 transactions, replayed through `plan_source`. Each round automatically compiled the transactions and started a fresh BlockEmulator-X emulation run.
+
+<p align="center">
+  <img src="docs/figures/pngs/fig1_all_agents_overview.png" alt="Balance changes across all agents">
+  <br>
+  Balance changes across all agents
+</p>
+
+<p align="center">
+  <img src="docs/figures/pngs/fig2_global_tx_order.png" alt="Distribution of balance changes over global transaction order">
+  <br>
+  Distribution of agent balance changes
+</p>
+
+<p align="center">
+  <img src="docs/figures/pngs/fig3_normalized_progress.png" alt="Agent balance changes over normalized transaction progress">
+  <br>
+  Balance changes aligned by normalized transaction progress
+</p>
+
+<p align="center">
+  <img src="docs/figures/pngs/fig4_agents_001-005.png" alt="Individual balance changes for a group of five agents">
+  <br>
+  Balance changes by agent group
+</p>
+
+### Using the HTML gallery
+
+- The dark header displays the title, generation time, figure count, source data directory, and agent count.
+- Figures 1–3 are displayed in full. Figure 4 is presented in groups of five agents. **Click any image to open the image at full resolution.**
+- Use the language button in the upper-right corner (`EN` or `中文`), or press `L`, to switch between Chinese and English. The language setting applies to the page title, section headings, metadata, and footer. The gallery remembers your language preference.
+- Text embedded in plots is generated by the plotting script and does not change with the page language.
+
+<p align="center">
+  <img src="docs/figures/pngs/agent_lifecycle_figs.png" alt="Overview of the HTML results gallery">
+  <br>
+  HTML results gallery
+</p>
+
+### Regenerating plots manually
+
+You can regenerate plots without rerunning the experiment. Run these commands from the repository root:
+
+```bash
+# Use the latest round; save plots to figs/figs_results/
+python3 figs/python_code/plot_agent_balance.py
+python3 figs/python_code/build_fig_html.py
+
+# Specify data and output directories, for example to plot a saved run
+python3 figs/python_code/plot_agent_balance.py \
+    --data-dir exp/agentemu-results/round_001/agents \
+    --fig-dir figs/figs_results
+python3 figs/python_code/build_fig_html.py \
+    --data-dir exp/agentemu-results/round_001/agents
+
+# Rebuild only the gallery, using existing plots
+python3 figs/python_code/build_fig_html.py
+
+# Open the gallery on macOS
 open figs/figs_results/index.html
 ```
 
-Figures are regenerated from scratch on every experiment run; a failed experiment skips plotting, and `figs/figs_results/` is gitignored.
+On **Windows**, use the following commands in Command Prompt. Replace `python` with `py -3` if needed.
 
-#### Notes
+```bat
+python figs\python_code\plot_agent_balance.py
+python figs\python_code\build_fig_html.py
 
-- **Clean before re-running**: `rm -rf ./exp/agentemu-results` — output files are created exclusively, and a stale `agent_registry.json` would suppress re-registration of already-active agents.
-- **Contract placeholders**: the DID contract calls target configured addresses that are not deployed in this release; the EVM executes them as no-ops, so they act as on-chain calldata records. Plain `pay` transfers are real balance moves.
-- **Multi-round loop**: the `AgentAPI`/`EndCondition` hooks in `agentemu/loop.go` are reserved for feedback-driven stories (e.g. an HTTP agent service); the default runs exactly one round.
+python figs\python_code\plot_agent_balance.py --data-dir exp\agentemu-results\round_001\agents --fig-dir figs\figs_results
+python figs\python_code\build_fig_html.py --data-dir exp\agentemu-results\round_001\agents
 
-> -----------------------------------------------------
-## 3. System Architecture Design
-
-In BlockEmulator, **nodes are divided into _Supervisor_ and _ConsensusNode (called Worker in BlockEmulator v1.0)_**.
-
-1. **Supervisor**:
-   Responsible for **sending transactions**, **functioning as the committee**,
-   and **collecting/aggregating system metrics**. In each BlockEmulator experiment,
-   there is exactly one Supervisor in the system.
-
-2. **ConsensusNode**:
-   Responsible for **block production and consensus**.
-   In a sharded blockchain, the system contains multiple shards, and each shard consists of several ConsensusNodes.
-
-    1. ConsensusNodes within the same shard perform **inner-shard consensus** to agree on block production
-       and jointly maintain a blockchain.
-
-    2. ConsensusNodes in different shards perform **cross-shard consensus** to exchange cross-shard messages,
-       such as **transaction relay** or **account migration**.
-
-![The system architecture of BlockEmulator](docs/figures/svgs/system-architecture.svg)
-
-**Figure: The system architecture of BlockEmulator, with the example deployment scale being 4×4+1 (4 shards,
-4 nodes per shard, plus one Supervisor node).**
-
-
-> -----------------------------------------------------
-## 4. Node-Execution Flow
-
-### Supervisor Node's Execution Flow
-
-When running `cmd/supervisor/main.go`, the Supervisor follows the execution flow below:
-
-1. Initialization
-
-    - Read command-line arguments (load `LocalParams`)
-
-    - Read the configuration file (load `Config`)
-
-2. Network Configuration
-
-    - Load the IP table
-
-    - Build the mapping from node IDs to IP addresses
-
-    - Start the gRPC listener and initialize the message pool
-
-3. Execution
-
-   The Supervisor enters the `Start` function:
-
-    1. Launch two threads: a **main thread** and a **sub-thread**.
-       The sub-thread handles metric collection and runs concurrently **without data conflicts**.
-
-    2. The main thread reads messages from the gRPC message pool.
-       Each message is consumed by **both** the main thread and the sub-thread:
-
-        - **Main thread**: Executes corresponding update operations
-          depending on enabled components (e.g., CLPA module, broker module)
-
-        - **Sub-thread**: Uses the `Measure` interface and calls `UpdateMeasureRecord`
-
-    3. The main thread performs **Committee**-related operations (e.g., running CLPA)
-
-    4. The main thread performs **Client** operations (i.e., dispatching transactions)
-
-    5. Check the stop signal:
-
-        - `false`: main thread proceeds to the next iteration
-
-        - `true`: wait for resources to shut down, then exit
-
-4. Quit
-
-    - Close all remaining resources (metric output files, network connections, etc.)
-
-![The execution flow of the supervisor](docs/figures/svgs/supervisor-exec-flow.svg)
-
-**Figure: The execution flow of the supervisor.**
-
-
-### ConsensusNode's Execution Flow
-
-When running `cmd/consensusnode/main.go`, the ConsensusNode follows the execution flow below:
-
-1. Initialization
-
-    - Read command-line arguments (load `LocalParams`)
-
-    - Read the configuration file (load `Config`)
-
-2. Network Configuration
-
-    - Load the IP table
-
-    - Build the mapping from node IDs to IP addresses
-
-    - Start the gRPC listener and initialize the message pool
-
-3. Execution
-
-   The ConsensusNode enters the `Start` function:
-
-    - Register message-handling functions via `RegisterHandleFunc`
-
-    - Read messages from the gRPC message pool
-
-    - Process messages using the `ShardInsideOp` and `ShardOutsideMsgHandler` interfaces
-
-    - Update PBFT state based on received messages
-
-    - The leader checks whether the conditions to issue a Propose are met;
-      if so, it creates a proposal via `ShardInsideOp.BuildProposal` and broadcasts it
-
-4. Quit
-    - Close remaining resources (blockchain, network, etc.)
-
-![The execution flow of the consensus nodes](docs/figures/svgs/consensusnode-exec-flow.svg)
-
-**Figure: The execution flow of the consensus nodes.**
-
-
-> -----------------------------------------------------
-## 5. Updates of BlockEmulator-X compared with BlockEmulator v1.0
-
-### Configuration Items
-
-In both BlockEmulator v1.0 and v2.0, configuration items are divided into **global configuration** and **local
-parameters**:
-
-- **Global Configuration**:
-  **Shared by all nodes in the blockchain system**.
-  Includes items such as the number of shards, block size, etc.
-
-- **Local Parameters**:
-  **Configurations that vary across individual nodes**.
-  Includes shard ID, node ID, miner address, and more.
-
-Compared with v1.0, BlockEmulator v2.0 uses these configuration items in a more standardized manner:
-**If a data structure requires specific configuration values, it receives these parameters during creation,
-rather than fetching them from global variables at runtime.**
-
-**This reduces redundant parameters and lowers maintenance overhead.**
-
-#### Reading Global Configuration from YAML
-
-> **BlockEmulator v1.0**:
-> Global configuration was loaded from a JSON file, but JSON does not support comments.
-> As a result, users often **had difficulty understanding the meanings of specific configuration items**.
-
-In v2.0, BlockEmulator reads the global configuration from a YAML file, which supports comments.
-Users can freely modify the configuration according to their needs.
-
-BlockEmulator v2.0 provides a **default configuration file, `config.yaml`**,
-which **includes annotations and value ranges for all global configuration items**.
-
-A part of the default YAML file:
-
-```yaml
-system:
-  ### -----------------------------------------------------------------------------------
-  ### `shard_num` is the number of shards. It should be a positive integer.
-  shard_num: 4
-  ### -----------------------------------------------------------------------------------
-
-  ### -----------------------------------------------------------------------------------
-  ### `node_num` is the number of nodes per shard. It should be a positive integer.
-  node_num: 4
-  ### -----------------------------------------------------------------------------------
+rem Open the gallery
+start "" figs\figs_results\index.html
 ```
 
-#### Providing Local Parameters via Command Line
+| Script | Option | Default | Description |
+| --- | --- | --- | --- |
+| `plot_agent_balance.py` | `--data-dir` | Latest round's `agents/` directory | Directory containing agent CSV files |
+| `plot_agent_balance.py` | `--fig-dir` | `figs/figs_results/` | Output directory for PNG figures |
+| `build_fig_html.py` | `--fig-dir` | `figs/figs_results/` | Directory to scan for PNG files and write `index.html` |
+| `build_fig_html.py` | `--data-dir` | None | Used only to display the data source and agent count |
 
-BlockEmulator v2.0 follows the same approach as v1.0,
-where local parameters are provided through command-line arguments.
+## Analyzing Results
 
-Users can view all supported command-line parameters using the `-h` option:
+To determine whether and when a payment was confirmed, join the action mapping with the on-chain transaction records:
+
+`agent_action_txs.jsonl` (`request_id` → transaction hashes) → `relay_stats_detail_tx_info.csv` (hash → commit times).
+
+```python
+import json, csv
+
+chain = {}
+with open('exp/agentemu-results/round_001/chain/results/relay_stats_detail_tx_info.csv') as f:
+    for row in csv.DictReader(f):
+        chain[row['OriginalHash']] = row
+
+total = confirmed = 0
+for line in open('exp/agentemu-results/round_001/agent_action_txs.jsonl'):
+    a = json.loads(line)
+    if a['action'] != 'pay':
+        continue
+    total += 1
+    if all(h in chain for h in a['tx_hashes']):
+        confirmed += 1
+        # Example: inspect a payment's confirmation time
+        # print(a['request_id'], chain[a['tx_hashes'][0]]['Tx finally commit time'])
+
+print(f'Fully confirmed payment intents: {confirmed}/{total}')
+```
+
+Transaction latency is calculated as `Tx finally commit time − Tx create time`. For cross-shard transactions, the CSV output further breaks processing down into Relay1 and Relay2 proposal and commit times.
+
+You can also analyze agent ledgers directly with pandas. Read large numeric values as strings to preserve precision:
+
+```python
+import pandas as pd
+df = pd.read_csv('exp/agentemu-results/round_001/agents/agent-001.csv',
+                 dtype={'balance': str, 'value': str})
+```
+
+## FAQ
+
+### Q1. Why does a new run fail with `file already exists: .../block_record.csv`?
+
+Output files from a previous run are still present. AgentEmulator requires new output files and cannot overwrite existing files. Use `run_agentemu.sh` to clear old results automatically. Before starting an experiment manually, remove the previous results. On macOS or Linux, run `rm -rf exp/agentemu-results`, then `go run cmd/agentemu/main.go`.
+
+### Q2. Why does `join` sometimes produce no registration transaction?
+
+A registration transaction is generated only when an agent joins for the first time or rejoins after leaving. Check whether the agent is already active in `agent_registry.json`. To regenerate registration transactions for all agents, remove the previous results before running again.
+
+### Q3. Do agent payments use smart contracts?
+
+No. `agentSupervisor` compiles `pay` actions into **plain transfer transactions**. Only `join` and `leave` are compiled into DID contract calls. In v1.0, the DID contract is not deployed. DID contract calls are recorded at the EVM layer without updating DID contract state. Payment transactions perform actual balance transfers.
+
+### Q4. How can I reduce console output?
+
+Set `system.log.log_level` to `warn` in `config.yaml`, or redirect output to a file:
 
 ```bash
-# See the supported command-line arguments in ConsensusNode.
-go run cmd/consensusnode/main.go -h
-# Output results:
-#  -account_addr string
-#        miner address
-#  -config string
-#        path to config file (default "config.yaml")
-#  -ip_table string
-#        path to ip_table.json (default "ip_table.json")
-#  -node_id int
-#        local node id (default -1)
-#  -pprof-port int
-#        port to serve pprof; the port should be larger than 5000
-#  -shard_id int
-#        local shard id, 0x7fffffff denotes the supervisor shard (default -1)
-
-# See the supported command-line arguments in Supervisor.
-go run cmd/supervisor/main.go -h
-# Outputs are the same as the above.
+bash run_agentemu.sh > run.log 2>&1
 ```
 
-### Storage
+### Q5. How can I run a small, single-shard experiment?
 
-> The storage design pattern of BlockEmulator v1.0
-> dividing on-chain storage into **block storage** and **account state storage**:
-> - **Block Storage**:
-    **Stores all blocks belonging to the shard’s blockchain** and
-    provides the ability to **retrieve blocks by their block hash**.
-> - **Account State Storage**:
-    Organizes account states using an **MPT (Merkle Patricia Tree)** and
-    preserves **historical snapshots**, enabling fast rollback.
+Set `system.shard_num` to `1` in `config.yaml`. Adjust the actions and transaction count in the trace to control the workload size.
 
-To better support **EVM execution** on BlockEmulator, BlockEmulator v2.0 revises the storage architecture from v1.0.
-While retaining **block storage**, it splits the **account state storage** into
-**two separate Merkle Patricia Tries (MPTs)**, one for **basic account state** and another for **account location**:
+### Q6. Why does the HTML gallery not open after an experiment?
 
-- **Block Storage**:
-  **Stores all blocks belonging to the shard’s blockchain** and
-  provides the ability to **retrieve blocks by their block hash**.
+Check the end of the console output for `figures & gallery: ./figs/figs_results/index.html`.
 
-- **Basic Account State Storage**:
-  Holds the fundamental account state (Balance, Nonce, Code, and StorageRoot) consistent with Ethereum.
-  This part leverages Geth’s `StateDB` as its underlying implementation, **enabling full EVM compatibility**.
-  Internally, `StateDB` organizes data into an MPT,
-  **providing built-in support for historical snapshots and efficient state rollback**.
+- If the gallery path is missing and `warn: no agent CSVs ...` appears, the experiment produced no agent ledger data. No agent ledger data is expected when `chain.enabled` is `false`. Under that configuration, AgentEmulator compiles the trace without running the blockchain.
+- If the line appears but the gallery does not open, open `figs/figs_results/index.html` manually. On macOS, run `open figs/figs_results/index.html`.
 
-- **Account Location Storage**:
-  Records the shard location (`ShardLocation`) of each account,
-  which in a sharded blockchain identifies the shard where the account resides.
-  This data is also structured as an MPT to **maintain historical snapshots and enable fast rollback**,
-  ensuring consistency with the overall state versioning model.
+### Q7. How do I resolve `ModuleNotFoundError: matplotlib`?
 
-#### Block Storage
+Install the plotting dependencies in the Python environment used to run the scripts:
 
-The block storage component is implemented in `pkg/storage/block`,
-and the default underlying database is BoltDB (inherited from v1.0).
-
-It provides the following interfaces:
-
-```go
-package block
-
-import (
-    "context"
-)
-
-// Store should be a key-value database that stores the
-// information of blocks.
-type Store interface {
-    // AddBlock adds a block into the database. It contains the operations of
-    // (1) updating the newest blockHash,
-    // (2) adding the header of this block into the storage,
-    // (3) adding the block into the storage.
-    // These 3 operations must be atomic.
-    AddBlock(ctx context.Context, blockHash, encodedBlock, encodedBlockHeader []byte) error
-    // GetBlockByHash returns the block with the given Hash.
-    GetBlockByHash(ctx context.Context, blockHash []byte) ([]byte, error)
-
-    // AddBlockHeader adds the header of a block into the database. It contains the operations of
-    // (1) updating the newest blockHash,
-    // (2) adding the header of this block into the storage.
-    // These 2 operations must be atomic. Please distinguish it from AddBlock.
-    // If your storage is limited, AddBlockHeader helps you catch up with other nodes quickly
-    // because it reduces the storage of Block.
-    AddBlockHeader(ctx context.Context, blockHash, encodedBlockHeader []byte) error
-    // GetBlockHeaderByHash gets the block header according to its blockHash.
-    GetBlockHeaderByHash(ctx context.Context, blockHash []byte) ([]byte, error)
-
-    // UpdateNewestBlockHash updates the newest blockHash.
-    // This function should be called when the blockchain wants to rollback.
-    UpdateNewestBlockHash(ctx context.Context, newBlockHash []byte) error
-    // GetNewestBlockHash gets the newest blockHash.
-    // Blockchain can quickly find the tail of a chain.
-    GetNewestBlockHash(ctx context.Context) ([]byte, error)
-
-    Close() error
-}
+```bash
+pip3 install matplotlib numpy pandas
 ```
 
-#### Basic Account State Storage
+Alternatively, run the scripts with a Python interpreter that already has these packages installed.
 
-The basic account state storage reuses [Geth’s `StateDB`](github.com/ethereum/go-ethereum/core/state).
-In BlockEmulator, the files `pkg/storage/vmstate/vmstate.go` and `pkg/vm/vm.go` provide the wrapper logic to initialize and manage the underlying database for `StateDB`, as well as to create and configure the `StateDB` instance itself.
+### Q8. How can I regenerate plots from historical data?
 
-```go
-// pkg/storage/vmstate/vmstate.go
-// NewStateStore creates state.Database for stateDB.
-func NewStateStore(cfg config.StorageCfg, lp config.LocalParams) (state.Database, error)
+Set `--data-dir` to the desired `round_XXX/agents/` directory and run the plotting scripts manually. Back up historical data and figures before starting a new experiment. `run_agentemu.sh` clears both `exp/` and `figs/figs_results/` on every run.
 
-// pkg/vm/vm.go
-// NewExecutor creates a new executor with given parameters.
-func NewExecutor(stateStore state.Database, root common.Hash, vmChainCfg *params.ChainConfig) (*Executor, error) {
-    // Init state db.
-    stateDB, err := state.New(root, stateStore)
-    if err != nil {
-       return nil, fmt.Errorf("failed to new a state database: %w", err)
-    }
+### Q9. How can I change which agents appear in Figure 4 or adjust the group size?
 
-    // Set the evmCfg config for evmCfg.
-    evmCfg := gethvm.Config{
-       ExtraEips: []int{EIP3855},
-    }
+Figure 4 currently groups agents in sets of five. Edit the Figure 4 section in `figs/python_code/plot_agent_balance.py` to filter agents or change the group size. The `5` in `range(0, len(dfs), 5)` specifies the number of agents per group.
 
-    return &Executor{
-       stateDB:    stateDB,
-       vmChainCfg: vmChainCfg,
-       evmCfg:     evmCfg,
-    }, nil
-}
+### Q10. Are experiments reproducible?
+
+With the same `seed`, trace, and code version, the generated transaction dataset and agent action CSV are byte-for-byte identical. Agent ledger records also use a deterministic global ordering. On-chain transaction packing and timing remain subject to runtime conditions, as in BlockEmulator-X.
+
+### Q11. On Windows, why is `python` not recognized, or why does `python` open the Microsoft Store?
+
+Python may not be installed, or the Python installation directory may be missing from `PATH`. Download Python from the [official website](https://www.python.org/downloads/windows/) and select **Add python.exe to PATH** during installation.
+
+If the Python launcher is already installed, use `py -3`. The `run_agentemu.bat` script automatically falls back to `py -3` when `python` is unavailable.
+
+Install dependencies with the interpreter you intend to use:
+
+```bat
+python -m pip install matplotlib numpy pandas
 ```
 
-It should be noted that in the code above, `State.Database` should be created only once, because it corresponds to the underlying database and snapshot layer.
+Or, with the Python launcher:
 
-In contrast, `StateDB` is **not reusable** after calling `Commit()`; **it must be recreated for subsequent operations**.
-Typically, a new `StateDB` is instantiated for each block: once the block execution completes, `StateDB.Commit()` is called, and when processing the next block begins, another new `StateDB` should be created based on the updated root hash.
-
-#### Account Location Storage
-
-The storage of account locations is implemented in `pkg/storage/trie`.
-BlockEmulator builds this component based on the `go-ethereum` codebase (version v1.16.7).
-For generality, the interface is designed as a key-value (KV) storage.
-
-BlockEmulator v2.0 splits the operation "adding account states" into two separate interfaces:
-`MAddKeyValuesAndCommit` and `MAddKeyValuesPreview`:
-
-- `MAddKeyValuesAndCommit`:
-  Adds multiple {key, value} pairs, returns the updated state, and **commits** the changes to the database.
-
-- `MAddKeyValuesPreview`:
-  Adds multiple {key, value} pairs and returns the updated state, but **does not update** the database.
-  This method is typically used for **validation or block generation**.
-
-```go
-// Store is an MPT-based, append-only structure whose leaf nodes should be considered as accounts.
-// The upstream layer of storage not only stores nodes, but provides proofs for the nodes.
-type Store interface {
-   // GetCurrentRoot returns the root of the trie.
-   GetCurrentRoot(ctx context.Context) ([]byte, error)
-   // MGetValsByKeys returns the corresponding values with the given keys.
-   MGetValsByKeys(ctx context.Context, keys [][]byte) ([][]byte, error)
-   // MAddKeyValuesAndCommit adds the given key-value pairs into the trie and commits them into the database.
-   MAddKeyValuesAndCommit(ctx context.Context, keys, values [][]byte) ([]byte, error)
-   // MAddKeyValuesPreview adds the given key-value pairs into the trie but does not commit them.
-   MAddKeyValuesPreview(ctx context.Context, keys, values [][]byte) ([]byte, error)
-   // SetStateRoot sets the root of the trie.
-   SetStateRoot(ctx context.Context, root []byte) error
-   // Close closes the database
-   Close() error
-}
+```bat
+py -3 -m pip install matplotlib numpy pandas
 ```
 
-### Data Structures
+## Research Team
 
-BlockEmulator implements the fundamental data structures of a blockchain system in `pkg/core`, and builds the blockchain layer (`pkg/chain`) on top of them.
+This work is led by **HuangLab, Professor Huawei Huang's research group at the School of Software Engineering, Sun Yat-sen University**. HuangLab studies blockchain sharding, consensus protocols, on-chain finance, and the intersection of AI and blockchain. HuangLab's blockchain research has appeared in IEEE/ACM ToN, TSC, TC, TPDS, TDSC, INFOCOM, WWW, ICDCS, SRDS, and other journals and conferences.
 
-### Account State
+- [AgentEmulator repository](https://github.com/HuangLab-SYSU/agent-emulator): emulation and experimentation for trustworthy AI agent infrastructure.
+- [BlockEmulator website](https://www.blockemulator.com): an open-source platform for blockchain sharding experiments.
+- [BlockEmulator repository](https://github.com/HuangLab-SYSU/block-emulator).
 
-The account state structure in BlockEmulator v2.0 is adapted for a sharded blockchain system.
-Compared with Ethereum, it introduces an additional field, `ShardLocation`, that indicates the shard an account belongs to.
-
-> Q: How is the shard of an account determined?  
-> A:   
-> If the account does not exist in the database, its shard is assigned using account-address modulo.  
-> If the account already exists in the database, its shard is determined by the `ShardLocation` field in its stored
-> account state.
-
-### Transaction
-
-To support cross-shard transactions in a sharded blockchain system,
-BlockEmulator v2.0 modifies the transaction structure and adds two optional fields:
-
-```go
-type Transaction struct {
-   Sender     account.Address
-   Recipient  account.Address
-   Value      *big.Int
-   Nonce      uint64
-   Signature  Signature
-   CreateTime time.Time
-   Data        []byte
-   
-   GasLimit uint64
-   
-   RelayTxOpt  // the optional setting only for relay transactions.
-   BrokerTxOpt // the optional setting only for broker transactions.
-}
-```
-
-- **RelayTxOpt**:
-  This structure becomes active when the system uses the Relay mechanism to process cross-shard transactions. It includes:
-
-    - `RelayStage`: The stage of the relay transaction, including undefined, processing first half, and processing
-      second half.
-
-    - `ROriginalHash`: The original hash of the relay transaction; empty if it is not a cross-shard transaction.
-
-- **BrokerTxOpt**:
-  This structure becomes active when the system uses a Broker-account-based approach to process cross-shard transactions. It includes:
-
-    - `BrokerStage`: The stage of the broker transaction, including non-broker transaction, broker1 transaction, and
-      broker2 transaction.
-
-    - `Broker`: The address of the broker account.
-
-    - `BOriginalHash`: The original hash of the broker transaction; empty if it is not a cross-shard transaction.
-
-    - Other fields mentioned in related papers but not implemented in detail.
-
-### Block
-
-To support account migration in a sharded blockchain system (i.e., moving an account from one shard to another),
-BlockEmulator v2.0 modifies the conventional block structure and divides blocks into two types:
-**Transaction Blocks (TxBlock)** and **Migration Blocks (MigrationBlock)**:
-
-- **Transaction Block (TxBlock)**:
-  Contains transactions and is used for normal transaction processing, functioning the same as traditional blockchain
-  blocks.
-
-- **Migration Block (MigrationBlock)**:
-  Contains account-state information and is specifically used during the account-migration phase.
-
-Moreover, to support **locating the shard to which an account belongs**, BlockEmulator v2.0 introduces `LocStorage` for record account locations. To enable **recording**, **querying**, and **rolling back** this storage, a new field called `LocationRoot` has been added to the block header, serving as the Merkle root of the MPT for `LocStorage`.
-
-The structure of `Block`:
-
-```go
-type Header struct {
-    ParentBlockHash []byte
-    StateRoot       []byte
-    Number          uint64
-    Miner           account.Address
-    CreateTime      time.Time
-	
-   // LocationRoot is only used in a sharded blockchain system to denotes the root of location trie.
-   // This trie is used to store the account location.
-   LocationRoot []byte
-    
-	TxHeaderOpt
-    MigrationHeaderOpt
-}
-
-
-// TxHeaderOpt is the struct for transaction handling.
-// This struct should be used when this block is a normal one (not a block for account migration).
-type TxHeaderOpt struct {
-    TxRoot []byte
-    Bloom  bloom.Filter
-}
-
-// MigrationHeaderOpt is the struct for the account migration.
-// This struct should be used when this block is an account migration one.
-type MigrationHeaderOpt struct {
-    MigratedAccountsRoot []byte // MigratedAccountsRoot is the merkle root of MigratedAccounts in MigrationOpt.
-}
-
-// Body is the struct for transaction handling.
-// Note that either MigrationOpt or Body is nil.
-type Body struct {
-    TxList []transaction.Transaction
-}
-
-// MigrationOpt is the struct for account migration.
-// It saves the information of accounts that are to be migrated to this shard.
-// Note that either MigrationOpt or Body is nil.
-type MigrationOpt struct {
-    MigratedAccounts []account.Address // MigratedAccounts is the list of accounts to be migrated in this stage.
-    MigratedStates   []account.State   // MigratedStates is the list of account states corresponding to accounts in MigratedAccounts.
-}
-
-type Block struct {
-    Header
-    Body
-    MigrationOpt
-}
-```
-
-The contents of `TxHeaderOpt` are computed from the `Body`, and `MigrateHeaderOpt` is computed from `MigrateOpt`,
-as shown in the figure:
-
-![The Generation of BlockOpts](docs/figures/svgs/blockopt-generation.svg)
-
-**Figure: The Generation of the two BlockOpts.**
-
-### Transaction Pool
-
-The transaction pool mainly provides the following interfaces:
-
-```go
-// TxPool is a pool that buffers transactions.
-type TxPool interface {
-    // AddTxs adds the given transactions into the pool.
-    AddTxs(txs []transaction.Transaction) error
-    // PackTxs pops transactions from the pool.
-    // The size of transactions will be limited by the given parameter 'limit'. 
-    PackTxs(limit int) ([]transaction.Transaction, error)
-    // GetTxListSize returns the size of the given tx list.
-    GetTxListSize(txs []transaction.Transaction) (int, error)
-}
-```
-
-### Blockchain
-
-Based on the storage design and basic data structures described above,
-the following `Chain` structure can be defined:
-
-```go
-// Chain describes a blockchain.
-type Chain struct {
-    s         *storage.Storage // the storage for both block-storage and trie-storage.
-    curHeader block.Header     // the current header in this blockchain.
-    shardID   int64
-    epochID   int64
-
-    cfg config.BlockchainCfg
-
-    mux sync.Mutex
-}
-```
-
-The Chain structure contains many public functions, which will not be elaborated here.
-One important note is:
-
-- **Public functions must be accessed with locking**;
-
-- **Internal functions generally do not require locks**.
-
-### Network
-
-> In BlockEmulator v1.0, when sending messages, the system first retrieved the target node’s IP address
-> from a global IP table, and then called the TCPDial function to send the message.
-> This design **limited extensibility for message-sending** (as it required explicit IP addresses) and
-> **lacked message buffering capability**.
-
-BlockEmulator v2.0 refactors the network module.
-To support this change, a new node information structure is introduced in `pkg/nodetopo`:
-
-```go
-type NodeInfo struct {
-    NodeID, ShardID int64
-}
-```
-
-Above the network layer, programs can now send messages using the node’s `{NodeID, ShardID}` rather than raw IP
-addresses.
-
-#### Connection & Communication
-
-When using the network module in BlockEmulator v2.0, only the target node’s NodeInfo is needed to send a message.
-The interfaces for this part are as follows:
-
-```go
-// P2PConn is a peer-to-peer connection that should contain a message buffer.
-type P2PConn interface {
-    // ListenStart starts to listen to messages from other nodes as a server.
-    ListenStart() error
-    // DrainMsgBuffer drains (reads all and pops) messages in the buffer.
-    DrainMsgBuffer() []*rpcserver.WrappedMsg
-    // SendMsg2Dest sends the given message to the given dest node.
-    SendMsg2Dest(ctx context.Context, dest nodetopo.NodeInfo, msg *rpcserver.WrappedMsg)
-    Close()
-}
-```
-
-`P2PConn` needs to **implement an internal message buffer to temporarily store received messages**.
-The execution flow of `P2PConn` is as follows:
-
-1. The program launches a **sub-thread** to run `ListenStart`, which listens for incoming messages from other nodes.
-   `ListenStart` adds all received messages to the internal message buffer.
-
-2. When the upper-layer code needs to read messages from the buffer, it calls `DrainMsgBuffer`, which retrieves all messages currently stored in the buffer.
-
-3. When a message needs to be sent to a specific node, the program calls `SendMsg2Dest`, which sends the message to the target node based on the given `NodeInfo`.
-
-![The workflow of P2PConn](docs/figures/svgs/workflow-p2pconn.svg)
-
-**Figure: The workflow of the interface P2PConn.**
-
-Since broadcast operations are frequently used in blockchain systems,
-BlockEmulator v2.0 encapsulates these operations into the `ConnHandler` structure:
-
-- `MSendDifferentMessages`: Sends different messages to different nodes based on the mapping `node2Msg`.
-
-- `GroupBroadcastMessage`: Broadcasts the same message to all nodes in the given `group` array.
-
-```go
-type ConnHandler struct {
-    P2PConn
-}
-
-func (p *ConnHandler) MSendDifferentMessages(ctx context.Context, node2Msg map[nodetopo.NodeInfo]*rpcserver.WrappedMsg)
-func (p *ConnHandler) GroupBroadcastMessage(ctx context.Context, group []nodetopo.NodeInfo, msg *rpcserver.WrappedMsg)
-```
-
-#### Message System
-
-BlockEmulator v2.0 uses `protobuf` (https://protobuf.dev/) to generate the RPC-related code.
-**All messages transmitted in the system use the generated `WrappedMsg` structure as the carrier**:
-
-```go
-type WrappedMsg struct {
-   state         protoimpl.MessageState `protogen:"open.v1"`
-   MsgType       string                 `protobuf:"bytes,1,opt,name=msgType,proto3" json:"msgType,omitempty"`
-   Payload       []byte                 `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-   unknownFields protoimpl.UnknownFields
-   sizeCache     protoimpl.SizeCache
-}
-```
-
-The two key fields are:
-
-- `MsgType`:
-  The message type, which tells the upper-layer program how to decode this `WrappedMsg`.
-
-- `Payload`:
-  The message payload contains the encoded byte sequence of various message types.
-
-When a node processes an incoming message, it must first decode the `Payload` into the correct message type based on `MsgType`, and then handle it.
-
-When a node sends a message, it must encode the message into a byte sequence (`Payload`), fill in the appropriate `MsgType`, and then send it.
-
-![The transfer logic between `Payload` and `WrappedMsg`](docs/figures/svgs/msg-payload-transfer.svg)
-
-**Figure: The transfer logic between `Payload` and `WrappedMsg`.**
-
-In BlockEmulator v2.0, **decoding a `WrappedMsg` back into its corresponding message type is not supported**.
-This is because implementing such an interface in Go requires extensive use of type assertions, which is considered inelegant.
-
-However, the file `pkg/message/message.go` does **provide the functionality to pack a message into a `WrappedMsg`**.
-
-```go
-// WrapMsg encodes different types of messages.
-func WrapMsg(msg any) (*rpcserver.WrappedMsg, error) {
-    msgType, err := getMsgType(msg)
-    if err != nil {
-       return nil, fmt.Errorf("getMsgType failed: %w", err)
-    }
-
-    var buf bytes.Buffer
-
-    encoder := gob.NewEncoder(&buf)
-
-    if err = encoder.Encode(msg); err != nil {
-       return nil, fmt.Errorf("encoder failed: %w", err)
-    }
-
-    return &rpcserver.WrappedMsg{
-       MsgType: msgType,
-       Payload: buf.Bytes(),
-    }, nil
-}
-
-func getMsgType(msg any) (string, error)
-```
-
-
-### Node Execution
-
-> BlockEmulator v1.0 adopts a message-driven model in its consensus module.
-> Whenever a node receives a message, it immediately spawns a new goroutine to process it.
-> If the program determines that it is not the appropriate time to handle the message,
-> the goroutine will sleep and wait to be awakened later.
-
-In BlockEmulator v2.0, when a node receives a message, it first places it in a **message buffer**.
-The node then continuously fetches messages from the buffer and processes them in order.
-Details of the execution workflow for each node type in BlockEmulator v2.0 are available in the [Node Execution Flow](#Node-Execution-Flow) section.
-
-Compared to BlockEmulator v1.0, BlockEmulator v2.0 uses only a single goroutine to **pop messages from the buffer and process them
-sequentially**.
-This ensures that **messages are handled in a strictly serialized manner,
-preventing data races and other concurrency issues caused by multithreaded competition**.
-
-![The execution difference between BlockEmulator v1.0 and v2.0](docs/figures/svgs/exec-diff-v1v2.svg)
-
-**Figure: The execution difference between BlockEmulator v1.0 and v2.0.**
-
-### Logging
-
-> In BlockEmulator v1.0, log outputs were a mixture of `fmt.Print` and the consensus-shard logging modules
-> (`consensus_shard/pbft_all/pbft_log` or `supervisor/supervisor_log`).
-> This resulted in disorganized log messages, and only logs from the consensus layer could be written to files.
-
-> Additionally, BlockEmulator v1.0 handled errors in a crude manner
-> by calling `log.Panic()` to terminate the program directly,
-> which could cause experiments to stop unexpectedly due to non-critical issues.
-
-BlockEmulator v2.0 uses Go’s official standard library `log/slog` for logging.
-It defines four log levels (Debug, Info, Warn, and Error), allowing the system to print messages with varying severities based on the nature of the error or exception.
-
-**The logging mechanisms—such as printing rules and output destinations—are defined in `pkg/logger`**.
-Detailed usage guidelines can be found in the comments of the `config.yaml` configuration file.
+HuangLab has focused on blockchain sharding theory and system architecture for the past seven years. Readers interested in blockchain sharding, consensus protocols, or DeFi are welcome to follow HuangLab's research. Visit the [HuangLab website](http://xintelligence.pro) or follow HuangLab's WeChat public account, **Huang-Lab**.
