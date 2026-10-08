@@ -6,7 +6,7 @@ AgentEmulator 是由**中山大学·软件工程学院·黄华威研究组（[Hu
 
 AgentEmulator 是面向 AI 智能体行为与区块链相结合的场景、基于 BlockEmulator-X 构建的**实验工具**。其中，BlockEmulator-X 是 HuangLab 于2026年6月开源的区块链仿真实验工具，是初代 BlockEmulator 的升级迭代版本，其 GitHub 代码仓库地址为 [github.com/HuangLab-SYSU/block-emulator-x](https://github.com/HuangLab-SYSU/block-emulator-x) 。
 
-## 1. 论文
+## 论文
 
 **[AgentEmulator: A Blockchain-Empowered Testbed for Trustworthy AI Agent Infrastructure](https://www.researchgate.net/publication/415363728_AgentEmulator_A_Blockchain-Empowered_Testbed_for_Trustworthy_AI_Agent_Infrastructure)**
 
@@ -29,7 +29,7 @@ Jian Zheng, Jianbo Xiong, Feihong Hu, and Huawei Huang（通讯作者）。2026 
 }
 ```
 
-## 2. 为什么需要可信智能体基础设施
+## 为什么需要可信智能体基础设施
 
 AI 智能体正在走出对话框，进入真实工作流：调用 API、持有身份、为服务付费、代表人和机构行动。当智能体彼此交易时，会出现三个「更好的模型」解决不了的信任缺口：
 
@@ -41,7 +41,7 @@ AI 智能体正在走出对话框，进入真实工作流：调用 API、持有�
 
 补上这些缺口需要一层独立的基础设施：与模型本身无关的审计与结算层。AgentEmulator 就是构建和评估这一层的实验平台。在这里，区块链承担一个具体角色——可信记录与结算的中立基座，而不是万能解药。
 
-## 3. AgentEmulator 是什么、不是什么
+## AgentEmulator 是什么、不是什么
 
 AgentEmulator 度量的是基础设施层，不是智能体能力。能力基准（AgentBench、WebArena、OSWorld、SWE-bench）问的是：智能体能不能完成任务？AgentEmulator 问的是：智能体加入、支付、离开时，身份、支付、记录、结算是否正确，代价多大，换一种机制会怎样？两个问题是互补的：一笔支付成功只证明支付发生了，不证明任务完成得好。AgentEmulator 提供交易记录与账户视图，让「基础设施」这个问题可回答、可复现。
 
@@ -56,7 +56,7 @@ AgentEmulator 度量的是基础设施层，不是智能体能力。能力基准
 
 **v1.0 刻意不做的事：** 不内置任何交易调度算法——遵循 User-specified Original Sequence 策略，把交易重排、优先级规则、智能体权重留给研究者作为扩展点。
 
-## 4. 五层技术栈
+## 五层技术栈
 
 AgentEmulator 对应可信智能体基础设施的五层分类法。五层定义研究议程，工具逐层落地。
 
@@ -68,17 +68,17 @@ AgentEmulator 对应可信智能体基础设施的五层分类法。五层定义
 | L4 激励 | 好行为如何在链上得到回报？ | 路线图（声誉、积分、预测市场） |
 | L5 治理 | 谁来仲裁纠纷，监管如何接入？ | 路线图 |
 
-## 5. 一次演示工作流（不是性能结论）
+## 一次演示工作流
 
 论文演示了完整工作流：100 个智能体、1 万笔支付交易，跑在 4 分片 × 4 节点的区块链上（单机，Mac mini / Apple M4 Pro / 24 GB，Go 1.25.7，seed 20260903），产出 23 张图、四种余额视图。
 
 这次演示验证的是工作流——trace 进去，账本和视图出来。它不构成性能或扩展性结论；吞吐量、时延、资源开销需要独立的计时测量，这部分评估方法论在论文中有定义。
 
-## 6. 可复现性
+## 可复现性
 
 可复现实验要求输入固定：同一份 trace 字节、同一个 seed、同一份配置、同一组源码版本、干净的初始注册表。AgentEmulator 自动化了这些准备步骤；论文附录 A 给出记录清单、核对项与图表重生成命令，让一次运行可被验证。
 
-## 7. HuangLab 项目家族
+## HuangLab 项目家族
 
 AgentEmulator 是中山大学 HuangLab 区块链实验技术栈的一部分：
 
@@ -90,7 +90,7 @@ AgentEmulator 是中山大学 HuangLab 区块链实验技术栈的一部分：
 | BrokerChain | 学术分片区块链测试网（约 400 个外部节点） | https://github.com/HuangLab-SYSU/BrokerChain |
 | brokerchain-mcp | MCP server（`register_agent` / `append_log` / `open_channel` / `pay`），双后端：AgentEmulator 仿真 + BrokerChain 测试网 | 开发中 |
 
-# AgentEmulator 简介 / Overview of AgentEmulator
+
 
 ## AgentEmulator 是什么？
 
