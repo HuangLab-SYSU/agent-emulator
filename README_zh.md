@@ -49,14 +49,18 @@ AgentEmulator 度量的是基础设施层，不是智能体能力。能力基准
 
 **v1.0 现在能做什么：**
 
-- Trace 驱动的行为回放——研究者在 JSONL trace 里描述智能体生命周期动作（`join`、`pay`、`leave`）与普通转账，无需手工构造交易。
-- 确定性身份派生——`did-simple` 插件由配置的 seed + `agent_id` 派生实验标识；注册与吊销调用被记录，v1.0 不部署 DID 注册合约。
-- 真实支付执行——支付编译为普通余额转账，由区块链后端执行（`direct-pay`）。
-- 生命周期校验——无效退出、涉及未激活智能体的支付在输入处理阶段被拒绝。
-- 四种余额视图 + 双语 HTML 结果页——最终余额变化、全局交易序变化、归一化局部进度变化、个体轨迹。
-- 两种执行模式——常规模式（区块链后端）与仅编译模式（`chain.enabled=false`），后者用于 trace 检查与可复现性核对。
 
-**v1.0 刻意不做的事：** 不内置任何交易调度算法——遵循 User-specified Original Sequence 策略，把交易重排、优先级规则、智能体权重留给研究者作为扩展点。
+
+当前发布的是 AgentEmulator v1.0，支持基于 Trace（实验输入数据）的基础行为回放、身份注册与注销留痕、逐笔直接支付，以及实验数据记录和可视化。实验人员使用 JSONL 格式的 Trace 文件描述 Agent 的“**加入**”、“**转账**”和“**退出**”行为；AgentEmulator 中的 agentSupervisor 模块将 Trace 文件编译为交易数据集，并调用 BlockEmulator-X 启动区块链环境、执行交易、并将交易执行结果上链记录。实验完成后，AgentEmulator 系统会记录交易与 Agent 账户的相关数据，自动绘制余额变化图集，并生成支持中英文切换的 HTML 实验结果页面（由启动脚本在默认浏览器中打开展示）。
+
+AgentEmulator v1.0 中，Agent 行为由 Trace 文件预先定义，采用“用户原始指定顺序”（User-specified Original Sequence）策略，按照实验输入中指定的交易顺序执行交易，尚未集成额外的交易编排机制或调度算法。实验人员可在此基础上探索和实现自定义机制，例如调整交易的执行顺序，或根据交易优先级、Agent 权重等规则编排交易。
+
+AgentEmulator 后续版本将持续升级迭代，逐步扩展协议、实验场景和评测能力。欢迎实验人员结合具体研究需求扩展示例代码，设计并验证不同机制或算法对实验结果的影响。
+
+
+**v1.0 不关心的事：** 
+
+不内置任何交易调度算法——遵循 User-specified Original Sequence 策略，把交易重排、优先级规则、智能体权重留给研究者作为扩展点。
 
 ### 五层技术栈
 
@@ -76,6 +80,11 @@ AgentEmulator 对应可信智能体基础设施的五层分类法。五层定义
 
 这次演示验证的是工作流——trace 进去，账本和视图出来。它不构成性能或扩展性结论；吞吐量、时延、资源开销需要独立的计时测量，这部分评估方法论在论文中有定义。
 
+![AgentEmulator 用户视角的工作流程图](docs/figures/svgs/AgentEmulator_workflow_zh.svg)
+
+**图 1.  AgentEmulator 的 general purpose** (并不只是对应于当前 v1.0 版本) 展示了用户与 AgentEmulator 之间的交互关系。其中，“用户自定义 机制/算法” 具有非常大的自由发挥空间，是用户二次开发、自由创新之地。
+
+
 ### 可复现性
 
 可复现实验要求输入固定：同一份 trace 字节、同一个 seed、同一份配置、同一组源码版本、干净的初始注册表。AgentEmulator 自动化了这些准备步骤；论文附录 A 给出记录清单、核对项与图表重生成命令，让一次运行可被验证。
@@ -94,15 +103,6 @@ AgentEmulator 是中山大学 HuangLab 区块链实验技术栈的一部分：
 
 
 
-### AgentEmulator 是什么？
-
-AgentEmulator 是由**中山大学·软件工程学院·黄华威研究组（[HuangLab](http://www.xintelligence.pro/)）发起的、面向 AI 智能体可信基础设施的仿真与实验平台**。平台以区块链作为可信记录与结算的基础，旨在帮助研究者和学生围绕智能体的身份、行为审计、支付结算、激励与治理机制开展实验，逐步形成支持 AI 智能体可信交互与协作的研究工具。
-
-
-
-AgentEmulator 是面向 AI 智能体行为与区块链相结合的场景、基于 BlockEmulator-X 构建的**实验工具**。其中，BlockEmulator-X 是 HuangLab 于2026年6月开源的区块链仿真实验工具，是初代 BlockEmulator 的升级迭代版本，其 GitHub 代码仓库地址为 [github.com/HuangLab-SYSU/block-emulator-x](https://github.com/HuangLab-SYSU/block-emulator-x) 。
-
-
 
 ### AgentEmulator 有什么用？
 
@@ -112,11 +112,6 @@ AgentEmulator 实验平台的**设计目标**是简化 AI Agent 相关的实验�
 
 下图展示了 AgentEmulator 用户视角的工作流程图。
 
-
-
-![AgentEmulator 用户视角的工作流程图](docs/figures/svgs/AgentEmulator_workflow_zh.svg)
-
-**图 1.  AgentEmulator 的 general purpose** (并不只是对应于当前 v1.0 版本) 展示了用户与 AgentEmulator 之间的交互关系。其中，“用户自定义 机制/算法” 具有非常大的自由发挥空间，是用户二次开发、自由创新之地。
 
 
 
@@ -137,16 +132,6 @@ AgentEmulator 将围绕 AI Agent 的“身份”“结算”“审计”“激�
 
 
 ---
-
-### 当前发布版本 v1.0
-
-**当前发布的是 AgentEmulator v1.0，支持基于 Trace（实验输入数据）的基础行为回放、身份注册与注销留痕、逐笔直接支付，以及实验数据记录和可视化。** 实验人员使用 JSONL 格式的 Trace 文件描述 Agent 的“**加入**”、“**转账**”和“**退出**”行为；AgentEmulator 中的 agentSupervisor 模块将 Trace 文件编译为交易数据集，并调用 BlockEmulator-X 启动区块链环境、执行交易、并将交易执行结果上链记录。实验完成后，AgentEmulator 系统会记录交易与 Agent 账户的相关数据，自动绘制余额变化图集，并生成支持中英文切换的 HTML 实验结果页面（由启动脚本在默认浏览器中打开展示）。
-
-
-
-AgentEmulator v1.0 中，Agent 行为由 Trace 文件预先定义，采用“用户原始指定顺序”（User-specified Original Sequence）策略，按照实验输入中指定的交易顺序执行交易，尚未集成额外的交易编排机制或调度算法。实验人员可在此基础上探索和实现自定义机制，例如调整交易的执行顺序，或根据交易优先级、Agent 权重等规则编排交易。
-
-AgentEmulator 后续版本将持续升级迭代，逐步扩展协议、实验场景和评测能力。欢迎实验人员结合具体研究需求扩展示例代码，设计并验证不同机制或算法对实验结果的影响。
 
 
 
