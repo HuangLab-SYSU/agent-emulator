@@ -14,7 +14,7 @@ Describe agent actions in JSONL → `agentSupervisor` compiles transactions → 
 
 Jian Zheng, Jianbo Xiong, Feihong Hu, Huawei Huang (corresponding author)
 
-Version: Oct. 2, 2026 · [arXiv link to be added upon posting]
+Version: Oct. 2, 2026 · [http://www.xintelligence.pro/agentemulator]
 
 If you use AgentEmulator in your research, please cite the paper (see [CITATION.cff](CITATION.cff)). The paper formalizes the trace–transaction mapping, the three execution orders (logical trace order, backend execution order, visualization order), the reproducibility requirements, and an evaluation methodology for payment completion and execution overhead.
 
@@ -30,7 +30,7 @@ AI agents are moving out of chat windows and into real workflows: they call APIs
 
 Closing these gaps requires a dedicated layer of infrastructure: an auditing and settlement layer that is independent of the models themselves. AgentEmulator is the experimental platform for building and evaluating that layer. In it, the blockchain plays a specific role — a neutral substrate for trusted records and settlement — not a universal solution.
 
-## 3. What AgentEmulator is — and is not
+## 3. What AgentEmulator is and is not
 
 AgentEmulator measures the infrastructure layer, not agent capability. Capability benchmarks (AgentBench, WebArena, OSWorld, SWE-bench) ask: can the agent finish the task? AgentEmulator asks: when agents join, pay, and leave, are identity, payments, records, and settlement working correctly, at what cost, and under what mechanisms? The two questions are complementary: a completed payment proves a payment happened, not that the task was done well. AgentEmulator supplies the transaction records and account views that make the infrastructure question answerable and reproducible.
 
@@ -223,6 +223,10 @@ Trace file (experiment intent)
     ▼
 Transaction dataset → Emulation replay → Agent ledgers / On-chain metrics → Plots
 ```
+
+![Illustration of the fields in a behavior trace](docs/figures/svgs/AgentEmulator_trace_flow_en.svg)
+
+Illustration of the fields in a behavior trace. An agent action is compiled into a payment transaction that the blockchain can process.
 
 ### Trace Basics
 
