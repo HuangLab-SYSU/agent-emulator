@@ -171,7 +171,7 @@ func buildAgentRows(perShard [][]*coreblock.Block, agents map[account.Address]st
 		for _, b := range blocks {
 			for i := range b.TxList {
 				refs = append(refs, txRef{
-					blockTime: b.Header.CreateTime,
+					blockTime: b.CreateTime,
 					shard:     shard,
 					height:    b.Number,
 					index:     i,
