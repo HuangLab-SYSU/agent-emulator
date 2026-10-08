@@ -14,7 +14,7 @@ Describe agent actions in JSONL → `agentSupervisor` compiles transactions → 
 
 Jian Zheng, Jianbo Xiong, Feihong Hu, Huawei Huang (corresponding author)
 
-Version: Oct. 2, 2026 · [http://www.xintelligence.pro/agentemulator]
+Version: Oct. 2, 2026 · [https://www.researchgate.net/publication/415363728_AgentEmulator_A_Blockchain-Empowered_Testbed_for_Trustworthy_AI_Agent_Infrastructure]
 
 If you use AgentEmulator in your research, please cite the paper (see [CITATION.cff](CITATION.cff)). The paper formalizes the trace–transaction mapping, the three execution orders (logical trace order, backend execution order, visualization order), the reproducibility requirements, and an evaluation methodology for payment completion and execution overhead.
 
