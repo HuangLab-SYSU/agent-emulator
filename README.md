@@ -75,7 +75,7 @@ AgentEmulator is part of HuangLab's blockchain experimentation stack at Sun Yat-
 | --- | --- | --- |
 | BlockEmulator | Emulator for blockchain sharding protocols (IEEE TSC 2025) | https://github.com/HuangLab-SYSU/block-emulator |
 | BlockEmulator-X | Successor with EVM execution; the backend of AgentEmulator | https://github.com/HuangLab-SYSU/block-emulator-x |
-| AgentEmulator | This project — agent behavior on a sharded blockchain | — |
+| AgentEmulator | This project — agent behavior on a sharded blockchain | https://github.com/HuangLab-SYSU/agent-emulator |
 | BrokerChain | Academic sharded blockchain testnet (~400 external nodes) | https://github.com/HuangLab-SYSU/BrokerChain |
 | brokerchain-mcp | MCP server (`register_agent` / `append_log` / `open_channel` / `pay`) with dual backends: AgentEmulator simulation and BrokerChain testnet | in development |
 
