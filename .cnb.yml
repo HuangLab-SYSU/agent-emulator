@@ -32,15 +32,6 @@ $:
           options:
             title: $CNB_BRANCH
             description: ${LATEST_CHANGE_LOG}
-        - name: build-binaries
-          script: bash scripts/ci/release.sh
-        - name: package-archives
-          script: bash scripts/ci/package.sh
-        - name: release 上传附件
-          image: cnbcool/attachments:latest
-          settings:
-            attachments:
-              - dist/**
 
 main:
   pull_request: &pr-ci

@@ -9,71 +9,12 @@ permissions:
   contents: write
 
 jobs:
-  build-and-release:
-    name: Build binaries
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        goos: [ linux, windows, darwin ]
-        goarch: [ amd64, arm64 ]
-        exclude:
-          - goos: windows
-            goarch: arm64
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.25.7'
-
-      - name: Build all commands
-        run: |
-          mkdir -p dist
-          for cmd in consensusnode supervisor; do
-            OUTPUT_NAME="blockemulator-${cmd}-${{ matrix.goos }}-${{ matrix.goarch }}"
-            if [ "${{ matrix.goos }}" = "windows" ]; then
-              OUTPUT_NAME="${OUTPUT_NAME}.exe"
-            fi
-            GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} \
-              go build -o "dist/${OUTPUT_NAME}" "./cmd/${cmd}"
-          done
-
-      - name: Package as archives
-        run: |
-          EXE=""
-          if [ "${{ matrix.goos }}" = "windows" ]; then EXE=".exe"; fi
-          mkdir staging
-          mv "dist/blockemulator-consensusnode-${{ matrix.goos }}-${{ matrix.goarch }}${EXE}" "staging/consensusnode${EXE}"
-          mv "dist/blockemulator-supervisor-${{ matrix.goos }}-${{ matrix.goarch }}${EXE}" "staging/supervisor${EXE}"
-          if [ -n "$EXE" ]; then
-            (cd staging && zip "../dist/agentemulator-${{ matrix.goos }}-${{ matrix.goarch }}.zip" "consensusnode${EXE}" "supervisor${EXE}")
-          else
-            tar -czf "dist/agentemulator-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz" -C staging consensusnode supervisor
-          fi
-          rm -rf staging
-        shell: bash
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: binaries-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: dist/
-
   create-release:
     name: Create GitHub Release
-    needs: build-and-release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: dist/
-          merge-multiple: true
 
       - name: Get tag name
         id: meta
@@ -89,7 +30,7 @@ jobs:
             echo "No curated notes at $NOTES; falling back to generated notes"
           fi
 
-      - name: Create Release with Assets
+      - name: Create release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.meta.outputs.tag }}
@@ -98,6 +39,3 @@ jobs:
           prerelease: ${{ contains(steps.meta.outputs.tag, '-') }}
           body_path: ${{ steps.notes.outputs.path }}
           generate_release_notes: ${{ steps.notes.outputs.path == '' }}
-          files: |
-            dist/*.tar.gz
-            dist/*.zip
