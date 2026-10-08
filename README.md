@@ -404,10 +404,10 @@ All plots show **changes relative to the initial balance: Δbalance = balance �
 
 | Figure | Content | PNG file |
 | --- | --- | --- |
-| 1 | Final balance changes relative to initial balances for all 100 agents, ordered by agent ID. Each bar represents one agent. Green bars indicate balance increases, and red bars indicate balance decreases. | `fig1_all_agents_overview.png` |
-| 2 | Balance changes vs. the global transaction order: account-balance changes across the global sequence of all transactions. | `fig2_global_tx_order.png` |
-| 3 | Balance changes vs. the progress of each agent's related transactions: balance changes following each agent's finalized transactions, where each gray line represents an agent. | `fig3_normalized_progress.png` |
-| 4 | Balance changes relative to initial balances for groups of five agents, ordered by each agent's related transaction index. | `fig4_agents_001-005.png` … `fig4_agents_096-100.png` |
+| 1 | Balance changes for all agents, ordered by agent ID on the left and by ascending Δbalance on the right. | `fig1_all_agents_overview.png` |
+| 2 | Agent balance changes over the global transaction index. Transactions are deduplicated by `tx_hash` and replayed in a deterministic order. The plot shows the minimum, maximum, quartiles, and mean across agents. | `fig2_global_tx_order.png` |
+| 3 | Agent balance changes aligned by normalized transaction progress. Each agent's transaction index is scaled to 0–1. The plot also marks the mean final balance change across all agents. | `fig3_normalized_progress.png` |
+| 4 | Individual agent balance changes in groups of five. | `fig4_agents_001-005.png` … `fig4_agents_096-100.png` |
 
 ### Example experiment
 
