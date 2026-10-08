@@ -1,10 +1,11 @@
 # AgentEmulator
 
+## Overview
 AgentEmulator is an **emulation and experimentation platform for trustworthy AI agent infrastructure**. The platform was initiated by **[HuangLab](http://www.xintelligence.pro/)**, led by Professor Huawei Huang at the School of Software Engineering, Sun Yat-sen University. AgentEmulator uses blockchain as the foundation for trusted records and settlement. Researchers and students can investigate agent identity, behavioral auditing, payment settlement, incentives, and governance. AgentEmulator aims to support research into trustworthy interaction and collaboration among AI agents.
 
 AgentEmulator is built on **[BlockEmulator-X](https://github.com/HuangLab-SYSU/block-emulator-x)**, HuangLab's blockchain emulation platform. HuangLab released BlockEmulator-X as open source in June 2026 as the successor to the original BlockEmulator. AgentEmulator extends BlockEmulator-X to experiments that combine AI agent behavior with blockchain execution.
 
-## Paper
+### Paper
 
 **[AgentEmulator: A Blockchain-Empowered Testbed for Trustworthy AI Agent Infrastructure](https://www.researchgate.net/publication/415363728_AgentEmulator_A_Blockchain-Empowered_Testbed_for_Trustworthy_AI_Agent_Infrastructure)**
 
@@ -27,7 +28,7 @@ If you use AgentEmulator in your research, please cite this paper (see [CITATION
 }
 ```
 
-## Why trustworthy AI agent infrastructure
+### Why trustworthy AI agent infrastructure
 
 AI agents are moving out of chat windows and into real workflows: they call APIs, hold identities, pay for services, and act on behalf of people and organizations. When agents transact with each other, three trust gaps appear that better models cannot close:
 
@@ -39,7 +40,7 @@ AI agents are moving out of chat windows and into real workflows: they call APIs
 
 Closing these gaps requires a dedicated layer of infrastructure: an auditing and settlement layer that is independent of the models themselves. AgentEmulator is the experimental platform for building and evaluating that layer. In it, the blockchain plays a specific role — a neutral substrate for trusted records and settlement — not a universal solution.
 
-## What AgentEmulator is and is not
+### What AgentEmulator is and is not
 
 AgentEmulator measures the infrastructure layer, not agent capability. Capability benchmarks (AgentBench, WebArena, OSWorld, SWE-bench) ask: can the agent finish the task? AgentEmulator asks: when agents join, pay, and leave, are identity, payments, records, and settlement working correctly, at what cost, and under what mechanisms? The two questions are complementary: a completed payment proves a payment happened, not that the task was done well. AgentEmulator supplies the transaction records and account views that make the infrastructure question answerable and reproducible.
 
@@ -54,7 +55,7 @@ AgentEmulator measures the infrastructure layer, not agent capability. Capabilit
 
 **What v1.0 deliberately does not do:** it introduces no transaction scheduling algorithm — it follows the User-specified Original Sequence policy, leaving orchestration, priority rules, and agent weights as research extensions.
 
-## The five-layer stack
+### The five-layer stack
 
 AgentEmulator maps onto a five-layer taxonomy of trustworthy agent infrastructure. The layers define the research agenda; the tooling lands incrementally.
 
@@ -66,17 +67,17 @@ AgentEmulator maps onto a five-layer taxonomy of trustworthy agent infrastructur
 | L4 Incentives | How is good behavior rewarded on-chain? | Roadmap (reputation, points, prediction markets) |
 | L5 Governance | Who arbitrates disputes, and how do regulators plug in? | Roadmap |
 
-## A demonstrated workflow (not a performance claim)
+### A demonstrated workflow (not a performance claim)
 
 The paper demonstrates the workflow with 100 agents and 10,000 payment transactions on a 4-shard × 4-node blockchain (single host, Mac mini / Apple M4 Pro / 24 GB, Go 1.25.7, seed 20260903), producing 23 figures across four balance views.
 
 This demonstration establishes the workflow — trace in, ledgers and views out. It does not establish performance or scalability; throughput, latency, and resource overhead require separate timing measurements, which are part of the evaluation methodology in the paper.
 
-## Reproducibility
+### Reproducibility
 
 Repeatable experiments require fixed inputs: the same trace bytes, the same seed, the same configuration, the same source revisions, and a clean initial registry. AgentEmulator automates consistent preparation, and the paper's Appendix A specifies the records, checks, and figure-regeneration commands that make a run verifiable.
 
-## The HuangLab family
+### The HuangLab family
 
 AgentEmulator is part of HuangLab's blockchain experimentation stack at Sun Yat-sen University:
 
