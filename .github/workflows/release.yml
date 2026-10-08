@@ -42,17 +42,17 @@ jobs:
 
       - name: Package as archives
         run: |
-          cd dist
-          for file in *; do
-            if [[ "$file" == *.exe ]]; then
-              # Windows: zip
-              zip "../dist/${file%.exe}.zip" "$file"
-            else
-              # Others: tar.gz
-              tar -czf "../dist/${file}.tar.gz" "$file"
-            fi
-          done
-          cd ..
+          EXE=""
+          if [ "${{ matrix.goos }}" = "windows" ]; then EXE=".exe"; fi
+          mkdir staging
+          mv "dist/blockemulator-consensusnode-${{ matrix.goos }}-${{ matrix.goarch }}${EXE}" "staging/consensusnode${EXE}"
+          mv "dist/blockemulator-supervisor-${{ matrix.goos }}-${{ matrix.goarch }}${EXE}" "staging/supervisor${EXE}"
+          if [ -n "$EXE" ]; then
+            (cd staging && zip "../dist/agentemulator-${{ matrix.goos }}-${{ matrix.goarch }}.zip" "consensusnode${EXE}" "supervisor${EXE}")
+          else
+            tar -czf "dist/agentemulator-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz" -C staging consensusnode supervisor
+          fi
+          rm -rf staging
         shell: bash
 
       - name: Upload build artifacts
