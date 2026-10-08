@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 
-	"github.com/HuangLab-SYSU/block-emulator-x/supervisor/txsource/jsonsource"
+	"github.com/HuangLab-SYSU/block-emulator-x/supervisor/txsource/tracesource"
 )
 
 const baseConfigFixture = `system:
@@ -65,7 +65,7 @@ func TestChainRunnerPrepareDerivesConfigAndIPTable(t *testing.T) {
 	var derived map[string]any
 	require.NoError(t, yaml.Unmarshal(raw, &derived))
 
-	require.Equal(t, jsonsource.Key, derived["supervisor"].(map[string]any)["tx_source"].(map[string]any)["tx_source_type"])
+	require.Equal(t, tracesource.Key, derived["supervisor"].(map[string]any)["tx_source"].(map[string]any)["tx_source_type"])
 
 	absPlan, err := filepath.Abs(planPath)
 	require.NoError(t, err)
