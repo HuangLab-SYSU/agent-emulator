@@ -542,33 +542,33 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 
 <p align="center">
-  <img src="docs/figures/pngs/fig1_all_agents_overview.png" alt="fig1_all_agents_overview.png">
+  <img src="docs/figures/pngs/fig1_all_agents_overview.png" alt="全部 Agent 最终余额变化图">
   <br>
-  Agents 余额变化图
+  全部 100 个 Agent 相对初始余额的最终余额变化，按 Agent ID 排序。每根柱子代表一个 Agent。绿色柱表示余额增加，红色柱表示余额减少。
 </p>
 
 
 
 <p align="center">
-  <img src="docs/figures/pngs/fig2_global_tx_order.png" alt="fig2_global_tx_order.png">
+  <img src="docs/figures/pngs/fig2_global_tx_order.png" alt="余额变化与全局交易顺序的关系">
   <br>
-  Agents 余额变化分布图
+  余额变化与全局交易顺序的关系。该图展示所有交易按全局顺序回放时的账户余额变化。
 </p>
 
 
 
 <p align="center">
-  <img src="docs/figures/pngs/fig3_normalized_progress.png" alt="fig3_normalized_progress.png">
+  <img src="docs/figures/pngs/fig3_normalized_progress.png" alt="余额变化与各 Agent 相关交易进度的关系">
   <br>
-  所有 Agents 余额变化总览图
+  余额变化与各 Agent 相关交易进度的关系。该图展示跟随每个 Agent 最终确认交易的余额变化，每条灰色曲线代表一个 Agent。
 </p>
 
 
 
 <p align="center">
-  <img src="docs/figures/pngs/fig4_agents_001-005.png" alt="fig4_agents_001-005.png">
+  <img src="docs/figures/pngs/fig4_agents_001-005.png" alt="#001–#005 号 Agent 余额变化图">
   <br>
-  不同 Agent 余额变化分组展示图
+  #001–#005 号 Agent 相对初始余额的余额变化，按各 Agent 相关交易序号排序。
 </p>
 
 
