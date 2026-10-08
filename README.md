@@ -46,14 +46,15 @@ AgentEmulator measures the infrastructure layer, not agent capability. Capabilit
 
 **What v1.0 does (current release):**
 
-- Trace-driven behavior replay — researchers describe agent lifecycle actions (`join`, `pay`, `leave`) and ordinary transfers in a JSONL trace; no manual transaction construction.
-- Deterministic identity derivation — the `did-simple` plugin derives experimental identifiers from a configured seed + `agent_id`. Registration and revocation calls are recorded; v1.0 does not deploy a DID registry contract.
-- Real payment execution — payments become ordinary balance transfers executed by the blockchain backend (`direct-pay`).
-- Lifecycle validation — invalid departures and payments involving inactive agents are rejected during input processing.
-- Four account-balance views + bilingual HTML gallery — final balance changes, changes in global transaction order, changes over normalized local progress, and individual trajectories.
-- Two execution modes — regular mode (blockchain backend) and compilation-only mode (`chain.enabled=false`) for trace inspection and reproducibility checks.
+AgentEmulator v1.0 supports trace-driven behavior replay, records of identity registration and revocation, direct payments, experimental data collection, and visualization. Researchers describe agent actions in a JSONL trace file. The `agentSupervisor` module compiles the trace into a transaction dataset. The module then starts a BlockEmulator-X blockchain and submits the transactions for on-chain execution and recording. After the experiment, AgentEmulator records transaction and account data and generates balance plots. AgentEmulator also creates an HTML gallery with Chinese and English interface options. The launch script opens the gallery in the default browser.
 
-**What v1.0 deliberately does not do:** it introduces no transaction scheduling algorithm — it follows the User-specified Original Sequence policy, leaving orchestration, priority rules, and agent weights as research extensions.
+In v1.0, agent behavior is predefined in the trace. Transactions follow the **User-specified Original Sequence** policy. No additional transaction orchestration or scheduling algorithm is included. Researchers can extend the default policy with mechanisms such as transaction reordering, priority rules, or agent weights.
+
+Future releases will expand the supported protocols, scenarios, and evaluation capabilities. Contributions and research-specific extensions are welcome.
+
+**What v1.0 deliberately does not do:** 
+
+it introduces no transaction scheduling algorithm — it follows the User-specified Original Sequence policy, leaving orchestration, priority rules, and agent weights as research extensions.
 
 ### The five-layer stack
 
@@ -67,11 +68,15 @@ AgentEmulator maps onto a five-layer taxonomy of trustworthy agent infrastructur
 | L4 Incentives | How is good behavior rewarded on-chain? | Roadmap (reputation, points, prediction markets) |
 | L5 Governance | Who arbitrates disputes, and how do regulators plug in? | Roadmap |
 
-### A demonstrated workflow (not a performance claim)
+### A demonstrated workflow 
 
 The paper demonstrates the workflow with 100 agents and 10,000 payment transactions on a 4-shard × 4-node blockchain (single host, Mac mini / Apple M4 Pro / 24 GB, Go 1.25.7, seed 20260903), producing 23 figures across four balance views.
 
 This demonstration establishes the workflow — trace in, ledgers and views out. It does not establish performance or scalability; throughput, latency, and resource overhead require separate timing measurements, which are part of the evaluation methodology in the paper.
+
+![AgentEmulator workflow from a user's perspective](docs/figures/svgs/AgentEmulator_workflow_en.svg)
+
+**Figure 1. AgentEmulator's general workflow.** This diagram illustrates the platform's broader purpose, beyond the current v1.0 release. The user-defined mechanisms and algorithms provide scope for extensions and original research.
 
 ### Reproducibility
 
@@ -91,19 +96,10 @@ AgentEmulator is part of HuangLab's blockchain experimentation stack at Sun Yat-
 
 
 
-### What is AgentEmulator?
-
-AgentEmulator is an **emulation and experimentation platform for trustworthy AI agent infrastructure**. The platform was initiated by **[HuangLab](http://www.xintelligence.pro/)**, led by Professor Huawei Huang at the School of Software Engineering, Sun Yat-sen University. AgentEmulator uses blockchain as the foundation for trusted records and settlement. Researchers and students can investigate agent identity, behavioral auditing, payment settlement, incentives, and governance. AgentEmulator aims to support research into trustworthy interaction and collaboration among AI agents.
-
-AgentEmulator is built on **[BlockEmulator-X](https://github.com/HuangLab-SYSU/block-emulator-x)**, HuangLab's blockchain emulation platform. HuangLab released BlockEmulator-X as open source in June 2026 as the successor to the original BlockEmulator. AgentEmulator extends BlockEmulator-X to experiments that combine AI agent behavior with blockchain execution.
-
 ### What does AgentEmulator support?
 
 AgentEmulator is designed to simplify experiment setup, mechanism validation, and data analysis. Researchers can configure the underlying blockchain, observe agent behavior, and evaluate how different mechanisms affect experimental outcomes.
 
-![AgentEmulator workflow from a user's perspective](docs/figures/svgs/AgentEmulator_workflow_en.svg)
-
-**Figure 1. AgentEmulator's general workflow.** This diagram illustrates the platform's broader purpose, beyond the current v1.0 release. The user-defined mechanisms and algorithms provide scope for extensions and original research.
 
 ### Roadmap
 
@@ -117,13 +113,6 @@ Development will focus on five areas: **identity, settlement, auditing, incentiv
 | **Later: Incentives and collaborative governance** | Task allocation, behavior coordination, and accountability in multi-agent collaboration, with emulation and evaluation of different collaboration strategies. |
 | **Long term: Benchmarking** | Standardized scenarios, datasets, and metrics for comparing trustworthy infrastructure approaches through reproducible experiments. |
 
-### Current release: v1.0
-
-**AgentEmulator v1.0 supports trace-driven behavior replay, records of identity registration and revocation, direct payments, experimental data collection, and visualization.** Researchers describe agent actions in a JSONL trace file. The `agentSupervisor` module compiles the trace into a transaction dataset. The module then starts a BlockEmulator-X blockchain and submits the transactions for on-chain execution and recording. After the experiment, AgentEmulator records transaction and account data and generates balance plots. AgentEmulator also creates an HTML gallery with Chinese and English interface options. The launch script opens the gallery in the default browser.
-
-In v1.0, agent behavior is predefined in the trace. Transactions follow the **User-specified Original Sequence** policy. No additional transaction orchestration or scheduling algorithm is included. Researchers can extend the default policy with mechanisms such as transaction reordering, priority rules, or agent weights.
-
-Future releases will expand the supported protocols, scenarios, and evaluation capabilities. Contributions and research-specific extensions are welcome.
 
 ### Repository
 
