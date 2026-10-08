@@ -617,3 +617,11 @@ This work is led by **HuangLab, Professor Huawei Huang's research group at the S
 - [BlockEmulator repository](https://github.com/HuangLab-SYSU/block-emulator).
 
 HuangLab has focused on blockchain sharding theory and system architecture for the past seven years. Readers interested in blockchain sharding, consensus protocols, or DeFi are welcome to follow HuangLab's research. Visit the [HuangLab website](http://xintelligence.pro) or follow HuangLab's WeChat public account, **Huang-Lab**.
+
+## Contributing
+
+Contributions are welcome via the standard GitHub pull-request flow: benchmarks, plugins, traces, and documentation. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+MIT. See [LICENSE](LICENSE).
