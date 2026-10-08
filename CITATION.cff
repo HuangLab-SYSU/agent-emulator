@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use AgentEmulator in your research, please cite the accompanying paper."
+type: software
+title: "AgentEmulator"
+authors:
+  - name: "HuangLab-SYSU"
+repository-code: "https://github.com/HuangLab-SYSU/agent-emulator"
+preferred-citation:
+  type: generic
+  title: "AgentEmulator: A Blockchain-Empowered Testbed for Trustworthy AI Agent Infrastructure"
+  authors:
+    - family-names: "Zheng"
+      given-names: "Jian"
+    - family-names: "Xiong"
+      given-names: "Jianbo"
+    - family-names: "Hu"
+      given-names: "Feihong"
+    - family-names: "Huang"
+      given-names: "Huawei"
+  year: 2026
+  month: 10
+  doi: "10.13140/RG.2.2.23825.60000"
+  notes: "Preprint available on ResearchGate"
