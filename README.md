@@ -1,12 +1,8 @@
 # AgentEmulator
 
-For the Chinese version of this guide, see [README_zh.md](README_zh.md).
+AgentEmulator is an **emulation and experimentation platform for trustworthy AI agent infrastructure**. The platform was initiated by **[HuangLab](http://www.xintelligence.pro/)**, led by Professor Huawei Huang at the School of Software Engineering, Sun Yat-sen University. AgentEmulator uses blockchain as the foundation for trusted records and settlement. Researchers and students can investigate agent identity, behavioral auditing, payment settlement, incentives, and governance. AgentEmulator aims to support research into trustworthy interaction and collaboration among AI agents.
 
-AgentEmulator is an open-source emulation and experimentation platform for trustworthy AI agent infrastructure. It lets researchers connect agent behavior to blockchain execution in a single, reproducible experimental workflow — one trace file, one configuration, one run.
-
-Describe agent actions in JSONL → `agentSupervisor` compiles transactions → BlockEmulator-X executes them on a sharded blockchain → per-agent ledgers, four balance views, and an HTML gallery.
-
-**How to read this README.** Sections [1]–[7] below are the project positioning (new in this revision). The detailed v1.0 user guide — Trace Basics, Configuration, Results Directory, Quick Start, and FAQ — is unchanged and follows in the existing sections at the bottom of this file.
+AgentEmulator is built on **[BlockEmulator-X](https://github.com/HuangLab-SYSU/block-emulator-x)**, HuangLab's blockchain emulation platform. HuangLab released BlockEmulator-X as open source in June 2026 as the successor to the original BlockEmulator. AgentEmulator extends BlockEmulator-X to experiments that combine AI agent behavior with blockchain execution.
 
 ## 1. Paper
 

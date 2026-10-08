@@ -1,10 +1,10 @@
 # AgentEmulator
 
-AgentEmulator 是面向 AI 智能体可信基础设施的开源仿真与实验平台。它把智能体行为与区块链执行放进同一条可复现的实验管线：一个 trace 文件、一份配置、一次运行。
+AgentEmulator 是由**中山大学·软件工程学院·黄华威研究组（[HuangLab](http://www.xintelligence.pro/)）发起的、面向 AI 智能体可信基础设施的仿真与实验平台**。平台以区块链作为可信记录与结算的基础，旨在帮助研究者和学生围绕智能体的身份、行为审计、支付结算、激励与治理机制开展实验，逐步形成支持 AI 智能体可信交互与协作的研究工具。
 
-用 JSONL 描述智能体动作 → `agentSupervisor` 编译成交易 → BlockEmulator-X 在分片区块链上执行 → 逐智能体账本、四种余额视图、双语 HTML 结果页。
 
-**阅读提示。** 下面 [1]–[7] 节是本版新增的项目定位。详细的 v1.0 使用指南——Trace Basics、Configuration、Results Directory、Quick Start、FAQ——保持不变，继续沿用本文件后半部分的原有章节。
+
+AgentEmulator 是面向 AI 智能体行为与区块链相结合的场景、基于 BlockEmulator-X 构建的**实验工具**。其中，BlockEmulator-X 是 HuangLab 于2026年6月开源的区块链仿真实验工具，是初代 BlockEmulator 的升级迭代版本，其 GitHub 代码仓库地址为 [github.com/HuangLab-SYSU/block-emulator-x](https://github.com/HuangLab-SYSU/block-emulator-x) 。
 
 ## 1. 论文
 
