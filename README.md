@@ -1,6 +1,83 @@
-# AgentEmulator (v1.0) User Guide
+# AgentEmulator
 
 For the Chinese version of this guide, see [README_zh.md](README_zh.md).
+
+AgentEmulator is an open-source emulation and experimentation platform for trustworthy AI agent infrastructure. It lets researchers connect agent behavior to blockchain execution in a single, reproducible experimental workflow — one trace file, one configuration, one run.
+
+Describe agent actions in JSONL → `agentSupervisor` compiles transactions → BlockEmulator-X executes them on a sharded blockchain → per-agent ledgers, four balance views, and an HTML gallery.
+
+**How to read this README.** Sections [1]–[7] below are the project positioning (new in this revision). The detailed v1.0 user guide — Trace Basics, Configuration, Results Directory, Quick Start, and FAQ — is unchanged and follows in the existing sections at the bottom of this file.
+
+## 1. Paper
+
+**AgentEmulator: A Blockchain-Empowered Testbed for Trustworthy AI Agent Infrastructure**
+
+Jian Zheng, Jianbo Xiong, Feihong Hu, Huawei Huang (corresponding author)
+
+Version: Oct. 2, 2026 · [arXiv link to be added upon posting]
+
+If you use AgentEmulator in your research, please cite the paper (see [CITATION.cff](CITATION.cff)). The paper formalizes the trace–transaction mapping, the three execution orders (logical trace order, backend execution order, visualization order), the reproducibility requirements, and an evaluation methodology for payment completion and execution overhead.
+
+## 2. Why trustworthy AI agent infrastructure
+
+AI agents are moving out of chat windows and into real workflows: they call APIs, hold identities, pay for services, and act on behalf of people and organizations. When agents transact with each other, three trust gaps appear that better models cannot close:
+
+| Trust gap | What it means in practice |
+| --- | --- |
+| Behavior is not auditable | There is no neutral, tamper-resistant record of what an agent did and why. |
+| Accountability is not traceable | When an agent errs, exceeds its authority, or causes a loss, you cannot locate which agent, authorized by whom, at which step. |
+| Settlement is not trustworthy | Value exchange between agents — and between agents and API services — lacks a neutral ledger. |
+
+Closing these gaps requires a dedicated layer of infrastructure: an auditing and settlement layer that is independent of the models themselves. AgentEmulator is the experimental platform for building and evaluating that layer. In it, the blockchain plays a specific role — a neutral substrate for trusted records and settlement — not a universal solution.
+
+## 3. What AgentEmulator is — and is not
+
+AgentEmulator measures the infrastructure layer, not agent capability. Capability benchmarks (AgentBench, WebArena, OSWorld, SWE-bench) ask: can the agent finish the task? AgentEmulator asks: when agents join, pay, and leave, are identity, payments, records, and settlement working correctly, at what cost, and under what mechanisms? The two questions are complementary: a completed payment proves a payment happened, not that the task was done well. AgentEmulator supplies the transaction records and account views that make the infrastructure question answerable and reproducible.
+
+**What v1.0 does (current release):**
+
+- Trace-driven behavior replay — researchers describe agent lifecycle actions (`join`, `pay`, `leave`) and ordinary transfers in a JSONL trace; no manual transaction construction.
+- Deterministic identity derivation — the `did-simple` plugin derives experimental identifiers from a configured seed + `agent_id`. Registration and revocation calls are recorded; v1.0 does not deploy a DID registry contract.
+- Real payment execution — payments become ordinary balance transfers executed by the blockchain backend (`direct-pay`).
+- Lifecycle validation — invalid departures and payments involving inactive agents are rejected during input processing.
+- Four account-balance views + bilingual HTML gallery — final balance changes, changes in global transaction order, changes over normalized local progress, and individual trajectories.
+- Two execution modes — regular mode (blockchain backend) and compilation-only mode (`chain.enabled=false`) for trace inspection and reproducibility checks.
+
+**What v1.0 deliberately does not do:** it introduces no transaction scheduling algorithm — it follows the User-specified Original Sequence policy, leaving orchestration, priority rules, and agent weights as research extensions.
+
+## 4. The five-layer stack
+
+AgentEmulator maps onto a five-layer taxonomy of trustworthy agent infrastructure. The layers define the research agenda; the tooling lands incrementally.
+
+| Layer | Question | AgentEmulator status |
+| --- | --- | --- |
+| L1 Identity | Who is this agent, and who authorizes it? | `did-simple` derives deterministic identifiers; DID registry contracts are roadmap |
+| L2 Auditing | What did it do, and can it be verified later? | Verifiable-log structures (e.g., Merkle accumulators) are roadmap; v1.0 records the action stream |
+| L3 Settlement | How do agents pay each other at high frequency? | `direct-pay` today; payment channels and batch settlement are roadmap |
+| L4 Incentives | How is good behavior rewarded on-chain? | Roadmap (reputation, points, prediction markets) |
+| L5 Governance | Who arbitrates disputes, and how do regulators plug in? | Roadmap |
+
+## 5. A demonstrated workflow (not a performance claim)
+
+The paper demonstrates the workflow with 100 agents and 10,000 payment transactions on a 4-shard × 4-node blockchain (single host, Mac mini / Apple M4 Pro / 24 GB, Go 1.25.7, seed 20260903), producing 23 figures across four balance views.
+
+This demonstration establishes the workflow — trace in, ledgers and views out. It does not establish performance or scalability; throughput, latency, and resource overhead require separate timing measurements, which are part of the evaluation methodology in the paper.
+
+## 6. Reproducibility
+
+Repeatable experiments require fixed inputs: the same trace bytes, the same seed, the same configuration, the same source revisions, and a clean initial registry. AgentEmulator automates consistent preparation, and the paper's Appendix A specifies the records, checks, and figure-regeneration commands that make a run verifiable.
+
+## 7. The HuangLab family
+
+AgentEmulator is part of HuangLab's blockchain experimentation stack at Sun Yat-sen University:
+
+| Project | Role | Link |
+| --- | --- | --- |
+| BlockEmulator | Emulator for blockchain sharding protocols (IEEE TSC 2025) | https://github.com/HuangLab-SYSU/block-emulator |
+| BlockEmulator-X | Successor with EVM execution; the backend of AgentEmulator | https://github.com/HuangLab-SYSU/block-emulator-x |
+| AgentEmulator | This project — agent behavior on a sharded blockchain | — |
+| BrokerChain | Academic sharded blockchain testnet (~400 external nodes) | https://github.com/HuangLab-SYSU/BrokerChain |
+| brokerchain-mcp | MCP server (`register_agent` / `append_log` / `open_channel` / `pay`) with dual backends: AgentEmulator simulation and BrokerChain testnet | in development |
 
 ## Overview
 
