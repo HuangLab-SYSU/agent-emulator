@@ -10,13 +10,26 @@ Describe agent actions in JSONL → `agentSupervisor` compiles transactions → 
 
 ## 1. Paper
 
-**AgentEmulator: A Blockchain-Empowered Testbed for Trustworthy AI Agent Infrastructure**
+**[AgentEmulator: A Blockchain-Empowered Testbed for Trustworthy AI Agent Infrastructure](https://www.researchgate.net/publication/415363728_AgentEmulator_A_Blockchain-Empowered_Testbed_for_Trustworthy_AI_Agent_Infrastructure)**
 
-Jian Zheng, Jianbo Xiong, Feihong Hu, Huawei Huang (corresponding author)
+Jian Zheng, Jianbo Xiong, Feihong Hu, and Huawei Huang (corresponding author). October 2026. Preprint.
 
-Version: Oct. 2, 2026 · [https://www.researchgate.net/publication/415363728_AgentEmulator_A_Blockchain-Empowered_Testbed_for_Trustworthy_AI_Agent_Infrastructure]
+[DOI: 10.13140/RG.2.2.23825.60000](https://doi.org/10.13140/RG.2.2.23825.60000)
 
-If you use AgentEmulator in your research, please cite the paper (see [CITATION.cff](CITATION.cff)). The paper formalizes the trace–transaction mapping, the three execution orders (logical trace order, backend execution order, visualization order), the reproducibility requirements, and an evaluation methodology for payment completion and execution overhead.
+The paper formalizes the trace–transaction mapping, the three execution orders (logical trace order, backend execution order, visualization order), the reproducibility requirements, and an evaluation methodology for payment completion and execution overhead.
+
+If you use AgentEmulator in your research, please cite this paper (see also [CITATION.cff](CITATION.cff)):
+
+```bibtex
+@misc{zheng2026agentemulator,
+  author = {Zheng, Jian and Xiong, Jianbo and Hu, Feihong and Huang, Huawei},
+  title = {{AgentEmulator}: A Blockchain-Empowered Testbed for Trustworthy {AI} Agent Infrastructure},
+  year = {2026},
+  month = oct,
+  doi = {10.13140/RG.2.2.23825.60000},
+  note = {Preprint available on ResearchGate}
+}
+```
 
 ## 2. Why trustworthy AI agent infrastructure
 
