@@ -18,7 +18,7 @@ Jian Zheng, Jianbo Xiong, Feihong Hu, and Huawei Huang (corresponding author). O
 
 The paper formalizes the trace–transaction mapping, the three execution orders (logical trace order, backend execution order, visualization order), the reproducibility requirements, and an evaluation methodology for payment completion and execution overhead.
 
-If you use AgentEmulator in your research, please cite this paper (see also [CITATION.cff](CITATION.cff)):
+If you use AgentEmulator in your research, please cite this paper (see [CITATION.cff](CITATION.cff)):
 
 ```bibtex
 @misc{zheng2026agentemulator,

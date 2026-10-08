@@ -1,4 +1,94 @@
-# AgentEmulator (v1.0) 使用说明
+# AgentEmulator
+
+AgentEmulator 是面向 AI 智能体可信基础设施的开源仿真与实验平台。它把智能体行为与区块链执行放进同一条可复现的实验管线：一个 trace 文件、一份配置、一次运行。
+
+用 JSONL 描述智能体动作 → `agentSupervisor` 编译成交易 → BlockEmulator-X 在分片区块链上执行 → 逐智能体账本、四种余额视图、双语 HTML 结果页。
+
+**阅读提示。** 下面 [1]–[7] 节是本版新增的项目定位。详细的 v1.0 使用指南——Trace Basics、Configuration、Results Directory、Quick Start、FAQ——保持不变，继续沿用本文件后半部分的原有章节。
+
+## 1. 论文
+
+**[AgentEmulator: A Blockchain-Empowered Testbed for Trustworthy AI Agent Infrastructure](https://www.researchgate.net/publication/415363728_AgentEmulator_A_Blockchain-Empowered_Testbed_for_Trustworthy_AI_Agent_Infrastructure)**
+
+Jian Zheng, Jianbo Xiong, Feihong Hu, and Huawei Huang（通讯作者）。2026 年 10 月。Preprint。
+
+[DOI: 10.13140/RG.2.2.23825.60000](https://doi.org/10.13140/RG.2.2.23825.60000)
+
+论文形式化了 trace 到交易的映射、三种执行顺序（逻辑 trace 顺序、后端执行顺序、可视化顺序）、可复现性要求，以及支付完成度与执行开销的评估方法论。
+
+研究中使用 AgentEmulator 请引用本论文（见 [CITATION.cff](CITATION.cff)）：
+
+```bibtex
+@misc{zheng2026agentemulator,
+  author = {Zheng, Jian and Xiong, Jianbo and Hu, Feihong and Huang, Huawei},
+  title = {{AgentEmulator}: A Blockchain-Empowered Testbed for Trustworthy {AI} Agent Infrastructure},
+  year = {2026},
+  month = oct,
+  doi = {10.13140/RG.2.2.23825.60000},
+  note = {Preprint available on ResearchGate}
+}
+```
+
+## 2. 为什么需要可信智能体基础设施
+
+AI 智能体正在走出对话框，进入真实工作流：调用 API、持有身份、为服务付费、代表人和机构行动。当智能体彼此交易时，会出现三个「更好的模型」解决不了的信任缺口：
+
+| 信任缺口 | 实际含义 |
+| --- | --- |
+| 行为不可审计 | 智能体做了什么、为什么这么做，没有中立、防篡改的记录。 |
+| 权责不可追溯 | 智能体出错、越权、造成损失时，无法定位「哪个智能体、受谁授权、在哪一步」。 |
+| 结算不可信 | 智能体之间、智能体与 API 服务之间的价值交换缺少中立账本。 |
+
+补上这些缺口需要一层独立的基础设施：与模型本身无关的审计与结算层。AgentEmulator 就是构建和评估这一层的实验平台。在这里，区块链承担一个具体角色——可信记录与结算的中立基座，而不是万能解药。
+
+## 3. AgentEmulator 是什么、不是什么
+
+AgentEmulator 度量的是基础设施层，不是智能体能力。能力基准（AgentBench、WebArena、OSWorld、SWE-bench）问的是：智能体能不能完成任务？AgentEmulator 问的是：智能体加入、支付、离开时，身份、支付、记录、结算是否正确，代价多大，换一种机制会怎样？两个问题是互补的：一笔支付成功只证明支付发生了，不证明任务完成得好。AgentEmulator 提供交易记录与账户视图，让「基础设施」这个问题可回答、可复现。
+
+**v1.0 现在能做什么：**
+
+- Trace 驱动的行为回放——研究者在 JSONL trace 里描述智能体生命周期动作（`join`、`pay`、`leave`）与普通转账，无需手工构造交易。
+- 确定性身份派生——`did-simple` 插件由配置的 seed + `agent_id` 派生实验标识；注册与吊销调用被记录，v1.0 不部署 DID 注册合约。
+- 真实支付执行——支付编译为普通余额转账，由区块链后端执行（`direct-pay`）。
+- 生命周期校验——无效退出、涉及未激活智能体的支付在输入处理阶段被拒绝。
+- 四种余额视图 + 双语 HTML 结果页——最终余额变化、全局交易序变化、归一化局部进度变化、个体轨迹。
+- 两种执行模式——常规模式（区块链后端）与仅编译模式（`chain.enabled=false`），后者用于 trace 检查与可复现性核对。
+
+**v1.0 刻意不做的事：** 不内置任何交易调度算法——遵循 User-specified Original Sequence 策略，把交易重排、优先级规则、智能体权重留给研究者作为扩展点。
+
+## 4. 五层技术栈
+
+AgentEmulator 对应可信智能体基础设施的五层分类法。五层定义研究议程，工具逐层落地。
+
+| 层 | 要回答的问题 | AgentEmulator 现状 |
+| --- | --- | --- |
+| L1 身份 | 这个智能体是谁，谁授权它？ | `did-simple` 派生确定性标识；DID 注册合约在路线图中 |
+| L2 审计 | 它做了什么，事后能验证吗？ | 可验证日志结构（如 Merkle 累积器）在路线图中；v1.0 记录动作流 |
+| L3 结算 | 智能体之间如何高频支付？ | 当前为 `direct-pay`；支付通道与批量结算在路线图中 |
+| L4 激励 | 好行为如何在链上得到回报？ | 路线图（声誉、积分、预测市场） |
+| L5 治理 | 谁来仲裁纠纷，监管如何接入？ | 路线图 |
+
+## 5. 一次演示工作流（不是性能结论）
+
+论文演示了完整工作流：100 个智能体、1 万笔支付交易，跑在 4 分片 × 4 节点的区块链上（单机，Mac mini / Apple M4 Pro / 24 GB，Go 1.25.7，seed 20260903），产出 23 张图、四种余额视图。
+
+这次演示验证的是工作流——trace 进去，账本和视图出来。它不构成性能或扩展性结论；吞吐量、时延、资源开销需要独立的计时测量，这部分评估方法论在论文中有定义。
+
+## 6. 可复现性
+
+可复现实验要求输入固定：同一份 trace 字节、同一个 seed、同一份配置、同一组源码版本、干净的初始注册表。AgentEmulator 自动化了这些准备步骤；论文附录 A 给出记录清单、核对项与图表重生成命令，让一次运行可被验证。
+
+## 7. HuangLab 项目家族
+
+AgentEmulator 是中山大学 HuangLab 区块链实验技术栈的一部分：
+
+| 项目 | 角色 | 链接 |
+| --- | --- | --- |
+| BlockEmulator | 区块链分片协议仿真器（IEEE TSC 2025） | https://github.com/HuangLab-SYSU/block-emulator |
+| BlockEmulator-X | 支持 EVM 执行的继任版本，AgentEmulator 的后端 | https://github.com/HuangLab-SYSU/block-emulator-x |
+| AgentEmulator | 本项目——分片区块链上的智能体行为仿真 | https://github.com/HuangLab-SYSU/agent-emulator |
+| BrokerChain | 学术分片区块链测试网（约 400 个外部节点） | https://github.com/HuangLab-SYSU/BrokerChain |
+| brokerchain-mcp | MCP server（`register_agent` / `append_log` / `open_channel` / `pay`），双后端：AgentEmulator 仿真 + BrokerChain 测试网 | 开发中 |
 
 # AgentEmulator 简介 / Overview of AgentEmulator
 
@@ -22,7 +112,7 @@ AgentEmulator 实验平台的**设计目标**是简化 AI Agent 相关的实验�
 
 
 
-![AgentEmulator 用户视角的工作流程图](docs/figures/svgs/AgentEmulator_workflow_202609202005.svg)
+![AgentEmulator 用户视角的工作流程图](docs/figures/svgs/AgentEmulator_workflow_zh.svg)
 
 **图 1.  AgentEmulator 的 general purpose** (并不只是对应于当前 v1.0 版本) 展示了用户与 AgentEmulator 之间的交互关系。其中，“用户自定义 机制/算法” 具有非常大的自由发挥空间，是用户二次开发、自由创新之地。
 
@@ -95,7 +185,7 @@ GitHub 代码仓库地址为：https://github.com/HuangLab-SYSU/agent-emulator
 
 
 
-![AgentEmulator 的模块架构图](docs/figures/svgs/AgentEmulator_模块架构图_202609202212.svg)
+![AgentEmulator 的模块架构图](docs/figures/svgs/AgentEmulator_architecture_zh.svg)
 
 ---
 
@@ -192,6 +282,10 @@ trace 文件（实验的全部意图）
     ▼
 交易数据集 → 仿真回放 → Agent 账本 / 链上测量 → 绘图展示效果
 ```
+
+![行为 trace 字段示意](docs/figures/svgs/AgentEmulator_trace_flow_en.svg)
+
+行为 trace 字段示意。一个智能体动作被编译成区块链可处理的支付交易。
 
 
 
@@ -687,5 +781,13 @@ join 操作只有在 Agent **首次加入或离开后重新加入**时才会生�
 - BlockEmulator 的 GitHub 仓库：[https://github.com/HuangLab-SYSU/block-emulator](https://github.com/HuangLab-SYSU/block-emulator)
 
 HuangLab 近 7 年专注于区块链分片（Blockchain Sharding）理论与技术架构。若您对区块链分片、共识协议、DeFi 协议等方向感兴趣，欢迎关注 HuangLab 公众号（ID: Huang-Lab），或访问 HuangLab 学术主页：[http://xintelligence.pro](http://xintelligence.pro)
+
+## 参与贡献
+
+欢迎通过标准 GitHub PR 流程贡献基准场景、插件、trace 与文档。见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+
+## 许可证
+
+MIT。见 [LICENSE](LICENSE)。
 
 
