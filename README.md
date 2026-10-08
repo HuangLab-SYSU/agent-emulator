@@ -421,27 +421,27 @@ The experiment used multiple processes on a single machine with these settings:
 4. **Workload:** seed `20260903`, 100 agents, and a trace containing 10,000 transactions, replayed through `trace_source_JSONL`. Each round automatically compiled the transactions and started a fresh BlockEmulator-X emulation run.
 
 <p align="center">
-  <img src="docs/figures/pngs/fig1_all_agents_overview.png" alt="Balance changes across all agents">
+  <img src="docs/figures/pngs/fig1_all_agents_overview.png" alt="Final balance changes for all agents">
   <br>
-  Balance changes across all agents
+  Final balance changes relative to initial balances for all 100 agents, ordered by agent ID. Each bar represents one agent. Green bars indicate balance increases, and red bars indicate balance decreases.
 </p>
 
 <p align="center">
-  <img src="docs/figures/pngs/fig2_global_tx_order.png" alt="Distribution of balance changes over global transaction order">
+  <img src="docs/figures/pngs/fig2_global_tx_order.png" alt="Balance changes vs. the global transaction order">
   <br>
-  Distribution of agent balance changes
+  Balance changes vs. the global transaction order. The figure shows account-balance changes across the global sequence of all transactions.
 </p>
 
 <p align="center">
-  <img src="docs/figures/pngs/fig3_normalized_progress.png" alt="Agent balance changes over normalized transaction progress">
+  <img src="docs/figures/pngs/fig3_normalized_progress.png" alt="Balance changes vs. the progress of each agent's related transactions">
   <br>
-  Balance changes aligned by normalized transaction progress
+  Balance changes vs. the progress of each agent's related transactions. The figure presents balance changes following each agent's finalized transactions, where each gray line represents an agent.
 </p>
 
 <p align="center">
-  <img src="docs/figures/pngs/fig4_agents_001-005.png" alt="Individual balance changes for a group of five agents">
+  <img src="docs/figures/pngs/fig4_agents_001-005.png" alt="Balance changes for agents #001-005">
   <br>
-  Balance changes by agent group
+  Balance changes relative to initial balances for agents #001–#005, ordered by each agent's related transaction index.
 </p>
 
 ### Using the HTML gallery
