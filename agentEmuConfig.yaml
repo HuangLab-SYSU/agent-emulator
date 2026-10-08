@@ -11,7 +11,7 @@ chain:
   # When true, each round's transaction plan is automatically executed on a
   # freshly launched BlockEmulator-X cluster (consensus nodes + supervisor):
   # agentemu builds the binaries, derives a per-round config and ip table,
-  # replays the plan via tx_source=json_source, and waits for the cluster to
+  # replays the plan via tx_source=trace_source_JSONL, and waits for the cluster to
   # stop by itself.
   enabled: true
   run_timeout_seconds: 600    # hard bound for one whole chain run

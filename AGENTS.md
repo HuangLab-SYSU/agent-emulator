@@ -15,7 +15,7 @@ and plots balance figures into a bilingual HTML gallery.
   the pipeline: `trace.go` (parse/validate trace, derive DIDs from `seed`+`agent_id`,
   nonces, data fields) → `registry.go` (`agent_registry.json`, `active` state) →
   `chainrunner.go` (derive a per-run `config.yaml`/`ip_table.json` from the template,
-  set `tx_source=json_source` + `tx_number`, start consensus nodes + supervisor,
+  set `tx_source=trace_source_JSONL` + `tx_number`, start consensus nodes + supervisor,
   wait for clean stop) → `agentcsv.go` (per-agent ledgers) → `loop.go` (rounds; v1.0
   defaults to a single round — multi-round AgentAPI/EndCondition feedback is reserved).
 - Underlying chain layer (BlockEmulator-X): `consensus/pbft` (PBFT; node 0 per shard

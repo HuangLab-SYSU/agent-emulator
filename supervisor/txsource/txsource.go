@@ -6,8 +6,8 @@ import (
 	"github.com/HuangLab-SYSU/block-emulator-x/config"
 	"github.com/HuangLab-SYSU/block-emulator-x/pkg/core/transaction"
 	"github.com/HuangLab-SYSU/block-emulator-x/supervisor/txsource/csvsource"
-	"github.com/HuangLab-SYSU/block-emulator-x/supervisor/txsource/jsonsource"
 	"github.com/HuangLab-SYSU/block-emulator-x/supervisor/txsource/randomsource"
+	"github.com/HuangLab-SYSU/block-emulator-x/supervisor/txsource/tracesource"
 )
 
 // TxSource provides a transaction source for the supervisor (as the client / wallet).
@@ -37,13 +37,13 @@ func NewTxSource(cfg config.TxSourceCfg) (TxSource, error) {
 		ts = cs
 	case randomsource.Key:
 		ts = randomsource.NewRandomSource()
-	case jsonsource.Key:
-		js, err := jsonsource.NewJSONSource(cfg.TxSourceFile)
+	case tracesource.Key:
+		tsrc, err := tracesource.NewTraceSourceJSONL(cfg.TxSourceFile)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create JSONL source: %w", err)
+			return nil, fmt.Errorf("failed to create JSONL trace source: %w", err)
 		}
 
-		ts = js
+		ts = tsrc
 	default:
 		ts = NoOperationTxSource{}
 	}

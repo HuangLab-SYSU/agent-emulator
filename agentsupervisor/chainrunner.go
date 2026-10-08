@@ -15,7 +15,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/HuangLab-SYSU/block-emulator-x/supervisor/txsource/jsonsource"
+	"github.com/HuangLab-SYSU/block-emulator-x/supervisor/txsource/tracesource"
 )
 
 // defaultChainRunTimeout bounds one whole chain run; the supervisor normally
@@ -256,7 +256,7 @@ func (c *ChainRunner) prepare(chainDir string, spec RoundSpec) (string, string, 
 	)
 	setYAMLPath(doc, []string{"consensus_node", "block_record_dir"}, filepath.Join(dataDir, "block_record"))
 	setYAMLPath(doc, []string{"supervisor", "result_output_dir"}, resultDir)
-	setYAMLPath(doc, []string{"supervisor", "tx_source", "tx_source_type"}, jsonsource.Key)
+	setYAMLPath(doc, []string{"supervisor", "tx_source", "tx_source_type"}, tracesource.Key)
 	setYAMLPath(doc, []string{"supervisor", "tx_source", "tx_source_file"}, planPath)
 	setYAMLPath(doc, []string{"supervisor", "tx_source", "exclude_contract_txs"}, false)
 	// The supervisor stops once tx_number transactions are injected and empty
