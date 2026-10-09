@@ -46,11 +46,11 @@ X_LABEL = "Transaction index"
 def latest_agents_dir() -> Path:
     """取 exp/agentemu-results/ 下编号最大一轮(round_NNN 零填充, 字典序即轮次序)的 agents/ 目录。"""
     if not RESULTS_ROOT.is_dir():
-        raise SystemExit(f"未找到实验结果目录: {RESULTS_ROOT}")
+        raise SystemExit(f"Experiment results directory not found: {RESULTS_ROOT}")
     agents_dirs = [r / "agents" for r in sorted(RESULTS_ROOT.glob("round_*"))
                    if (r / "agents").is_dir()]
     if not agents_dirs:
-        raise SystemExit(f"{RESULTS_ROOT} 下没有包含 agents/ 的 round_* 目录")
+        raise SystemExit(f"No round_* directory containing agents/ under {RESULTS_ROOT}")
     return agents_dirs[-1]
 
 
@@ -83,7 +83,7 @@ def save_fig(fig, fig_dir: Path, stem: str):
     """同一张图同时输出 PNG(HTML 图册用)与 PDF(论文排版用)。"""
     for out in (fig_dir / f"{stem}.png", fig_dir / f"{stem}.pdf"):
         fig.savefig(out)
-        print(f"已生成 {out}")
+        print(f"Generated {out}")
 
 
 # ---------------------------------------------------------------------------
@@ -135,7 +135,7 @@ def replay_global_order(dfs, hs_all):
             cand &= {s_col, r_col}
         cand -= shared_everywhere
         if len(cand) != 1:
-            raise SystemExit(f"{d['agent'].iloc[0]} 无法唯一识别自身地址")
+            raise SystemExit(f"Cannot uniquely identify the own address of {d['agent'].iloc[0]}")
         own_addr[i] = cand.pop()
     addr2idx = {a: i for i, a in own_addr.items()}
 
@@ -166,11 +166,11 @@ def replay_global_order(dfs, hs_all):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="绘制 agent 余额变化系列图")
+    parser = argparse.ArgumentParser(description="Plot the agent balance-change figure series")
     parser.add_argument("--data-dir", type=Path, default=None,
-                        help="agent CSV 所在目录(默认自动选取最新一轮实验结果)")
+                        help="Directory of agent CSVs (default: latest experiment round)")
     parser.add_argument("--fig-dir", type=Path, default=DEFAULT_FIG_DIR,
-                        help=f"图片输出目录(默认 {DEFAULT_FIG_DIR})")
+                        help=f"Output directory for figures (default: {DEFAULT_FIG_DIR})")
     args = parser.parse_args()
 
     data_dir = args.data_dir or latest_agents_dir()
@@ -180,11 +180,11 @@ def main():
 
     files = sorted(data_dir.glob("agent-*.csv"))
     if not files:
-        raise SystemExit(f"未在 {data_dir} 找到 agent-*.csv")
+        raise SystemExit(f"No agent-*.csv found in {data_dir}")
     dfs = [load_agent(f) for f in files]
     all_df = pd.concat(dfs, ignore_index=True)
-    print(f"已加载 {len(dfs)} 个 agent, 共 {len(all_df)} 笔交易, "
-          f"区块高度: {sorted(all_df['block_height'].unique())}")
+    print(f"Loaded {len(dfs)} agents, {len(all_df)} transactions in total, "
+          f"block heights: {sorted(all_df['block_height'].unique())}")
     hs_all = sorted(all_df["block_height"].unique())
 
     finals = np.array([d["delta"].iloc[-1] for d in dfs])
@@ -238,9 +238,9 @@ def main():
     save_fig(fig, fig_dir, "fig2_global_tx_order")
     plt.close(fig)
 
-    print(f"全局交易序号: 去重后 {n_unique:,} 笔; "
-          f"均值曲线最大绝对值 {np.abs(mean_line).max():.3e} (守恒校验); "
-          f"期末与各文件末行 Δbalance 最大偏差 {finals_diff:.1f}")
+    print(f"Global transaction order: {n_unique:,} unique transactions; "
+          f"max |mean curve| = {np.abs(mean_line).max():.3e} (conservation check); "
+          f"max deviation of final values from each file's last Δbalance = {finals_diff:.1f}")
 
     # ------------------------------------------------------------------ 图 3
     # 按相对进度归一化对齐: 每个 agent 的交易进度拉伸到 [0,1],
@@ -299,8 +299,8 @@ def main():
         plt.close(fig)
         n_group_figs += 1
 
-    print(f"已生成 fig1 总览图 + fig2 全局分布图 + fig3 归一化图 "
-          f"+ {n_group_figs} 张 fig4 分组图(PNG + PDF)到 {fig_dir}")
+    print(f"Generated fig1 overview + fig2 global-order + fig3 normalized-progress "
+          f"figures + {n_group_figs} fig4 group figures (PNG + PDF) in {fig_dir}")
 
 
 if __name__ == "__main__":
