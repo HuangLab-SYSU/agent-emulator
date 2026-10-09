@@ -1,0 +1,6 @@
+=============== Oct 9, 2026 (CST) ===============
+13:20:57.687859 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+13:20:57.740982 db@open opening
+13:20:57.751313 version@stat F·[] S·0B[] Sc·[]
+13:20:57.769004 db@janitor F·2 G·0
+13:20:57.772289 db@open done T·28.041125ms

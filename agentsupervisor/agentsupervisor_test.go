@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,6 +12,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/HuangLab-SYSU/block-emulator-x/pkg/core/account"
+	"github.com/HuangLab-SYSU/block-emulator-x/pkg/core/transaction"
 	"github.com/HuangLab-SYSU/block-emulator-x/pkg/utils"
 )
 
@@ -217,4 +220,60 @@ func TestHostActionTxMapLinksIntentToHashes(t *testing.T) {
 	}
 
 	require.Equal(t, planHashes, mapped)
+}
+
+func TestHostCompilesRWABuySell(t *testing.T) {
+	sup, err := NewAgentSupervisor(testConfig(t))
+	require.NoError(t, err)
+
+	result, err := sup.Process([]Record{
+		{AgentID: "seller", Action: ActionJoin, ParamsHash: "seller-doc", TS: 1, Seq: 1},
+		{AgentID: "buyer", Action: ActionJoin, ParamsHash: "buyer-doc", TS: 2, Seq: 2},
+		{AgentID: "seller", Action: ActionSell, ComputeID: "gpu-a100-hour", UnitPrice: "500000", Quantity: 100, RequestID: "s1", TS: 3, Seq: 3},
+		{AgentID: "buyer", Target: "seller", Action: ActionBuy, ComputeID: "gpu-a100-hour", Quantity: 10, RequestID: "b1", TS: 4, Seq: 4},
+	})
+	require.NoError(t, err)
+	require.Len(t, result.Transactions, 4)
+
+	sell := result.Transactions[2]
+	require.True(t, sell.IsRWASell())
+	require.Equal(t, transaction.NormalTxType, sell.TxType())
+	require.EqualValues(t, account.EmptyAccountAddr, sell.Recipient)
+	require.Equal(t, "0", sell.Value.String())
+	require.Empty(t, sell.Data)
+	require.Equal(t, "seller", sell.AgentID)
+	require.Equal(t, "gpu-a100-hour", sell.ComputeID)
+	require.EqualValues(t, 100, sell.Quantity)
+	require.Equal(t, big.NewInt(500000), sell.UnitPrice)
+
+	buy := result.Transactions[3]
+	require.True(t, buy.IsRWABuy())
+	require.Equal(t, transaction.NormalTxType, buy.TxType())
+	require.Empty(t, buy.Data)
+	require.Equal(t, "buyer", buy.AgentID)
+	require.Equal(t, "seller", buy.TargetID)
+	require.Equal(t, "gpu-a100-hour", buy.ComputeID)
+	require.EqualValues(t, 10, buy.Quantity)
+	require.Equal(t, "5000000", buy.Value.String())
+
+	outDir := t.TempDir()
+	require.NoError(t, sup.WriteResult(outDir, result))
+	planRaw, err := os.ReadFile(filepath.Join(outDir, PlanFileName))
+	require.NoError(t, err)
+	require.Contains(t, string(planRaw), `"rwa_action":"sell"`)
+	require.Contains(t, string(planRaw), `"rwa_action":"buy"`)
+	require.Contains(t, string(planRaw), `"recipient":""`)
+	require.Contains(t, string(planRaw), `"value":""`)
+}
+
+func TestHostRWABuyRequiresSellQuote(t *testing.T) {
+	sup, err := NewAgentSupervisor(testConfig(t))
+	require.NoError(t, err)
+
+	_, err = sup.Process([]Record{
+		{AgentID: "seller", Action: ActionJoin, ParamsHash: "seller-doc", TS: 1, Seq: 1},
+		{AgentID: "buyer", Action: ActionJoin, ParamsHash: "buyer-doc", TS: 2, Seq: 2},
+		{AgentID: "buyer", Target: "seller", Action: ActionBuy, ComputeID: "gpu-a100-hour", Quantity: 10, RequestID: "b1", TS: 3, Seq: 3},
+	})
+	require.ErrorContains(t, err, "missing sell quote")
 }

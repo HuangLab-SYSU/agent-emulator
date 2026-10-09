@@ -30,6 +30,11 @@ const (
 	Sigma2BrokerStage = 2
 )
 
+const (
+	RWAActionBuy  = "buy"
+	RWAActionSell = "sell"
+)
+
 const defaultGasLimit = 1000000
 
 type Signature []byte
@@ -48,6 +53,7 @@ type Transaction struct {
 
 	RelayTxOpt  // the optional setting only for relay transactions.
 	BrokerTxOpt // the optional setting only for broker transactions.
+	RWATxOpt    // the optional setting only for RWA buy/sell record transactions.
 }
 
 type RelayTxOpt struct {
@@ -62,6 +68,16 @@ type BrokerTxOpt struct {
 	OriginalTxCreateTime      time.Time
 	NonceBroker               uint64
 	HeightLock, HeightCurrent uint64
+}
+
+type RWATxOpt struct {
+	RWAAction string
+	AgentID   string
+	TargetID  string
+	RequestID string
+	ComputeID string
+	UnitPrice *big.Int
+	Quantity  uint64
 }
 
 func NewTransaction(
@@ -97,6 +113,18 @@ func (tx *Transaction) Hash() ([]byte, error) {
 	sum := sha256.Sum256(b)
 
 	return sum[:], nil
+}
+
+func (tx *Transaction) IsRWATx() bool {
+	return tx.RWAAction == RWAActionBuy || tx.RWAAction == RWAActionSell
+}
+
+func (tx *Transaction) IsRWABuy() bool {
+	return tx.RWAAction == RWAActionBuy
+}
+
+func (tx *Transaction) IsRWASell() bool {
+	return tx.RWAAction == RWAActionSell
 }
 
 // TxType returns the type of a transaction by its variables.

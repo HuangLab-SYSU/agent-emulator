@@ -73,3 +73,41 @@ func TestLoadTraceRejectsBadPlainTransfers(t *testing.T) {
 		require.ErrorContains(t, err, "sender, recipient and value are required")
 	})
 }
+
+func TestLoadTraceRWARecords(t *testing.T) {
+	path := writeTrace(t,
+		`{"agent_id":"seller","action":"sell","compute_id":"gpu-a100-hour","unit_price":"500000","quantity":100,"ts":1,"request_id":"s1"}`,
+		`{"agent_id":"buyer","action":"buy","target":"seller","compute_id":"gpu-a100-hour","quantity":10,"ts":2,"request_id":"b1"}`,
+	)
+
+	records, err := LoadTrace(path)
+	require.NoError(t, err)
+	require.Len(t, records, 2)
+	require.Equal(t, ActionSell, records[0].Action)
+	require.Equal(t, "gpu-a100-hour", records[0].ComputeID)
+	require.Equal(t, "500000", records[0].UnitPrice)
+	require.EqualValues(t, 100, records[0].Quantity)
+	require.Equal(t, ActionBuy, records[1].Action)
+	require.Equal(t, "seller", records[1].Target)
+	require.EqualValues(t, 10, records[1].Quantity)
+}
+
+func TestLoadTraceRejectsInvalidRWARecords(t *testing.T) {
+	t.Run("sell missing unit price", func(t *testing.T) {
+		path := writeTrace(t, `{"agent_id":"seller","action":"sell","compute_id":"gpu","quantity":1,"ts":1}`)
+		_, err := LoadTrace(path)
+		require.ErrorContains(t, err, "unit_price")
+	})
+
+	t.Run("buy missing target", func(t *testing.T) {
+		path := writeTrace(t, `{"agent_id":"buyer","action":"buy","compute_id":"gpu","quantity":1,"ts":1}`)
+		_, err := LoadTrace(path)
+		require.ErrorContains(t, err, "target")
+	})
+
+	t.Run("bad unit price", func(t *testing.T) {
+		path := writeTrace(t, `{"agent_id":"seller","action":"sell","compute_id":"gpu","unit_price":"bad","quantity":1,"ts":1}`)
+		_, err := LoadTrace(path)
+		require.ErrorContains(t, err, "unit_price")
+	})
+}

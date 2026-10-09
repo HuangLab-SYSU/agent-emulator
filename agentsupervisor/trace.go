@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"os"
 	"sort"
 )
@@ -14,6 +15,8 @@ const (
 	ActionPay   Action = "pay"
 	ActionJoin  Action = "join"
 	ActionLeave Action = "leave"
+	ActionBuy   Action = "buy"
+	ActionSell  Action = "sell"
 	// ActionRawTx marks a plain transfer line. It never appears in trace
 	// files: LoadTrace detects such lines structurally (a "sender" key) and
 	// synthesizes this action.
@@ -39,6 +42,9 @@ type Record struct {
 	Action     Action     `json:"action"`
 	Target     string     `json:"target"`
 	Amount     uint64     `json:"amount"`
+	ComputeID  string     `json:"compute_id"`
+	UnitPrice  string     `json:"unit_price"`
+	Quantity   uint64     `json:"quantity"`
 	TS         int64      `json:"ts"`
 	RequestID  string     `json:"request_id"`
 	ParamsHash string     `json:"params_hash"`
@@ -85,8 +91,8 @@ func LoadTrace(path string) ([]Record, error) {
 			record = Record{Action: ActionRawTx, TS: lastTS, RawTx: &spec}
 		} else {
 			record = probe.Record
-			if record.AgentID == "" || record.Action == "" || record.TS < 0 {
-				return nil, fmt.Errorf("invalid trace line %d", line)
+			if err := validateAgentRecord(record, line); err != nil {
+				return nil, err
 			}
 
 			lastTS = record.TS
@@ -109,4 +115,28 @@ func LoadTrace(path string) ([]Record, error) {
 	})
 
 	return records, nil
+}
+
+func validateAgentRecord(record Record, line int) error {
+	if record.AgentID == "" || record.Action == "" || record.TS < 0 {
+		return fmt.Errorf("invalid trace line %d", line)
+	}
+
+	switch record.Action {
+	case ActionBuy:
+		if record.Target == "" || record.ComputeID == "" || record.Quantity == 0 {
+			return fmt.Errorf("invalid buy trace line %d: target, compute_id and positive quantity are required", line)
+		}
+	case ActionSell:
+		if record.ComputeID == "" || record.UnitPrice == "" || record.Quantity == 0 {
+			return fmt.Errorf("invalid sell trace line %d: compute_id, unit_price and positive quantity are required", line)
+		}
+
+		price, ok := new(big.Int).SetString(record.UnitPrice, 10)
+		if !ok || price.Sign() < 0 {
+			return fmt.Errorf("invalid sell trace line %d: unit_price must be a non-negative integer", line)
+		}
+	}
+
+	return nil
 }

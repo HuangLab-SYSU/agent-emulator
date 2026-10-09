@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AgentEmulator 实验 · Agent 余额与 RWA 交易图表</title>
+<style>
+body { font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", sans-serif;
+       margin: 0; background: #f5f6f8; color: #222; }
+header { background: #1f2937; color: #fff; padding: 20px 28px;
+         display: flex; align-items: center; justify-content: space-between;
+         gap: 16px; }
+header h1 { margin: 0 0 6px; font-size: 22px; }
+header .meta { font-size: 13px; color: #b7bcc4; line-height: 1.7; }
+.lang-btn { flex: none; background: #3b4657; color: #fff; border: 1px solid #5b6675;
+            border-radius: 16px; padding: 8px 18px; font-size: 14px;
+            cursor: pointer; user-select: none; }
+.lang-btn:hover { background: #4a566a; }
+main { max-width: 1280px; margin: 0 auto; padding: 20px 24px 48px; }
+h2 { font-size: 17px; margin: 28px 0 12px; border-left: 4px solid #4C72B0;
+     padding-left: 10px; }
+a img { border: 0; }
+.overview img { width: 100%; height: auto; border-radius: 6px;
+                box-shadow: 0 1px 6px rgba(0,0,0,.12); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+        gap: 16px; }
+.card { background: #fff; border-radius: 6px; padding: 10px;
+        box-shadow: 0 1px 4px rgba(0,0,0,.10); }
+.card img { width: 100%; height: auto; display: block; }
+.card .cap { font-size: 13px; color: #555; padding: 6px 2px 2px; text-align: center; }
+footer { text-align: center; font-size: 12px; color: #999; padding-bottom: 24px; }
+a.fig-link { cursor: zoom-in; }
+#lightbox { position: fixed; inset: 0; background: rgba(15,18,24,.86); display: none;
+            align-items: center; justify-content: center; z-index: 1000; cursor: zoom-out; }
+#lightbox.open { display: flex; }
+#lightbox img { max-width: 92vw; max-height: 88vh; border-radius: 4px;
+                box-shadow: 0 4px 32px rgba(0,0,0,.45); cursor: default; }
+#lightbox-close { position: absolute; top: 18px; right: 22px; width: 40px; height: 40px;
+                  border-radius: 50%; border: 1px solid rgba(255,255,255,.35);
+                  background: rgba(31,41,55,.7); color: #fff; font-size: 22px;
+                  line-height: 1; cursor: pointer; }
+#lightbox-close:hover { background: rgba(74,86,106,.9); }
+</style>
+</head>
+<body>
+<header><div>
+<h1 id="page-title" data-zh="AgentEmulator 实验 · Agent 余额与 RWA 交易图表" data-en="AgentEmulator Experiment · Agent Balance and RWA Trading Figures">AgentEmulator 实验 · Agent 余额与 RWA 交易图表</h1>
+<div class="meta"><span data-zh="生成时间：2026-10-09 13:04:03" data-en="Generated: 2026-10-09 13:04:03">生成时间：2026-10-09 13:04:03</span> <span class="sep">|</span> <span data-zh="图表数量：9 张" data-en="Figures: 9">图表数量：9 张</span> <span class="sep">|</span> <span data-zh="数据来源：/Users/baozhouxie/agent-emulator/exp/agentemu-results/round_001/agents（4 个 agent）" data-en="Data source: /Users/baozhouxie/agent-emulator/exp/agentemu-results/round_001/agents (4 agents)">数据来源：/Users/baozhouxie/agent-emulator/exp/agentemu-results/round_001/agents（4 个 agent）</span> <span class="sep">|</span> <span data-zh="RWA 数据：/Users/baozhouxie/agent-emulator/exp/agentemu-results/round_001/rwa" data-en="RWA data: /Users/baozhouxie/agent-emulator/exp/agentemu-results/round_001/rwa">RWA 数据：/Users/baozhouxie/agent-emulator/exp/agentemu-results/round_001/rwa</span></div>
+</div>
+<button id="lang-toggle" class="lang-btn" type="button" title="切换中英文 / Toggle language (L)">EN</button>
+</header>
+<main>
+<h2 data-zh="图 1 · 全部 Agent 总览" data-en="Fig. 1 · Overview of All Agents">图 1 · 全部 Agent 总览</h2>
+<div class="overview"><a class="fig-link" href="fig1_all_agents_overview.png" target="_blank"><img src="fig1_all_agents_overview.png" alt="图 1 · 全部 Agent 总览"></a></div>
+<h2 data-zh="图 2 · 全局交易序号下的 Agent 余额变化" data-en="Fig. 2 · Agent Balance Changes over the Global Transaction Index">图 2 · 全局交易序号下的 Agent 余额变化</h2>
+<div class="overview"><a class="fig-link" href="fig2_global_tx_order.png" target="_blank"><img src="fig2_global_tx_order.png" alt="图 2 · 全局交易序号下的 Agent 余额变化"></a></div>
+<h2 data-zh="图 3 · 按交易处理进度归一化对齐的余额变化" data-en="Fig. 3 · The Change of Balance Aligned by Normalized Transaction Processing Progress">图 3 · 按交易处理进度归一化对齐的余额变化</h2>
+<div class="overview"><a class="fig-link" href="fig3_normalized_progress.png" target="_blank"><img src="fig3_normalized_progress.png" alt="图 3 · 按交易处理进度归一化对齐的余额变化"></a></div>
+<h2 data-zh="图 4 · Agent 余额变化的组图（每 5 个 Agent 一组）" data-en="Fig. 4 · Grouped Agent Balance Changes (5 Agents per Subfig)">图 4 · Agent 余额变化的组图（每 5 个 Agent 一组）</h2>
+<div class="grid">
+<div class="card"><a class="fig-link" href="fig4_agents_buyer-001-provider-002.png" target="_blank"><img src="fig4_agents_buyer-001-provider-002.png" alt="Agent buyer–001–provider–002" loading="lazy"></a><div class="cap">Agent buyer–001–provider–002</div></div>
+</div>
+<h2 data-zh="RWA 交易图表" data-en="RWA Trading Figures">RWA 交易图表</h2>
+<div class="grid">
+<div class="card"><a class="fig-link" href="rwa_price_boxplot.png" target="_blank"><img src="rwa_price_boxplot.png" alt="RWA 成交单价箱线图" loading="lazy"></a><div class="cap" data-zh="RWA 成交单价箱线图" data-en="RWA Buy Unit Price Boxplot">RWA 成交单价箱线图</div></div>
+<div class="card"><a class="fig-link" href="rwa_quantity_boxplot.png" target="_blank"><img src="rwa_quantity_boxplot.png" alt="RWA 购买份数箱线图" loading="lazy"></a><div class="cap" data-zh="RWA 购买份数箱线图" data-en="RWA Buy Quantity Boxplot">RWA 购买份数箱线图</div></div>
+<div class="card"><a class="fig-link" href="rwa_value_by_compute.png" target="_blank"><img src="rwa_value_by_compute.png" alt="RWA 各算力资源成交金额" loading="lazy"></a><div class="cap" data-zh="RWA 各算力资源成交金额" data-en="RWA Total Buy Value by Compute ID">RWA 各算力资源成交金额</div></div>
+<div class="card"><a class="fig-link" href="rwa_agent_buy_sell_counts.png" target="_blank"><img src="rwa_agent_buy_sell_counts.png" alt="RWA 各 Agent 买卖次数" loading="lazy"></a><div class="cap" data-zh="RWA 各 Agent 买卖次数" data-en="RWA Buy/Sell Counts by Agent">RWA 各 Agent 买卖次数</div></div>
+<div class="card"><a class="fig-link" href="rwa_insufficient_balance.png" target="_blank"><img src="rwa_insufficient_balance.png" alt="RWA 余额不足买入交易" loading="lazy"></a><div class="cap" data-zh="RWA 余额不足买入交易" data-en="RWA Buy Transactions with Insufficient Balance">RWA 余额不足买入交易</div></div>
+</div>
+</main>
+<div id="lightbox"><button id="lightbox-close" type="button" title="关闭 / Close (Esc)">×</button><img id="lightbox-img" alt=""></div>
+<footer data-zh="由 figs/python_code/build_fig_html.py 自动生成 · 点击任意图片可在当前页放大查看，点击图片外区域或右上角 × 关闭" data-en="Auto-generated by figs/python_code/build_fig_html.py · Click any figure to enlarge in place; click outside the image or the × at the top right to close">由 figs/python_code/build_fig_html.py 自动生成 · 点击任意图片可在当前页放大查看，点击图片外区域或右上角 × 关闭</footer>
+<script>
+(function () {
+  var btn = document.getElementById('lang-toggle');
+  var ZH = 'AgentEmulator 实验 · Agent 余额与 RWA 交易图表', EN = 'AgentEmulator Experiment · Agent Balance and RWA Trading Figures';
+  function apply(lang) {
+    var zh = lang === 'zh';
+    document.querySelectorAll('[data-zh]').forEach(function (el) {
+      el.textContent = zh ? el.getAttribute('data-zh') : el.getAttribute('data-en');
+    });
+    document.title = zh ? ZH : EN;
+    document.documentElement.lang = zh ? 'zh-CN' : 'en';
+    btn.textContent = zh ? 'EN' : '中文';
+    try { localStorage.setItem('gallery-lang', lang); } catch (e) {}
+  }
+  function toggle() {
+    apply(document.documentElement.lang === 'zh-CN' ? 'en' : 'zh');
+  }
+  btn.addEventListener('click', toggle);
+  document.addEventListener('keydown', function (ev) {
+    if ((ev.key === 'l' || ev.key === 'L') && !ev.metaKey && !ev.ctrlKey && !ev.altKey) toggle();
+  });
+  var saved = null;
+  try { saved = localStorage.getItem('gallery-lang'); } catch (e) {}
+  apply(saved === 'en' ? 'en' : 'zh');
+
+  // 灯箱: 点击图片当前页放大, × / 图片外区域 / Esc 关闭。
+  // 修饰键点击不拦截, 保留浏览器原生"在新标签页打开"。
+  var box = document.getElementById('lightbox');
+  var boxImg = document.getElementById('lightbox-img');
+  function closeBox() { box.classList.remove('open'); }
+  document.querySelectorAll('main a.fig-link').forEach(function (a) {
+    a.addEventListener('click', function (ev) {
+      if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
+      ev.preventDefault();
+      var inner = a.querySelector('img');
+      boxImg.src = a.getAttribute('href');
+      boxImg.alt = inner ? (inner.alt || '') : '';
+      box.classList.add('open');
+    });
+  });
+  document.getElementById('lightbox-close').addEventListener('click', closeBox);
+  box.addEventListener('click', function (ev) {
+    if (ev.target === box) closeBox();
+  });
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape') closeBox();
+  });
+})();
+</script>
+</body></html>

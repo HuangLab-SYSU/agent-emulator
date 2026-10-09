@@ -50,13 +50,19 @@ for d in exp/agentemu-results/round_*/; do
   [ -d "$d" ] && latest_round="$d"
 done
 agents_dir="${latest_round}agents"
+rwa_dir="${latest_round}rwa"
 
-if [ -n "${latest_round}" ] && ls "${agents_dir}"/agent-*.csv >/dev/null 2>&1; then
+if [ -n "${latest_round}" ] && find "${agents_dir}" -maxdepth 1 -name '*.csv' -print -quit | grep -q .; then
   mkdir -p "${FIGS_OUT}"
   # Drop figures from the previous run so the gallery never mixes runs.
   rm -f "${FIGS_OUT}"/*.png "${FIGS_OUT}"/index.html
   python3 "${FIGS_CODE}/plot_agent_balance.py" --data-dir "${agents_dir}" --fig-dir "${FIGS_OUT}"
-  python3 "${FIGS_CODE}/build_fig_html.py" --fig-dir "${FIGS_OUT}" --data-dir "${agents_dir}"
+  build_args=(--fig-dir "${FIGS_OUT}" --data-dir "${agents_dir}")
+  if [ -f "${rwa_dir}/rwa_orders.csv" ]; then
+    python3 "${FIGS_CODE}/plot_rwa_trades.py" --rwa-dir "${rwa_dir}" --fig-dir "${FIGS_OUT}"
+    build_args+=(--rwa-dir "${rwa_dir}")
+  fi
+  python3 "${FIGS_CODE}/build_fig_html.py" "${build_args[@]}"
   echo "  figures & gallery : ${FIGS_OUT}/index.html"
   if command -v open >/dev/null 2>&1; then
     open "${FIGS_OUT}/index.html"

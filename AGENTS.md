@@ -10,7 +10,7 @@ and plots balance figures into a bilingual HTML gallery.
 
 ## How an experiment runs
 - Entry point `bash run_agentemu.sh` (Windows: `run_agentemu.bat`): `go build ./...`
-  → wipe `./exp` → run `cmd/agentemu` → auto-plot → open `figs/figs_results/index.html`.
+  → wipe `./exp` → run `cmd/agentemu` → auto-plot → open `figs/archived_results/figs_results-rwa-20261009-1350/index.html`.
 - `cmd/agentemu/main.go` loads `agentEmuConfig.yaml`, then `agentsupervisor` drives
   the pipeline: `trace.go` (parse/validate trace, derive DIDs from `seed`+`agent_id`,
   nonces, data fields) → `registry.go` (`agent_registry.json`, `active` state) →
@@ -46,7 +46,7 @@ and plots balance figures into a bilingual HTML gallery.
   (`direct`/`libp2p`). When changing shard/node counts, also update `ip_table.json`.
 
 ## Outputs & analysis
-- `exp/agentemu-results/`: `agent_registry.json`, `rounds_summary.json`,
+- `archived_runs/agentmu-results-rwa-expanded-20261009-1350/agentemu-results/`: `agent_registry.json`, `rounds_summary.json`,
   `round_001/{agent_transactions.jsonl, agent_action_txs.jsonl, Agent_Events.csv,
   agents/agent-XXX.csv, chain/{logs/, results/relay_stats_*.csv}}`.
 - Agent CSV columns: `block_height, tx_hash, sender, recipient, value, balance,

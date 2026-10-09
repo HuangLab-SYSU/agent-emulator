@@ -46,6 +46,16 @@ type Result struct {
 	Metrics      []MetricEvent
 }
 
+type sellQuote struct {
+	SellerAgentID string
+	SellerAddr    account.Address
+	ComputeID     string
+	UnitPrice     *big.Int
+	Quantity      uint64
+	RequestID     string
+	TS            int64
+}
+
 // ActionTxLink is one trace action and the transactions it compiled into.
 type ActionTxLink struct {
 	Seq        int      `json:"seq"`
@@ -53,6 +63,9 @@ type ActionTxLink struct {
 	AgentID    string   `json:"agent_id"`
 	Target     string   `json:"target"`
 	Amount     uint64   `json:"amount"`
+	ComputeID  string   `json:"compute_id,omitempty"`
+	UnitPrice  string   `json:"unit_price,omitempty"`
+	Quantity   uint64   `json:"quantity,omitempty"`
 	TS         int64    `json:"ts"`
 	RequestID  string   `json:"request_id"`
 	ParamsHash string   `json:"params_hash"`
@@ -66,6 +79,7 @@ type AgentSupervisor struct {
 	nonces       map[account.Address]uint64
 	registry     *Registry
 	registryPath string
+	quotes       map[string]sellQuote
 	metrics      []MetricEvent
 	txs          []transaction.Transaction
 	links        []ActionTxLink
@@ -93,6 +107,7 @@ func NewAgentSupervisor(cfg Config) (*AgentSupervisor, error) {
 		nonces:       make(map[account.Address]uint64),
 		registry:     registry,
 		registryPath: registryPath,
+		quotes:       make(map[string]sellQuote),
 	}, nil
 }
 
@@ -115,6 +130,9 @@ func (s *AgentSupervisor) process(record Record) error {
 		AgentID:    record.AgentID,
 		Target:     record.Target,
 		Amount:     record.Amount,
+		ComputeID:  record.ComputeID,
+		UnitPrice:  record.UnitPrice,
+		Quantity:   record.Quantity,
 		TS:         record.TS,
 		RequestID:  record.RequestID,
 		ParamsHash: record.ParamsHash,
@@ -127,6 +145,10 @@ func (s *AgentSupervisor) process(record Record) error {
 		return s.processLeave(record)
 	case ActionPay:
 		return s.processPay(record)
+	case ActionBuy:
+		return s.processBuy(record)
+	case ActionSell:
+		return s.processSell(record)
 	case ActionRawTx:
 		return s.processRawTx(record)
 	default:
@@ -180,6 +202,86 @@ func (s *AgentSupervisor) processPay(record Record) error {
 	s.appendTx(from, to, record.Amount, nil, record.TS)
 	s.linkLastTxTo(s.curLink)
 	s.metric("pay_onchain", record)
+
+	return nil
+}
+
+func (s *AgentSupervisor) processSell(record Record) error {
+	seller, err := s.registry.Active(record.AgentID)
+	if err != nil {
+		return err
+	}
+
+	sellerAddr, err := didAddress(seller.DID)
+	if err != nil {
+		return err
+	}
+
+	unitPrice, err := parseRWAUnitPrice(record.UnitPrice)
+	if err != nil {
+		return err
+	}
+
+	quote := sellQuote{
+		SellerAgentID: record.AgentID,
+		SellerAddr:    sellerAddr,
+		ComputeID:     record.ComputeID,
+		UnitPrice:     new(big.Int).Set(unitPrice),
+		Quantity:      record.Quantity,
+		RequestID:     record.RequestID,
+		TS:            record.TS,
+	}
+	s.quotes[quoteKey(record.AgentID, record.ComputeID)] = quote
+
+	tx := s.appendBigTx(sellerAddr, account.EmptyAccountAddr, big.NewInt(0), nil, record.TS)
+	tx.RWATxOpt = transaction.RWATxOpt{
+		RWAAction: transaction.RWAActionSell,
+		AgentID:   record.AgentID,
+		RequestID: record.RequestID,
+		ComputeID: record.ComputeID,
+		UnitPrice: new(big.Int).Set(unitPrice),
+		Quantity:  record.Quantity,
+	}
+
+	s.linkLastTxTo(s.curLink)
+	s.metric("rwa_sell_onchain", record)
+
+	return nil
+}
+
+func (s *AgentSupervisor) processBuy(record Record) error {
+	buyer, err := s.registry.Active(record.AgentID)
+	if err != nil {
+		return err
+	}
+
+	if _, err := s.registry.Active(record.Target); err != nil {
+		return err
+	}
+
+	buyerAddr, err := didAddress(buyer.DID)
+	if err != nil {
+		return err
+	}
+
+	quote, ok := s.quotes[quoteKey(record.Target, record.ComputeID)]
+	if !ok {
+		return fmt.Errorf("missing sell quote for seller %q compute_id %q", record.Target, record.ComputeID)
+	}
+
+	value := new(big.Int).Mul(quote.UnitPrice, new(big.Int).SetUint64(record.Quantity))
+	tx := s.appendBigTx(buyerAddr, quote.SellerAddr, value, nil, record.TS)
+	tx.RWATxOpt = transaction.RWATxOpt{
+		RWAAction: transaction.RWAActionBuy,
+		AgentID:   record.AgentID,
+		TargetID:  record.Target,
+		RequestID: record.RequestID,
+		ComputeID: record.ComputeID,
+		Quantity:  record.Quantity,
+	}
+
+	s.linkLastTxTo(s.curLink)
+	s.metric("rwa_buy_onchain", record)
 
 	return nil
 }
@@ -269,11 +371,17 @@ func (s *AgentSupervisor) processIdentity(record Record, agent Agent, operation 
 }
 
 func (s *AgentSupervisor) appendTx(from, to account.Address, amount uint64, data []byte, ts int64) {
+	s.appendBigTx(from, to, new(big.Int).SetUint64(amount), data, ts)
+}
+
+func (s *AgentSupervisor) appendBigTx(from, to account.Address, amount *big.Int, data []byte, ts int64) *transaction.Transaction {
 	nonce := s.nonces[from]
 	s.nonces[from]++
-	tx := transaction.NewTransaction(from, to, new(big.Int).SetUint64(amount), big.NewInt(0), nonce, time.UnixMilli(ts))
+	tx := transaction.NewTransaction(from, to, new(big.Int).Set(amount), big.NewInt(0), nonce, time.UnixMilli(ts))
 	tx.Data = data
 	s.txs = append(s.txs, *tx)
+
+	return &s.txs[len(s.txs)-1]
 }
 
 // linkLastTxTo records the hash of the most recently appended transaction in
@@ -298,6 +406,19 @@ func (s *AgentSupervisor) appendContractTx(from account.Address, address string,
 	s.appendTx(from, to, 0, data, ts)
 
 	return nil
+}
+
+func quoteKey(agentID, computeID string) string {
+	return agentID + "\x00" + computeID
+}
+
+func parseRWAUnitPrice(raw string) (*big.Int, error) {
+	price, ok := new(big.Int).SetString(raw, 10)
+	if !ok || price.Sign() < 0 {
+		return nil, fmt.Errorf("unit_price must be a non-negative integer")
+	}
+
+	return price, nil
 }
 
 func (s *AgentSupervisor) metric(kind string, record Record) {
@@ -371,6 +492,56 @@ func writeActionTxMap(dir string, links []ActionTxLink) error {
 	return w.Flush()
 }
 
+type planLine struct {
+	Hash      string `json:"hash"`
+	Sender    string `json:"sender"`
+	Recipient string `json:"recipient"`
+	Value     string `json:"value"`
+	Nonce     uint64 `json:"nonce"`
+	Data      string `json:"data"`
+	RWAAction string `json:"rwa_action,omitempty"`
+	AgentID   string `json:"agent_id,omitempty"`
+	TargetID  string `json:"target_id,omitempty"`
+	RequestID string `json:"request_id,omitempty"`
+	ComputeID string `json:"compute_id,omitempty"`
+	UnitPrice string `json:"unit_price,omitempty"`
+	Quantity  uint64 `json:"quantity,omitempty"`
+}
+
+func makePlanLine(tx transaction.Transaction) (planLine, error) {
+	hash, err := tx.Hash()
+	if err != nil {
+		return planLine{}, fmt.Errorf("hash planned transaction: %w", err)
+	}
+
+	line := planLine{
+		Hash:      fmt.Sprintf("%x", hash),
+		Sender:    fmt.Sprintf("0x%x", tx.Sender),
+		Recipient: fmt.Sprintf("0x%x", tx.Recipient),
+		Value:     tx.Value.String(),
+		Nonce:     tx.Nonce,
+		Data:      fmt.Sprintf("0x%x", tx.Data),
+	}
+
+	if tx.IsRWATx() {
+		line.RWAAction = tx.RWAAction
+		line.AgentID = tx.AgentID
+		line.TargetID = tx.TargetID
+		line.RequestID = tx.RequestID
+		line.ComputeID = tx.ComputeID
+		line.Quantity = tx.Quantity
+		if tx.UnitPrice != nil {
+			line.UnitPrice = tx.UnitPrice.String()
+		}
+		if tx.IsRWASell() {
+			line.Recipient = ""
+			line.Value = ""
+		}
+	}
+
+	return line, nil
+}
+
 func writeResult(dir string, result Result) error {
 	plan, err := os.Create(filepath.Join(dir, PlanFileName))
 	if err != nil {
@@ -379,24 +550,25 @@ func writeResult(dir string, result Result) error {
 
 	defer func() { _ = plan.Close() }()
 
+	planWriter := bufio.NewWriter(plan)
 	for _, tx := range result.Transactions {
-		hash, err := tx.Hash()
+		line, err := makePlanLine(tx)
 		if err != nil {
-			return fmt.Errorf("hash planned transaction: %w", err)
+			return err
 		}
 
-		if _, err := fmt.Fprintf(
-			plan,
-			"{\"hash\":\"%x\",\"sender\":\"0x%x\",\"recipient\":\"0x%x\",\"value\":\"%s\",\"nonce\":%d,\"data\":\"0x%x\"}\n",
-			hash,
-			tx.Sender,
-			tx.Recipient,
-			tx.Value,
-			tx.Nonce,
-			tx.Data,
-		); err != nil {
+		b, err := json.Marshal(line)
+		if err != nil {
+			return fmt.Errorf("encode transaction plan: %w", err)
+		}
+
+		if _, err := planWriter.Write(append(b, '\n')); err != nil {
 			return fmt.Errorf("write transaction plan: %w", err)
 		}
+	}
+
+	if err := planWriter.Flush(); err != nil {
+		return fmt.Errorf("flush transaction plan: %w", err)
 	}
 
 	metrics, err := os.Create(filepath.Join(dir, MetricsFileName))
