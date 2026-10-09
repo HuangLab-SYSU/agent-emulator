@@ -1,0 +1,57 @@
+time=2026-10-09T13:20:57.629+08:00 level=INFO msg="local params is loaded successfully" NodeInfo=S{2147483647}_N{0} "shard id"=2147483647 "node id"=0 "wallet addr"="[0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]" "ip addr"=127.0.0.1:38800
+time=2026-10-09T13:20:57.630+08:00 level=INFO msg="gRPC P2P server listening" NodeInfo=S{2147483647}_N{0} addr=127.0.0.1:38800
+time=2026-10-09T13:21:00.630+08:00 level=INFO msg="node resources reports" NodeInfo=S{2147483647}_N{0} "memo used (MB)"=9 "go routines"=3
+time=2026-10-09T13:21:03.630+08:00 level=INFO msg="node resources reports" NodeInfo=S{2147483647}_N{0} "memo used (MB)"=9 "go routines"=3
+time=2026-10-09T13:21:05.631+08:00 level=INFO msg="supervisor measure subroutine started" NodeInfo=S{2147483647}_N{0}
+time=2026-10-09T13:21:05.631+08:00 level=INFO msg="supervisor main-goroutine started" NodeInfo=S{2147483647}_N{0}
+time=2026-10-09T13:21:06.630+08:00 level=INFO msg="node resources reports" NodeInfo=S{2147483647}_N{0} "memo used (MB)"=10 "go routines"=16
+time=2026-10-09T13:21:06.631+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=2 epoch=0
+time=2026-10-09T13:21:06.632+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=0 epoch=0
+time=2026-10-09T13:21:06.632+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=3 epoch=0
+time=2026-10-09T13:21:06.632+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=1 epoch=0
+time=2026-10-09T13:21:07.632+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=2 epoch=0
+time=2026-10-09T13:21:07.632+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=1 epoch=0
+time=2026-10-09T13:21:07.632+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=0 epoch=0
+time=2026-10-09T13:21:07.632+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=3 epoch=0
+time=2026-10-09T13:21:09.630+08:00 level=INFO msg="node resources reports" NodeInfo=S{2147483647}_N{0} "memo used (MB)"=10 "go routines"=36
+time=2026-10-09T13:21:10.631+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=2 epoch=0
+time=2026-10-09T13:21:10.631+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=3 epoch=0
+time=2026-10-09T13:21:10.632+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=0 epoch=0
+time=2026-10-09T13:21:10.632+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=1 epoch=0
+time=2026-10-09T13:21:12.629+08:00 level=INFO msg="node resources reports" NodeInfo=S{2147483647}_N{0} "memo used (MB)"=11 "go routines"=36
+time=2026-10-09T13:21:12.631+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=2 epoch=0
+time=2026-10-09T13:21:12.631+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=3 epoch=0
+time=2026-10-09T13:21:12.631+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=1 epoch=0
+time=2026-10-09T13:21:12.632+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=0 epoch=0
+time=2026-10-09T13:21:15.630+08:00 level=INFO msg="node resources reports" NodeInfo=S{2147483647}_N{0} "memo used (MB)"=11 "go routines"=36
+time=2026-10-09T13:21:15.631+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=2 epoch=0
+time=2026-10-09T13:21:15.631+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=3 epoch=0
+time=2026-10-09T13:21:15.631+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=1 epoch=0
+time=2026-10-09T13:21:15.631+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=0 epoch=0
+time=2026-10-09T13:21:17.632+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=2 epoch=0
+time=2026-10-09T13:21:17.632+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=3 epoch=0
+time=2026-10-09T13:21:17.632+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=1 epoch=0
+time=2026-10-09T13:21:17.632+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=0 epoch=0
+time=2026-10-09T13:21:18.630+08:00 level=INFO msg="node resources reports" NodeInfo=S{2147483647}_N{0} "memo used (MB)"=11 "go routines"=36
+time=2026-10-09T13:21:20.631+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=2 epoch=0
+time=2026-10-09T13:21:20.631+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=3 epoch=0
+time=2026-10-09T13:21:20.631+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=0 epoch=0
+time=2026-10-09T13:21:20.631+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=1 epoch=0
+time=2026-10-09T13:21:21.630+08:00 level=INFO msg="node resources reports" NodeInfo=S{2147483647}_N{0} "memo used (MB)"=11 "go routines"=36
+time=2026-10-09T13:21:22.631+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=2 epoch=0
+time=2026-10-09T13:21:22.631+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=3 epoch=0
+time=2026-10-09T13:21:22.631+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=1 epoch=0
+time=2026-10-09T13:21:22.631+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=0 epoch=0
+time=2026-10-09T13:21:24.630+08:00 level=INFO msg="node resources reports" NodeInfo=S{2147483647}_N{0} "memo used (MB)"=12 "go routines"=36
+time=2026-10-09T13:21:25.631+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=2 epoch=0
+time=2026-10-09T13:21:25.631+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=3 epoch=0
+time=2026-10-09T13:21:25.631+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=0 epoch=0
+time=2026-10-09T13:21:25.631+08:00 level=INFO msg="relay stats: receives the block info message" NodeInfo=S{2147483647}_N{0} "from shardID"=1 epoch=0
+time=2026-10-09T13:21:26.631+08:00 level=INFO msg="output relay stats" NodeInfo=S{2147483647}_N{0} metric="brief epoch info" file=exp/agentemu-results/round_001/chain/results/relay_stats_brief_info.csv
+time=2026-10-09T13:21:26.631+08:00 level=INFO msg="relay stats has output all results" NodeInfo=S{2147483647}_N{0}
+time=2026-10-09T13:21:26.631+08:00 level=INFO msg="successfully output the result" NodeInfo=S{2147483647}_N{0} dir=exp/agentemu-results/round_001/chain/results
+time=2026-10-09T13:21:26.643+08:00 level=INFO msg="supervisor is closing" NodeInfo=S{2147483647}_N{0}
+time=2026-10-09T13:21:27.630+08:00 level=INFO msg="node resources reports" NodeInfo=S{2147483647}_N{0} "memo used (MB)"=13 "go routines"=95
+time=2026-10-09T13:21:30.630+08:00 level=INFO msg="node resources reports" NodeInfo=S{2147483647}_N{0} "memo used (MB)"=13 "go routines"=95
+time=2026-10-09T13:21:33.630+08:00 level=INFO msg="node resources reports" NodeInfo=S{2147483647}_N{0} "memo used (MB)"=13 "go routines"=95
+time=2026-10-09T13:21:36.630+08:00 level=INFO msg="node resources reports" NodeInfo=S{2147483647}_N{0} "memo used (MB)"=13 "go routines"=95

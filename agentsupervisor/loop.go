@@ -131,6 +131,11 @@ func (r *Runner) Run(ctx context.Context) ([]RoundResult, error) {
 			if err := WriteAgentCSVs(ctx, outcome.ChainDir, outcome.ShardNum, sup.registry, agentsDir); err != nil {
 				return rounds, fmt.Errorf("round %d: %w", round, err)
 			}
+
+			rwaDir := filepath.Join(outDir, RWADirName)
+			if err := WriteRWACSVs(ctx, outcome.ChainDir, outcome.ShardNum, rwaDir); err != nil {
+				return rounds, fmt.Errorf("round %d: %w", round, err)
+			}
 		}
 
 		rounds = append(rounds, rr)

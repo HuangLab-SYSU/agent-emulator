@@ -53,9 +53,19 @@ func normalTxExecute(v *vm.Executor, tx transaction.Transaction) error {
 	s := v.StateDB()
 	sAddr, rAddr := common.Address(tx.Sender), common.Address(tx.Recipient)
 
+	if tx.IsRWASell() {
+		setInitBalanceIfNotExist(s, sAddr)
+		return nil
+	}
+
 	setInitBalanceIfNotExist(s, sAddr, rAddr)
 
 	if !core.CanTransfer(s, sAddr, uVal) {
+		if tx.IsRWABuy() {
+			slog.Warn("rwa buy balance is not enough; keep transaction on-chain without balance update", "sender", fmt.Sprintf("%x", tx.Sender), "value", tx.Value.String())
+			return nil
+		}
+
 		return fmt.Errorf("transfer failed: the balance of %x is not enough", tx.Sender)
 	}
 

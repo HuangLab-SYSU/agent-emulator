@@ -408,7 +408,7 @@ agentSupervisor 以 `config.yaml` 文件为模板，用于为每次实验生成�
 bash run_agentemu.sh            # 或 bash run_agentemu.sh <配置文件>
 ```
 
-- **BlockEmulator-X 区块链运行过程中的日志会实时镜像到控制台中输出。**同时，完整的实验日志会保存在 `exp/agentemu-results/round_001/chain/logs/`目录中。
+- **BlockEmulator-X 区块链运行过程中的日志会实时镜像到控制台中输出。**同时，完整的实验日志会保存在 `archived_runs/agentmu-results-rwa-expanded-20261009-1350/agentemu-results/round_001/chain/logs/`目录中。
 
 - 如果实验人员只想预览编译出的交易数据集，而不启动 **BlockEmulator-X** 运行区块链进行实验，请在 agentEmuConfig.yaml 配置文件中把 `chain.enabled` 改为 `false`即可（该配置下，agentSupervisor 仅将 trace 文件编译成交易数据集，而不会启动 BlockEmulator-X 运行区块链）
 
@@ -488,7 +488,7 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 ## 实验结果的展示
 
-每次实验成功完成后，AgentEmulator 自动读取本轮实验的 Agent 账本 CSV 文件，生成论文排版风格的余额变化图，并以 PNG 格式保存至 `figs/figs_results/` 目录。随后，系统将图表整合为支持中英文切换的静态 HTML 图册页面（`figs/figs_results/index.html`），并在默认浏览器中自动打开该页面。
+每次实验成功完成后，AgentEmulator 自动读取本轮实验的 Agent 账本 CSV 文件，生成论文排版风格的余额变化图，并以 PNG 格式保存至 `figs/figs_results/` 目录。随后，系统将图表整合为支持中英文切换的静态 HTML 图册页面（`figs/archived_results/figs_results-rwa-20261009-1350/index.html`），并在默认浏览器中自动打开该页面。
 
 
 
@@ -500,7 +500,7 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 `run_agentemu.sh`（Windows 下为 `run_agentemu.bat`）脚本文件在实验成功结束后将自动执行以下操作：
 
-1. 定位 `exp/agentemu-results/` 路径下 round 编号最大一轮的 `agents/` 目录
+1. 定位 `archived_runs/agentmu-results-rwa-expanded-20261009-1350/agentemu-results/` 路径下 round 编号最大一轮的 `agents/` 目录
 
 2. 清空 `figs/figs_results/` 里的旧实验图与旧 `index.html`文件
 
@@ -508,7 +508,7 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 4. 运行 `figs/python_code/build_fig_html.py` 生成展示实验结果图表的 html 页面
 
-5. 模拟器调用网页打开命令在实验人员计算机的默认浏览器中打开 `figs/figs_results/index.html` 页面，展示绘图结果。根据实验人员设备的操作系统类型不同，网页打开命令具体如下：macOS 使用 `open`命令，Linux 使用 `xdg-open`命令，Windows 使用 `start`命令。
+5. 模拟器调用网页打开命令在实验人员计算机的默认浏览器中打开 `figs/archived_results/figs_results-rwa-20261009-1350/index.html` 页面，展示绘图结果。根据实验人员设备的操作系统类型不同，网页打开命令具体如下：macOS 使用 `open`命令，Linux 使用 `xdg-open`命令，Windows 使用 `start`命令。
 
 
 

@@ -238,6 +238,11 @@ func (s *StaticBrokerCommittee) classifyTxs(
 	)
 
 	for _, tx := range txs {
+		if tx.IsRWATx() {
+			innerShardTxs = append(innerShardTxs, tx)
+			continue
+		}
+
 		senderAddr, receiverAddr := tx.Sender, tx.Recipient
 		senderShard := partition.DefaultAccountLoc(senderAddr, s.cfg.ShardNum)
 

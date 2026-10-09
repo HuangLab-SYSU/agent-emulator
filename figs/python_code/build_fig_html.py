@@ -24,8 +24,8 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_FIG_DIR = REPO_ROOT / "figs" / "figs_results"
 
-PAGE_TITLE_ZH = "AgentEmulator 实验 · Agent 余额生命周期图表"
-PAGE_TITLE_EN = "AgentEmulator Experiment · Agent Balance Lifecycle Figures"
+PAGE_TITLE_ZH = "AgentEmulator 实验 · Agent 余额与 RWA 交易图表"
+PAGE_TITLE_EN = "AgentEmulator Experiment · Agent Balance and RWA Trading Figures"
 
 # 图 1: 排在最前(文件名前缀, 中文标题, 英文标题)
 FIG1_ENTRY = ("fig1_all_agents_overview",
@@ -45,6 +45,21 @@ TAIL_SINGLES = [
      "图 3 · 按交易处理进度归一化对齐的余额变化",
      "Fig. 3 · The Change of Balance Aligned by Normalized Transaction Processing Progress"),
 ]
+
+RWA_FIGS = [
+    ("rwa_price_boxplot", "RWA 成交单价箱线图", "RWA Buy Unit Price Boxplot"),
+    ("rwa_quantity_boxplot", "RWA 购买份数箱线图", "RWA Buy Quantity Boxplot"),
+    ("rwa_value_by_compute", "RWA 各算力资源成交金额", "RWA Total Buy Value by Compute ID"),
+    ("rwa_agent_buy_sell_counts", "RWA 各 Agent 买卖次数", "RWA Buy/Sell Counts by Agent"),
+    ("rwa_cumulative_value_timeline", "RWA 各算力累计成交额曲线", "RWA Cumulative Buy Value by Compute ID"),
+    ("rwa_buyer_seller_heatmap", "RWA 买方-卖方成交金额热力图", "RWA Buyer-Seller Value Heatmap"),
+    ("rwa_price_quantity_scatter", "RWA 价格-数量散点图", "RWA Price-Quantity Scatter"),
+    ("rwa_compute_market_share", "RWA 按成交额的算力市场份额", "RWA Market Share by Buy Value"),
+    ("rwa_agent_net_value", "RWA 各 Agent 净交易额", "RWA Agent Net Trading Value"),
+    ("rwa_quantity_value_bubble", "RWA 算力数量-金额气泡图", "RWA Quantity-Value Bubble by Compute ID"),
+]
+
+IGNORED_FIG_PREFIXES = {"rwa_insufficient_balance"}
 
 CSS = """
 body { font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", sans-serif;
@@ -136,7 +151,7 @@ JS = """
 
 
 def collect_pngs(fig_dir: Path):
-    """收集 PNG: 返回 (fig1路径, 其余单幅图[(路径,中文,英文)...], fig4分组列表, 未知图列表)。"""
+    """收集 PNG: 返回 (fig1路径, 其余单幅图, fig4分组列表, RWA图列表, 未知图列表)。"""
     pngs = sorted(fig_dir.glob("*.png"))
     fig1 = next((p for p in pngs if p.name.startswith(FIG1_ENTRY[0])), None)
     tail = []
@@ -144,10 +159,15 @@ def collect_pngs(fig_dir: Path):
         match = [p for p in pngs if p.name.startswith(prefix)]
         if match:
             tail.append((match[0], zh, en))
-    known = {FIG1_ENTRY[0]} | {p for p, _, _ in TAIL_SINGLES} | {"fig4"}
+    rwa = []
+    for prefix, zh, en in RWA_FIGS:
+        match = [p for p in pngs if p.name.startswith(prefix)]
+        if match:
+            rwa.append((match[0], zh, en))
+    known = {FIG1_ENTRY[0]} | {p for p, _, _ in TAIL_SINGLES} | {p for p, _, _ in RWA_FIGS} | IGNORED_FIG_PREFIXES | {"fig4"}
     groups = [p for p in pngs if p.name.startswith("fig4_")]
     others = [p for p in pngs if not any(p.name.startswith(k) for k in known)]
-    return fig1, tail, groups, others
+    return fig1, tail, groups, rwa, others
 
 
 def group_caption(name: str) -> str:
@@ -176,15 +196,17 @@ def main():
                         help=f"PNG 所在目录, index.html 也生成在这里(默认 {DEFAULT_FIG_DIR})")
     parser.add_argument("--data-dir", type=Path, default=None,
                         help="实验 agent CSV 目录(仅用于在页面显示数据来源与 agent 数量)")
+    parser.add_argument("--rwa-dir", type=Path, default=None,
+                        help="实验 RWA CSV 目录(仅用于在页面显示数据来源)")
     args = parser.parse_args()
 
     fig_dir = args.fig_dir
-    fig1, tail, groups, others = collect_pngs(fig_dir)
-    n_figs = (1 if fig1 else 0) + len(tail) + len(groups) + len(others)
+    fig1, tail, groups, rwa, others = collect_pngs(fig_dir)
+    n_figs = (1 if fig1 else 0) + len(tail) + len(groups) + len(rwa) + len(others)
     if n_figs == 0:
         raise SystemExit(f"未在 {fig_dir} 找到任何 PNG, 请先运行 plot_agent_balance.py")
 
-    n_agents = len(list(args.data_dir.glob("agent-*.csv"))) if args.data_dir else None
+    n_agents = len(list(args.data_dir.glob("*.csv"))) if args.data_dir else None
     gen_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     meta_bits = [(f"生成时间：{gen_time}", f"Generated: {gen_time}"),
@@ -195,6 +217,9 @@ def main():
                           if n_agents else f"数据来源：{src}",
                           f"Data source: {src} ({n_agents} agents)"
                           if n_agents else f"Data source: {src}"))
+    if args.rwa_dir:
+        src = str(args.rwa_dir)
+        meta_bits.append((f"RWA 数据：{src}", f"RWA data: {src}"))
     meta_html = ' <span class="sep">|</span> '.join(
         f'<span data-zh="{html.escape(z)}" data-en="{html.escape(e)}">{html.escape(z)}</span>'
         for z, e in meta_bits)
@@ -240,6 +265,17 @@ def main():
             parts.append(f'<div class="card"><a class="fig-link" href="{name}" target="_blank">'
                          f'<img src="{name}" alt="{cap}" loading="lazy"></a>'
                          f'<div class="cap">{cap}</div></div>')
+        parts.append("</div>")
+
+    if rwa:
+        parts.append(h2("RWA 交易图表", "RWA Trading Figures"))
+        parts.append('<div class="grid">')
+        for p, zh, en in rwa:
+            name = html.escape(p.name)
+            parts.append(f'<div class="card"><a class="fig-link" href="{name}" target="_blank">'
+                         f'<img src="{name}" alt="{html.escape(zh)}" loading="lazy"></a>'
+                         f'<div class="cap" data-zh="{html.escape(zh)}" '
+                         f'data-en="{html.escape(en)}">{html.escape(zh)}</div></div>')
         parts.append("</div>")
 
     for p in others:  # 兜底: 展示任何其他命名的图

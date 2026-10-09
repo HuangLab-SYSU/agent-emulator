@@ -1,0 +1,133 @@
+time=2026-10-09T13:20:57.685+08:00 level=INFO msg="local params is loaded successfully" NodeInfo=S{3}_N{2} "shard id"=3 "node id"=2 "wallet addr"="[0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]" "ip addr"=127.0.0.1:32537
+time=2026-10-09T13:20:57.687+08:00 level=INFO msg="gRPC P2P server listening" NodeInfo=S{3}_N{2} addr=127.0.0.1:32537
+time=2026-10-09T13:20:58.020+08:00 level=INFO msg="block is generated" NodeInfo=S{3}_N{2} "shard ID"=3 "block height"=1 "block create time"=2026-10-09T13:20:57.989+08:00
+time=2026-10-09T13:21:00.686+08:00 level=INFO msg="node resources reports" NodeInfo=S{3}_N{2} "memo used (MB)"=25 "go routines"=16
+time=2026-10-09T13:21:03.686+08:00 level=INFO msg="node resources reports" NodeInfo=S{3}_N{2} "memo used (MB)"=26 "go routines"=19
+time=2026-10-09T13:21:04.064+08:00 level=INFO msg="handle preprepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=0 nodeID=0
+time=2026-10-09T13:21:04.064+08:00 level=INFO msg="proposal of this round is received" NodeInfo=S{3}_N{2} "current view and seq"="{View:0 Seq:0}"
+time=2026-10-09T13:21:04.564+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=2
+time=2026-10-09T13:21:04.564+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=1
+time=2026-10-09T13:21:04.564+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=3
+time=2026-10-09T13:21:04.564+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=0
+time=2026-10-09T13:21:04.564+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=0
+time=2026-10-09T13:21:05.063+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=2
+time=2026-10-09T13:21:05.063+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=1
+time=2026-10-09T13:21:05.063+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=3
+time=2026-10-09T13:21:05.071+08:00 level=INFO msg="block is generated" NodeInfo=S{3}_N{2} "shard ID"=3 "block height"=2 "block create time"=2026-10-09T13:21:03.638+08:00
+time=2026-10-09T13:21:05.071+08:00 level=INFO msg="block is added" NodeInfo=S{3}_N{2} "block height"=2
+time=2026-10-09T13:21:06.563+08:00 level=INFO msg="handle preprepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=0 nodeID=0
+time=2026-10-09T13:21:06.563+08:00 level=INFO msg="proposal of this round is received" NodeInfo=S{3}_N{2} "current view and seq"="{View:0 Seq:1}"
+time=2026-10-09T13:21:06.686+08:00 level=INFO msg="node resources reports" NodeInfo=S{3}_N{2} "memo used (MB)"=26 "go routines"=40
+time=2026-10-09T13:21:07.064+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=2
+time=2026-10-09T13:21:07.064+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=1
+time=2026-10-09T13:21:07.064+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=3
+time=2026-10-09T13:21:07.064+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=0
+time=2026-10-09T13:21:07.064+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=0
+time=2026-10-09T13:21:07.564+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=2
+time=2026-10-09T13:21:07.564+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=1
+time=2026-10-09T13:21:07.564+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=3
+time=2026-10-09T13:21:07.571+08:00 level=INFO msg="block is generated" NodeInfo=S{3}_N{2} "shard ID"=3 "block height"=3 "block create time"=2026-10-09T13:21:06.138+08:00
+time=2026-10-09T13:21:07.571+08:00 level=INFO msg="block is added" NodeInfo=S{3}_N{2} "block height"=3
+time=2026-10-09T13:21:09.063+08:00 level=INFO msg="handle preprepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=0 nodeID=0
+time=2026-10-09T13:21:09.064+08:00 level=INFO msg="proposal of this round is received" NodeInfo=S{3}_N{2} "current view and seq"="{View:0 Seq:2}"
+time=2026-10-09T13:21:09.564+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=2
+time=2026-10-09T13:21:09.564+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=1
+time=2026-10-09T13:21:09.564+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=3
+time=2026-10-09T13:21:09.564+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=0
+time=2026-10-09T13:21:09.564+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=0
+time=2026-10-09T13:21:09.686+08:00 level=INFO msg="node resources reports" NodeInfo=S{3}_N{2} "memo used (MB)"=27 "go routines"=40
+time=2026-10-09T13:21:10.064+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=2
+time=2026-10-09T13:21:10.064+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=1
+time=2026-10-09T13:21:10.064+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=3
+time=2026-10-09T13:21:10.076+08:00 level=INFO msg="block is generated" NodeInfo=S{3}_N{2} "shard ID"=3 "block height"=4 "block create time"=2026-10-09T13:21:08.638+08:00
+time=2026-10-09T13:21:10.076+08:00 level=INFO msg="block is added" NodeInfo=S{3}_N{2} "block height"=4
+time=2026-10-09T13:21:11.564+08:00 level=INFO msg="handle preprepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=0 nodeID=0
+time=2026-10-09T13:21:11.564+08:00 level=INFO msg="proposal of this round is received" NodeInfo=S{3}_N{2} "current view and seq"="{View:0 Seq:3}"
+time=2026-10-09T13:21:12.063+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=2
+time=2026-10-09T13:21:12.063+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=1
+time=2026-10-09T13:21:12.063+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=3
+time=2026-10-09T13:21:12.063+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=0
+time=2026-10-09T13:21:12.063+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=0
+time=2026-10-09T13:21:12.563+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=2
+time=2026-10-09T13:21:12.563+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=1
+time=2026-10-09T13:21:12.563+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=3
+time=2026-10-09T13:21:12.571+08:00 level=INFO msg="block is generated" NodeInfo=S{3}_N{2} "shard ID"=3 "block height"=5 "block create time"=2026-10-09T13:21:11.138+08:00
+time=2026-10-09T13:21:12.572+08:00 level=INFO msg="block is added" NodeInfo=S{3}_N{2} "block height"=5
+time=2026-10-09T13:21:12.686+08:00 level=INFO msg="node resources reports" NodeInfo=S{3}_N{2} "memo used (MB)"=27 "go routines"=40
+time=2026-10-09T13:21:14.064+08:00 level=INFO msg="handle preprepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=0 nodeID=0
+time=2026-10-09T13:21:14.064+08:00 level=INFO msg="proposal of this round is received" NodeInfo=S{3}_N{2} "current view and seq"="{View:0 Seq:4}"
+time=2026-10-09T13:21:14.564+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=2
+time=2026-10-09T13:21:14.564+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=1
+time=2026-10-09T13:21:14.564+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=3
+time=2026-10-09T13:21:14.564+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=0
+time=2026-10-09T13:21:14.564+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=0
+time=2026-10-09T13:21:15.063+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=2
+time=2026-10-09T13:21:15.063+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=1
+time=2026-10-09T13:21:15.063+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=3
+time=2026-10-09T13:21:15.071+08:00 level=INFO msg="block is generated" NodeInfo=S{3}_N{2} "shard ID"=3 "block height"=6 "block create time"=2026-10-09T13:21:13.638+08:00
+time=2026-10-09T13:21:15.071+08:00 level=INFO msg="block is added" NodeInfo=S{3}_N{2} "block height"=6
+time=2026-10-09T13:21:15.687+08:00 level=INFO msg="node resources reports" NodeInfo=S{3}_N{2} "memo used (MB)"=28 "go routines"=40
+time=2026-10-09T13:21:16.563+08:00 level=INFO msg="handle preprepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=0 nodeID=0
+time=2026-10-09T13:21:16.563+08:00 level=INFO msg="proposal of this round is received" NodeInfo=S{3}_N{2} "current view and seq"="{View:0 Seq:5}"
+time=2026-10-09T13:21:17.063+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=2
+time=2026-10-09T13:21:17.063+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=1
+time=2026-10-09T13:21:17.063+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=3
+time=2026-10-09T13:21:17.063+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=0
+time=2026-10-09T13:21:17.063+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=0
+time=2026-10-09T13:21:17.563+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=2
+time=2026-10-09T13:21:17.563+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=1
+time=2026-10-09T13:21:17.564+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=3
+time=2026-10-09T13:21:17.572+08:00 level=INFO msg="block is generated" NodeInfo=S{3}_N{2} "shard ID"=3 "block height"=7 "block create time"=2026-10-09T13:21:16.138+08:00
+time=2026-10-09T13:21:17.573+08:00 level=INFO msg="block is added" NodeInfo=S{3}_N{2} "block height"=7
+time=2026-10-09T13:21:18.686+08:00 level=INFO msg="node resources reports" NodeInfo=S{3}_N{2} "memo used (MB)"=28 "go routines"=40
+time=2026-10-09T13:21:19.064+08:00 level=INFO msg="handle preprepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=0 nodeID=0
+time=2026-10-09T13:21:19.064+08:00 level=INFO msg="proposal of this round is received" NodeInfo=S{3}_N{2} "current view and seq"="{View:0 Seq:6}"
+time=2026-10-09T13:21:19.564+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=2
+time=2026-10-09T13:21:19.564+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=1
+time=2026-10-09T13:21:19.564+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=3
+time=2026-10-09T13:21:19.564+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=0
+time=2026-10-09T13:21:19.564+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=0
+time=2026-10-09T13:21:20.064+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=2
+time=2026-10-09T13:21:20.064+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=1
+time=2026-10-09T13:21:20.064+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=3
+time=2026-10-09T13:21:20.071+08:00 level=INFO msg="block is generated" NodeInfo=S{3}_N{2} "shard ID"=3 "block height"=8 "block create time"=2026-10-09T13:21:18.638+08:00
+time=2026-10-09T13:21:20.071+08:00 level=INFO msg="block is added" NodeInfo=S{3}_N{2} "block height"=8
+time=2026-10-09T13:21:21.564+08:00 level=INFO msg="handle preprepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=0 nodeID=0
+time=2026-10-09T13:21:21.564+08:00 level=INFO msg="proposal of this round is received" NodeInfo=S{3}_N{2} "current view and seq"="{View:0 Seq:7}"
+time=2026-10-09T13:21:21.686+08:00 level=INFO msg="node resources reports" NodeInfo=S{3}_N{2} "memo used (MB)"=28 "go routines"=40
+time=2026-10-09T13:21:22.064+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=2
+time=2026-10-09T13:21:22.064+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=1
+time=2026-10-09T13:21:22.064+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=3
+time=2026-10-09T13:21:22.064+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=0
+time=2026-10-09T13:21:22.064+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=0
+time=2026-10-09T13:21:22.563+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=2
+time=2026-10-09T13:21:22.563+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=1
+time=2026-10-09T13:21:22.563+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=3
+time=2026-10-09T13:21:22.573+08:00 level=INFO msg="block is generated" NodeInfo=S{3}_N{2} "shard ID"=3 "block height"=9 "block create time"=2026-10-09T13:21:21.138+08:00
+time=2026-10-09T13:21:22.573+08:00 level=INFO msg="block is added" NodeInfo=S{3}_N{2} "block height"=9
+time=2026-10-09T13:21:24.064+08:00 level=INFO msg="handle preprepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=0 nodeID=0
+time=2026-10-09T13:21:24.064+08:00 level=INFO msg="proposal of this round is received" NodeInfo=S{3}_N{2} "current view and seq"="{View:0 Seq:8}"
+time=2026-10-09T13:21:24.563+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=2
+time=2026-10-09T13:21:24.563+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=1
+time=2026-10-09T13:21:24.563+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=3
+time=2026-10-09T13:21:24.563+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=0
+time=2026-10-09T13:21:24.563+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=0
+time=2026-10-09T13:21:24.685+08:00 level=INFO msg="node resources reports" NodeInfo=S{3}_N{2} "memo used (MB)"=28 "go routines"=40
+time=2026-10-09T13:21:25.064+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=2
+time=2026-10-09T13:21:25.064+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=1
+time=2026-10-09T13:21:25.064+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=3
+time=2026-10-09T13:21:25.072+08:00 level=INFO msg="block is generated" NodeInfo=S{3}_N{2} "shard ID"=3 "block height"=10 "block create time"=2026-10-09T13:21:23.637+08:00
+time=2026-10-09T13:21:25.072+08:00 level=INFO msg="block is added" NodeInfo=S{3}_N{2} "block height"=10
+time=2026-10-09T13:21:26.564+08:00 level=INFO msg="handle preprepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=0 nodeID=0
+time=2026-10-09T13:21:26.564+08:00 level=INFO msg="proposal of this round is received" NodeInfo=S{3}_N{2} "current view and seq"="{View:0 Seq:9}"
+time=2026-10-09T13:21:27.064+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=2
+time=2026-10-09T13:21:27.064+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=1
+time=2026-10-09T13:21:27.064+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=3
+time=2026-10-09T13:21:27.064+08:00 level=INFO msg="handle prepare message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=0
+time=2026-10-09T13:21:27.064+08:00 level=INFO msg="handle commit message: try to add it to the message pool" NodeInfo=S{3}_N{2} shardID=3 nodeID=0
+time=2026-10-09T13:21:27.064+08:00 level=INFO msg="handle stop consensus message" NodeInfo=S{3}_N{2}
+time=2026-10-09T13:21:27.564+08:00 level=INFO msg="consensus node is closing" NodeInfo=S{3}_N{2}
+time=2026-10-09T13:21:27.685+08:00 level=INFO msg="node resources reports" NodeInfo=S{3}_N{2} "memo used (MB)"=29 "go routines"=43
+time=2026-10-09T13:21:30.686+08:00 level=INFO msg="node resources reports" NodeInfo=S{3}_N{2} "memo used (MB)"=29 "go routines"=43
+time=2026-10-09T13:21:33.686+08:00 level=INFO msg="node resources reports" NodeInfo=S{3}_N{2} "memo used (MB)"=29 "go routines"=43
+time=2026-10-09T13:21:36.686+08:00 level=INFO msg="node resources reports" NodeInfo=S{3}_N{2} "memo used (MB)"=29 "go routines"=40

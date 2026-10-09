@@ -113,9 +113,9 @@ def main():
     fig_dir.mkdir(parents=True, exist_ok=True)
     apply_style()
 
-    files = sorted(data_dir.glob("agent-*.csv"))
+    files = sorted(data_dir.glob("*.csv"))
     if not files:
-        raise SystemExit(f"未在 {data_dir} 找到 agent-*.csv")
+        raise SystemExit(f"未在 {data_dir} 找到 agent CSV 文件")
     dfs = [load_agent(f) for f in files]
     all_df = pd.concat(dfs, ignore_index=True)
     print(f"已加载 {len(dfs)} 个 agent, 共 {len(all_df)} 笔交易, "

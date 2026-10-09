@@ -112,10 +112,16 @@ func (c *CLPARelayCommittee) HandleMsg(_ context.Context, msg *rpcserver.Wrapped
 
 	// update the clpa module - graph
 	for _, tx := range bInfo.InnerShardTxs {
+		if tx.IsRWATx() {
+			continue
+		}
 		c.state.AddEdge(partition.Vertex{Addr: tx.Sender}, partition.Vertex{Addr: tx.Recipient})
 	}
 
 	for _, tx := range bInfo.Relay2Txs {
+		if tx.IsRWATx() {
+			continue
+		}
 		c.state.AddEdge(partition.Vertex{Addr: tx.Sender}, partition.Vertex{Addr: tx.Recipient})
 	}
 

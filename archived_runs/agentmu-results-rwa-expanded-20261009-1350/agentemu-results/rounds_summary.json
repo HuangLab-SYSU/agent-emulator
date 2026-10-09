@@ -1,0 +1,15 @@
+{
+  "seed": 20260903,
+  "trace": "./traces/rwa_compute_demo.jsonl",
+  "round_num": 1,
+  "rounds": [
+    {
+      "round": 1,
+      "record_count": 48,
+      "tx_count": 48,
+      "output_dir": "exp/agentemu-results/round_001",
+      "plan_path": "exp/agentemu-results/round_001/agent_transactions.jsonl",
+      "chain_result_dir": "exp/agentemu-results/round_001/chain/results"
+    }
+  ]
+}

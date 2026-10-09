@@ -192,6 +192,11 @@ func (c *CLPABrokerCommittee) classifyTxs(
 	)
 
 	for _, tx := range txs {
+		if tx.IsRWATx() {
+			innerShardTxs = append(innerShardTxs, tx)
+			continue
+		}
+
 		senderAddr, receiverAddr := tx.Sender, tx.Recipient
 		senderShard := c.state.GetVertexLocation(partition.Vertex{Addr: senderAddr})
 
@@ -244,10 +249,16 @@ func (c *CLPABrokerCommittee) handleBlockInfoMsg(ctx context.Context, bInfo *mes
 
 	// update the clpa module - graph
 	for _, tx := range bInfo.InnerShardTxs {
+		if tx.IsRWATx() {
+			continue
+		}
 		c.state.AddEdge(partition.Vertex{Addr: tx.Sender}, partition.Vertex{Addr: tx.Recipient})
 	}
 
 	for _, tx := range bInfo.Broker2Txs {
+		if tx.IsRWATx() {
+			continue
+		}
 		c.state.AddEdge(partition.Vertex{Addr: tx.Sender}, partition.Vertex{Addr: tx.Recipient})
 	}
 

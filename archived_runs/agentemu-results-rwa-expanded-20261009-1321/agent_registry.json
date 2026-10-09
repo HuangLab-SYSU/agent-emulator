@@ -1,0 +1,62 @@
+[
+  {
+    "agent_id": "agent-001",
+    "did": "did:broker:0xe2ff98eb11e21278dfb3396f188fdc916011b2e2",
+    "active": true
+  },
+  {
+    "agent_id": "agent-002",
+    "did": "did:broker:0x417ed26e3e737119f275600267019a31ecd21085",
+    "active": true
+  },
+  {
+    "agent_id": "agent-003",
+    "did": "did:broker:0x8bdb38f351683f46e97492b743c5ad1b63ca8bd7",
+    "active": true
+  },
+  {
+    "agent_id": "agent-004",
+    "did": "did:broker:0x92cef168d9ceb41da1d1b52c1f27cda437920a51",
+    "active": true
+  },
+  {
+    "agent_id": "agent-005",
+    "did": "did:broker:0xff518e29181a89015367822c22a14a5a54975017",
+    "active": true
+  },
+  {
+    "agent_id": "agent-006",
+    "did": "did:broker:0x20a457ae381d88e01787119045a56a18f2c80bee",
+    "active": true
+  },
+  {
+    "agent_id": "agent-007",
+    "did": "did:broker:0xfbe5c6d6c7b9033b7bb0b682b9c93fa6d54154ff",
+    "active": true
+  },
+  {
+    "agent_id": "agent-008",
+    "did": "did:broker:0x172f30d4f76432fb0155d4c9a06168d54a1ca2c0",
+    "active": true
+  },
+  {
+    "agent_id": "agent-009",
+    "did": "did:broker:0x0a0ea37e3886e25d55e495e9a38a92dda04835f1",
+    "active": true
+  },
+  {
+    "agent_id": "agent-010",
+    "did": "did:broker:0xb3dcf43a92761cb7a75caca3fcb11269cab4ffd7",
+    "active": true
+  },
+  {
+    "agent_id": "agent-011",
+    "did": "did:broker:0xc148c1f366723c616cb2d2b4a01524dc5f9216dd",
+    "active": true
+  },
+  {
+    "agent_id": "agent-012",
+    "did": "did:broker:0x34f8988880df1dc87d20585a150106ce6d7228cc",
+    "active": true
+  }
+]
