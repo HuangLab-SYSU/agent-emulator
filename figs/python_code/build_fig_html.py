@@ -171,18 +171,18 @@ def overview_img(p: Path, alt: str) -> str:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="生成实验图表 HTML 图册")
+    parser = argparse.ArgumentParser(description="Build the HTML gallery page for experiment figures")
     parser.add_argument("--fig-dir", type=Path, default=DEFAULT_FIG_DIR,
-                        help=f"PNG 所在目录, index.html 也生成在这里(默认 {DEFAULT_FIG_DIR})")
+                        help=f"Directory containing the PNGs; index.html is also written here (default: {DEFAULT_FIG_DIR})")
     parser.add_argument("--data-dir", type=Path, default=None,
-                        help="实验 agent CSV 目录(仅用于在页面显示数据来源与 agent 数量)")
+                        help="Directory of experiment agent CSVs (only used to show the data source and agent count on the page)")
     args = parser.parse_args()
 
     fig_dir = args.fig_dir
     fig1, tail, groups, others = collect_pngs(fig_dir)
     n_figs = (1 if fig1 else 0) + len(tail) + len(groups) + len(others)
     if n_figs == 0:
-        raise SystemExit(f"未在 {fig_dir} 找到任何 PNG, 请先运行 plot_agent_balance.py")
+        raise SystemExit(f"No PNG files found in {fig_dir}; please run plot_agent_balance.py first")
 
     n_agents = len(list(args.data_dir.glob("agent-*.csv"))) if args.data_dir else None
     gen_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -262,7 +262,8 @@ def main():
 
     out = fig_dir / "index.html"
     out.write_text("\n".join(parts), encoding="utf-8")
-    print(f"已生成 HTML 图册: {out}（共 {n_figs} 张图, 编号按展示顺序: 总览=图1, 全局顺序=图2, 归一化=图3, 分组=图4）")
+    print(f"Generated HTML gallery: {out} ({n_figs} figures; numbering by display order: "
+          f"overview=fig1, global order=fig2, normalized=fig3, groups=fig4)")
 
 
 if __name__ == "__main__":
