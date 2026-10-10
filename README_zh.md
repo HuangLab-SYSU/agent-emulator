@@ -518,10 +518,10 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 |实验结果图表的 HTML 页面中实验图编号|内容|对应的 PNG 文件|
 |---|---|---|
-|图 1|全部 Agent 余额变化总览：左图“按 Agent ID”，右图“按 Δbalance 升序”展示所有 Agent 余额变化的柱状图|`fig1_all_agents_overview.png`|
-|图 2|按照交易顺序统计所有 Agent 的余额分布。主要过程如下：先按照 tx_hash 去重后按确定性顺序回放 每个 Agent 的余额变化，然后展示所有 Agent 余额变化最小/最大位置线、四分位线与均值线|`fig2_global_tx_order.png`|
-|图 3|按不同 Agent 的交易进度归一化对齐：各 Agent 自身交易序号拉伸到 0–1 后叠加，另附所有 Agent 的交易处理完成后所有 Agent 余额变化均值标注|`fig3_normalized_progress.png`|
-|图 4|分组展示各个 Agent 的余额变化：每 5 个 Agents 一张子图，使用虚线标注每个 Agent 所在分片相邻两个区块的分界点|`fig4_agents_001-005.png` … `fig4_agents_096-100.png`|
+|图 1|全部 Agent 期末余额变化总览：按 Agent ID 排序的柱状图，每根柱子代表一个 Agent，绿色柱表示余额增加、红色柱表示余额减少|`fig1_all_agents_overview.png`|
+|图 2|按照全局交易顺序统计所有 Agent 的余额分布：先按 tx_hash 去重、再按确定性顺序回放各 Agent 的余额变化；图中以阴影带展示最小–最大包络与 P25–P75 四分位带，并叠加全体均值线（均值恒为 0）|`fig2_global_tx_order.png`|
+|图 3|按各 Agent 的交易进度归一化对齐：各 Agent 自身交易序号拉伸到 0–1 后叠加，每条灰色曲线代表一个 Agent；均值曲线在中间阶段低于 0、终点回到 0|`fig3_normalized_progress.png`|
+|图 4|分组展示各个 Agent 的余额变化：每 5 个 Agent 一张子图，横轴为各 Agent 自身的交易序号|`fig4_agents_001-005.png` … `fig4_agents_096-100.png`|
 
 请注意，所有实验图绘制的是**相对初始余额的变化量 Δbalance = balance − 初始余额**。
 
