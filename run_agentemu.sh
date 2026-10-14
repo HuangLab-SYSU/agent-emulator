@@ -39,6 +39,22 @@ echo "  agent registry    : exp/agentemu-results/agent_registry.json"
 echo "  chain measurements: exp/agentemu-results/round_001/chain/results/"
 echo "  round summary     : exp/agentemu-results/rounds_summary.json"
 
+# Rolling archive: exp/ is wiped on every run, so snapshot this round's
+# results (plan, audit trail, ledgers, chain logs/measurements) into
+# archived_runs/ and keep only the newest archive. The archive is local
+# demo evidence and stays out of version control (see .gitignore).
+ARCHIVE_ROOT="./archived_runs"
+mkdir -p "${ARCHIVE_ROOT}"
+STAMP="$(date +%Y%m%d-%H%M%S)"
+cp -r ./exp/agentemu-results "${ARCHIVE_ROOT}/agentemu-results-${STAMP}"
+# Keep the archive just created; drop every other agentemu-results-* archive
+# (older naming schemes included). Plain bash loop: a grep -v pattern with a
+# leading "/" gets mangled by MSYS path conversion on Git Bash for Windows.
+for d in "${ARCHIVE_ROOT}"/agentemu-results-*; do
+  [ "${d%/}" = "${ARCHIVE_ROOT}/agentemu-results-${STAMP}" ] || rm -rf "${d%/}"
+done
+echo "  rolling archive   : ${ARCHIVE_ROOT}/agentemu-results-${STAMP} (only newest kept)"
+
 # Post-experiment figures: plot agent balances from the latest round, build an
 # HTML gallery and open it in the default browser. A failed experiment aborts
 # earlier via set -e, so this only runs on success.

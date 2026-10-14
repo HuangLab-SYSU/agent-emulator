@@ -45,6 +45,26 @@ echo   agent registry    : exp\agentemu-results\agent_registry.json
 echo   chain measurements: exp\agentemu-results\round_001\chain\results\
 echo   round summary     : exp\agentemu-results\rounds_summary.json
 
+rem Rolling archive: exp\ is wiped on every run, so snapshot this round's
+rem results (plan, audit trail, ledgers, chain logs/measurements) into
+rem archived_runs\ and keep only the newest archive. Local demo evidence,
+rem kept out of version control (see .gitignore).
+set "ARCH_ROOT=archived_runs"
+if not exist "%ARCH_ROOT%" mkdir "%ARCH_ROOT%"
+for /f %%T in ('powershell -NoProfile -Command "Get-Date -Format yyyyMMdd-HHmmss"') do set "ARCH_STAMP=%%T"
+robocopy "exp\agentemu-results" "%ARCH_ROOT%\agentemu-results-%ARCH_STAMP%" /E >nul
+rem robocopy exit codes 0-7 mean success (1 = files copied); anything else fails.
+if %ERRORLEVEL% GEQ 8 (
+  echo warning: rolling archive failed with robocopy code %ERRORLEVEL% 1>&2
+) else (
+  echo   rolling archive   : %ARCH_ROOT%\agentemu-results-%ARCH_STAMP% ^(only newest kept^)
+)
+rem Keep the archive just created; drop every other agentemu-results-* archive
+rem (older naming schemes included - never rely on lexicographic order).
+for /f "delims=" %%D in ('dir /b /ad "%ARCH_ROOT%\agentemu-results-*" 2^>nul') do (
+  if /i not "%%D"=="agentemu-results-%ARCH_STAMP%" rmdir /s /q "%ARCH_ROOT%\%%D"
+)
+
 rem Post-experiment figures: plot agent balances from the latest round, build
 rem an HTML gallery and open it in the default browser. A failed experiment
 rem aborts earlier, so this only runs on success (parity with run_agentemu.sh).
