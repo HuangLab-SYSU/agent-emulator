@@ -326,7 +326,7 @@ Start an experiment as described in the quick start:
 bash run_agentemu.sh            # Or: bash run_agentemu.sh <config-file>
 ```
 
-- **Blockchain logs stream to the console.** Full logs are also saved to `archived_runs/agentmu-results-rwa-expanded-20261009-1350/agentemu-results/round_001/chain/logs/`.
+- **Blockchain logs stream to the console.** Full logs are also saved under the run's `exp/agentemu-results/round_XXX/chain/logs/`, and every run is rolling-archived to `archived_runs/agentemu-results-<timestamp>/` (only the newest archive is kept; archives are local evidence and not committed).
 - To preview the compiled transaction dataset without running the blockchain, set `chain.enabled` to `false` in `agentEmuConfig.yaml`.
 - At the end of a run, the script prints the output paths for experiment data and generated figures.
 
@@ -392,7 +392,7 @@ After a successful experiment, AgentEmulator reads the agent ledger CSV files an
 
 After a successful run, `run_agentemu.sh` (or `run_agentemu.bat` on Windows):
 
-1. Locates the `agents/` directory in the highest-numbered round under `archived_runs/agentmu-results-rwa-expanded-20261009-1350/agentemu-results/`.
+1. Locates the `agents/` directory in the highest-numbered round under `exp/agentemu-results/`.
 2. Clears previous plots and `index.html` from `figs/figs_results/`.
 3. Runs `figs/python_code/plot_agent_balance.py` to generate the PNG figures.
 4. Runs `figs/python_code/build_fig_html.py` to build the gallery.
@@ -569,7 +569,7 @@ Set `system.shard_num` to `1` in `config.yaml`. Adjust the actions and transacti
 Check the end of the console output for `figures & gallery: ./figs/figs_results/index.html`.
 
 - If the gallery path is missing and `warn: no agent CSVs ...` appears, the experiment produced no agent ledger data. No agent ledger data is expected when `chain.enabled` is `false`. Under that configuration, AgentEmulator compiles the trace without running the blockchain.
-- If the line appears but the gallery does not open, open `figs/archived_results/figs_results-rwa-20261009-1350/index.html` manually. On macOS, run `open figs/figs_results/index.html`.
+- If the line appears but the gallery does not open, open `figs/figs_results/index.html` manually. On macOS, run `open figs/figs_results/index.html`.
 
 ### Q7. How do I resolve `ModuleNotFoundError: matplotlib`?
 
