@@ -16,26 +16,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Get tag name
-        id: meta
-        run: echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
-
-      - name: Load curated release notes
-        id: notes
+      # The release page is authoritative once created: a re-pushed tag must
+      # never rewrite its notes, so the file under docs/release-notes/ only
+      # seeds a brand-new release.
+      - name: Create release (leaves an existing release untouched)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
         run: |
-          NOTES="docs/release-notes/${{ steps.meta.outputs.tag }}.md"
-          if [ -f "$NOTES" ]; then
-            echo "path=$NOTES" >> "$GITHUB_OUTPUT"
-          else
-            echo "No curated notes at $NOTES; falling back to generated notes"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "release $TAG already exists; keeping its notes as-is"
+            exit 0
           fi
-
-      - name: Create release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.meta.outputs.tag }}
-          name: ${{ steps.meta.outputs.tag }}
-          draft: false
-          prerelease: ${{ contains(steps.meta.outputs.tag, '-') }}
-          body_path: ${{ steps.notes.outputs.path }}
-          generate_release_notes: ${{ steps.notes.outputs.path == '' }}
+          EXTRA=""
+          if [[ "$TAG" == *-* ]]; then EXTRA="--prerelease"; fi
+          NOTES="docs/release-notes/${TAG}.md"
+          if [ -f "$NOTES" ]; then
+            TITLE="$(sed -n 's/^#[[:space:]]*//p' "$NOTES" | head -n 1)"
+            [ -n "$TITLE" ] || TITLE="$TAG"
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
+              --title "$TITLE" --notes-file "$NOTES" $EXTRA
+          else
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
+              --title "$TAG" --generate-notes $EXTRA
+          fi
