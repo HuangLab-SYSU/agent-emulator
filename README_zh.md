@@ -1,12 +1,14 @@
 # AgentEmulator
 
+<p align="right"><a href="README.md">英文</a> | <b>中文</b></p>
+
 ## 简介 / Overview
 
-AgentEmulator 是由**中山大学·软件工程学院·黄华威研究组（[HuangLab](http://www.xintelligence.pro/)）发起的、面向 AI 智能体可信基础设施的仿真与实验平台**。平台以区块链作为可信记录与结算的基础，旨在帮助研究者和学生围绕智能体的身份、行为审计、支付结算、激励与治理机制开展实验，逐步形成支持 AI 智能体可信交互与协作的研究工具。
+AgentEmulator 是由**中山大学·软件工程学院·黄华威研究组（[HuangLab](http://www.xintelligence.pro/)）发起的、面向 AI 智能体可信基础设施的仿真与实验平台**。平台以区块链作为可信记录与结算的基础，**旨在帮助研究者和学生**围绕智能体的身份、行为审计、支付结算、激励与治理机制开展实验，逐步形成支持 AI 智能体可信交互与协作的**研究工具**。
 
 
 
-AgentEmulator 是面向 AI 智能体行为与区块链相结合的场景、基于 BlockEmulator-X 构建的**实验工具**。其中，BlockEmulator-X 是 HuangLab 于2026年6月开源的区块链仿真实验工具，是初代 BlockEmulator 的升级迭代版本，其 GitHub 代码仓库地址为 [github.com/HuangLab-SYSU/block-emulator-x](https://github.com/HuangLab-SYSU/block-emulator-x) 。
+AgentEmulator 是面向 AI 智能体行为与区块链相结合的场景、基于 BlockEmulator-X（即 BlockEmulator 2.0 版本） 构建的**实验工具**。其中，BlockEmulator-X（BlockEmulator 2.0 版本） 是 HuangLab **于2026年6月开源的区块链仿真实验工具**，是初代 BlockEmulator 1.0 的升级迭代版本，其 GitHub 代码仓库地址为 [github.com/HuangLab-SYSU/block-emulator-x](https://github.com/HuangLab-SYSU/block-emulator-x) 。
 
 ### 论文
 
@@ -93,12 +95,12 @@ AgentEmulator 对应可信智能体基础设施的五层分类法。五层定义
 
 AgentEmulator 是中山大学 HuangLab 区块链实验技术栈的一部分：
 
-| 项目 | 角色 | 链接 |
-| --- | --- | --- |
-| BlockEmulator | 区块链分片协议仿真器（IEEE TSC 2025） | https://github.com/HuangLab-SYSU/block-emulator |
-| BlockEmulator-X | 支持 EVM 执行的继任版本，AgentEmulator 的后端 | https://github.com/HuangLab-SYSU/block-emulator-x |
-| AgentEmulator | 本项目——分片区块链上的智能体行为仿真 | https://github.com/HuangLab-SYSU/agent-emulator |
-| BrokerChain | 学术分片区块链测试网（约 400 个外部节点） | https://github.com/HuangLab-SYSU/BrokerChain |
+| 项目 | 角色                                                                                                          | 链接 |
+| --- |-------------------------------------------------------------------------------------------------------------| --- |
+| BlockEmulator | 区块链分片协议仿真器（IEEE TSC 2025） BlockEmulator v1.0 版本，2023 年开源                                                    | https://github.com/HuangLab-SYSU/block-emulator |
+| BlockEmulator-X | 支持 EVM 执行的继任版本，AgentEmulator 的后端。 BlockEmulator v2.0 版本，2026 年 6 月开源                                        | https://github.com/HuangLab-SYSU/block-emulator-x |
+| AgentEmulator | 本项目——分片区块链上的智能体行为仿真。BlockEmulator v3.0 版本，2026 年 9 月开源                                                      | https://github.com/HuangLab-SYSU/agent-emulator |
+| BrokerChain | 学术分片区块链测试网（约 400 个外部节点）（INFOCOM 2022）                                                                       | https://github.com/HuangLab-SYSU/BrokerChain |
 | brokerchain-mcp | MCP server（`register_agent` / `append_log` / `open_channel` / `pay`），双后端：AgentEmulator 仿真 + BrokerChain 测试网 | 开发中 |
 
 
@@ -106,7 +108,7 @@ AgentEmulator 是中山大学 HuangLab 区块链实验技术栈的一部分：
 
 ### AgentEmulator 有什么用？
 
-AgentEmulator 实验平台的**设计目标**是简化 AI Agent 相关的实验环境搭建配置、机制验证和数据分析，使实验人员能够轻松地配置底层区块链环境、观察 AI 智能体的行为，并通过实验数据分析在不同机制控制时的运行效果。
+**AgentEmulator 实验平台**的**设计目标是简化 AI Agent 相关的实验环境搭建配置、机制验证和数据分析**，**使实验人员**能够轻松地配置底层区块链环境、观察 AI 智能体的行为，并通过实验数据分析在不同机制控制时的运行效果。（AgentEmulator 是一份为**实验人员**提供的**实验工具**。**非商用项目**。）
 
 
 
