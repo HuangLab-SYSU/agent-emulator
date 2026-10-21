@@ -95,20 +95,20 @@ AgentEmulator 对应可信智能体基础设施的五层分类法。五层定义
 
 AgentEmulator 是中山大学 HuangLab 区块链实验技术栈的一部分：
 
-| 项目 | 角色                                                                                                          | 链接 |
-| --- |-------------------------------------------------------------------------------------------------------------| --- |
-| BlockEmulator | 区块链分片协议仿真器（IEEE TSC 2025） BlockEmulator v1.0 版本，2023 年开源                                                    | https://github.com/HuangLab-SYSU/block-emulator |
-| BlockEmulator-X | 支持 EVM 执行的继任版本，AgentEmulator 的后端。 BlockEmulator v2.0 版本，2026 年 6 月开源                                        | https://github.com/HuangLab-SYSU/block-emulator-x |
-| AgentEmulator | 本项目——分片区块链上的智能体行为仿真。BlockEmulator v3.0 版本，2026 年 9 月开源                                                      | https://github.com/HuangLab-SYSU/agent-emulator |
-| BrokerChain | 学术分片区块链测试网（约 400 个外部节点）（INFOCOM 2022）                                                                       | https://github.com/HuangLab-SYSU/BrokerChain |
-| brokerchain-mcp | MCP server（`register_agent` / `append_log` / `open_channel` / `pay`），双后端：AgentEmulator 仿真 + BrokerChain 测试网 | 开发中 |
+| 项目 | 角色                                                                                                                                     | 链接 |
+| --- |----------------------------------------------------------------------------------------------------------------------------------------| --- |
+| BlockEmulator | 区块链分片协议仿真器（IEEE TSC 2025） BlockEmulator v1.0 版本，2023 年开源                                                                               | https://github.com/HuangLab-SYSU/block-emulator |
+| BlockEmulator-X | 支持 EVM 执行的继任版本，AgentEmulator 的后端。 BlockEmulator v2.0 版本，2026 年 6 月开源                                                                   | https://github.com/HuangLab-SYSU/block-emulator-x |
+| AgentEmulator | 本项目——分片区块链上的智能体行为仿真。BlockEmulator v3.0 版本，2026 年 9 月开源                                                                                 | https://github.com/HuangLab-SYSU/agent-emulator |
+| BrokerChain | 分片区块链测试网-学术版本（约 400 个外部节点），起源于 "BrokerChain: A Cross-Shard Blockchain Protocol for Account/Balance-based State Sharding"（INFOCOM 2022） | https://github.com/HuangLab-SYSU/BrokerChain |
+| brokerchain-mcp | MCP server（`register_agent` / `append_log` / `open_channel` / `pay`），双后端：AgentEmulator 仿真 + BrokerChain 测试网                            | 开发中 |
 
 
 
 
 ### AgentEmulator 有什么用？
 
-**AgentEmulator 实验平台**的**设计目标是简化 AI Agent 相关的实验环境搭建配置、机制验证和数据分析**，**使实验人员**能够轻松地配置底层区块链环境、观察 AI 智能体的行为，并通过实验数据分析在不同机制控制时的运行效果。（AgentEmulator 是一份为**实验人员**提供的**实验工具**。**非商用项目**。）
+**AgentEmulator 实验平台**的**设计目标是简化 AI Agent 相关的实验环境搭建配置、机制验证和数据分析**，**使实验人员**能够轻松地配置底层区块链环境、观察 AI 智能体的行为，并通过实验数据分析在不同机制控制时的运行效果。
 
 
 
