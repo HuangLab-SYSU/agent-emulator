@@ -5,7 +5,7 @@
 ## Overview
 AgentEmulator is an **emulation and experimentation platform for trustworthy AI agent infrastructure**. The platform was initiated by **[HuangLab](http://www.xintelligence.pro/)**, led by Professor Huawei Huang at the School of Software Engineering, Sun Yat-sen University. AgentEmulator uses blockchain as the foundation for trusted records and settlement. **It aims to help researchers and students** investigate agent identity, behavioral auditing, payment settlement, incentives, and governance, and to grow into a **research tool** that supports trustworthy interaction and collaboration among AI agents.
 
-AgentEmulator is an **experimental tool** for scenarios that combine AI agent behavior with blockchain, built on **[BlockEmulator-X](https://github.com/HuangLab-SYSU/block-emulator-x)** (i.e., BlockEmulator v2.0). BlockEmulator-X (BlockEmulator v2.0) is a blockchain emulation tool **open-sourced by HuangLab in June 2026**, as the upgraded successor to the original BlockEmulator v1.0; its GitHub repository is available at [github.com/HuangLab-SYSU/block-emulator-x](https://github.com/HuangLab-SYSU/block-emulator-x).
+AgentEmulator is an **experimental tool** for scenarios that combine AI agent behavior with blockchain, built on **[BlockEmulator-X](https://github.com/HuangLab-SYSU/block-emulator-x)** (i.e., BlockEmulator v2.0). BlockEmulator-X (BlockEmulator v2.0) is a blockchain emulation tool **open-sourced by HuangLab in May 2026**, as the upgraded successor to the original BlockEmulator v1.0; its GitHub repository is available at [github.com/HuangLab-SYSU/block-emulator-x](https://github.com/HuangLab-SYSU/block-emulator-x).
 
 ### Paper
 
@@ -91,7 +91,7 @@ AgentEmulator is part of HuangLab's blockchain experimentation stack at Sun Yat-
 | Project | Role | Link |
 | --- | --- | --- |
 | BlockEmulator | Emulator for blockchain sharding protocols (IEEE TSC 2025). BlockEmulator v1.0, open-sourced in 2023 | https://github.com/HuangLab-SYSU/block-emulator |
-| BlockEmulator-X | Successor with EVM execution; the backend of AgentEmulator. BlockEmulator v2.0, open-sourced in June 2026 | https://github.com/HuangLab-SYSU/block-emulator-x |
+| BlockEmulator-X | Successor with EVM execution; the backend of AgentEmulator. BlockEmulator v2.0, open-sourced in May 2026 | https://github.com/HuangLab-SYSU/block-emulator-x |
 | AgentEmulator | This project — agent behavior on a sharded blockchain. BlockEmulator v3.0, open-sourced in September 2026 | https://github.com/HuangLab-SYSU/agent-emulator |
 | BrokerChain | Sharded blockchain testnet — academic edition (~400 external nodes), originating from "BrokerChain: A Cross-Shard Blockchain Protocol for Account/Balance-based State Sharding" (INFOCOM 2022) | https://github.com/HuangLab-SYSU/BrokerChain |
 | brokerchain-mcp | MCP server (`register_agent` / `append_log` / `open_channel` / `pay`) with dual backends: AgentEmulator simulation and BrokerChain testnet | in development |
