@@ -1,5 +1,7 @@
 # AgentEmulator
 
+<p align="right"><a href="README.md">英文</a> | <b>中文</b></p>
+
 ## 简介 / Overview
 
 AgentEmulator 是由**中山大学·软件工程学院·黄华威研究组（[HuangLab](http://www.xintelligence.pro/)）发起的、面向 AI 智能体可信基础设施的仿真与实验平台**。平台以区块链作为可信记录与结算的基础，**旨在帮助研究者和学生**围绕智能体的身份、行为审计、支付结算、激励与治理机制开展实验，逐步形成支持 AI 智能体可信交互与协作的**研究工具**。

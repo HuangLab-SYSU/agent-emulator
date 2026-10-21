@@ -1,5 +1,7 @@
 # AgentEmulator
 
+<p align="right"><a href="README_zh.md">中文</a> | <b>英文</b></p>
+
 ## Overview
 AgentEmulator is an **emulation and experimentation platform for trustworthy AI agent infrastructure**. The platform was initiated by **[HuangLab](http://www.xintelligence.pro/)**, led by Professor Huawei Huang at the School of Software Engineering, Sun Yat-sen University. AgentEmulator uses blockchain as the foundation for trusted records and settlement. **It aims to help researchers and students** investigate agent identity, behavioral auditing, payment settlement, incentives, and governance, and to grow into a **research tool** that supports trustworthy interaction and collaboration among AI agents.
 
