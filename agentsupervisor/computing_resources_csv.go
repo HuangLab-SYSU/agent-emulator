@@ -16,7 +16,7 @@ import (
 	"github.com/HuangLab-SYSU/block-emulator-x/pkg/core/transaction"
 )
 
-const RWADirName = "rwa"
+const RWADirName = "computing_resources"
 
 var rwaOrdersHeader = []string{
 	"block_height",
@@ -35,6 +35,7 @@ var rwaOrdersHeader = []string{
 	"unit_price",
 	"quantity",
 	"insufficient_balance",
+	"rejected",
 }
 
 var rwaSummaryHeader = []string{
@@ -69,6 +70,7 @@ type rwaTxRow struct {
 	unitPrice           string
 	quantity            uint64
 	insufficientBalance bool
+	rejected            bool
 }
 
 type rwaSummaryRow struct {
@@ -107,16 +109,19 @@ func WriteRWACSVs(ctx context.Context, chainDir string, shardNum int64, outDir s
 		return fmt.Errorf("create rwa dir: %w", err)
 	}
 
-	if err := writeRWAOrdersCSV(filepath.Join(outDir, "rwa_orders.csv"), rows); err != nil {
+	if err := writeRWAOrdersCSV(filepath.Join(outDir, "computing_resources_orders.csv"), rows); err != nil {
 		return err
 	}
-	if err := writeRWAOrdersCSV(filepath.Join(outDir, "rwa_buys.csv"), filterRWARows(rows, transaction.RWAActionBuy)); err != nil {
+
+	if err := writeRWAOrdersCSV(filepath.Join(outDir, "computing_resources_buys.csv"), filterRWARows(rows, transaction.RWAActionBuy)); err != nil {
 		return err
 	}
-	if err := writeRWAOrdersCSV(filepath.Join(outDir, "rwa_sells.csv"), filterRWARows(rows, transaction.RWAActionSell)); err != nil {
+
+	if err := writeRWAOrdersCSV(filepath.Join(outDir, "computing_resources_sells.csv"), filterRWARows(rows, transaction.RWAActionSell)); err != nil {
 		return err
 	}
-	if err := writeRWASummaryCSV(filepath.Join(outDir, "rwa_summary.csv"), buildRWASummary(rows)); err != nil {
+
+	if err := writeRWASummaryCSV(filepath.Join(outDir, "computing_resources_summary.csv"), buildRWASummary(rows)); err != nil {
 		return err
 	}
 
@@ -133,6 +138,7 @@ func buildRWARows(perShard [][]*coreblock.Block) []rwaTxRow {
 	}
 
 	var refs []txRef
+
 	for shard, blocks := range perShard {
 		for _, b := range blocks {
 			for i := range b.TxList {
@@ -157,12 +163,15 @@ func buildRWARows(perShard [][]*coreblock.Block) []rwaTxRow {
 		if !ti.Equal(tj) {
 			return ti.Before(tj)
 		}
+
 		if refs[i].shard != refs[j].shard {
 			return refs[i].shard < refs[j].shard
 		}
+
 		if refs[i].height != refs[j].height {
 			return refs[i].height < refs[j].height
 		}
+
 		return refs[i].index < refs[j].index
 	})
 
@@ -172,6 +181,7 @@ func buildRWARows(perShard [][]*coreblock.Block) []rwaTxRow {
 		if addr == account.EmptyAccountAddr {
 			return big.NewInt(0)
 		}
+
 		if b, ok := balances[addr]; ok {
 			return b
 		}
@@ -186,6 +196,7 @@ func buildRWARows(perShard [][]*coreblock.Block) []rwaTxRow {
 	for _, ref := range refs {
 		tx := ref.tx
 		insufficient := false
+
 		if tx.IsRWABuy() {
 			balance := touch(tx.Sender)
 			if balance.Cmp(tx.Value) >= 0 {
@@ -201,7 +212,7 @@ func buildRWARows(perShard [][]*coreblock.Block) []rwaTxRow {
 		unitPrice := ""
 		if tx.UnitPrice != nil {
 			unitPrice = tx.UnitPrice.String()
-		} else if tx.IsRWABuy() && tx.Quantity > 0 {
+		} else if tx.IsRWABuy() && !tx.Rejected && tx.Quantity > 0 {
 			unitPrice = new(big.Int).Div(new(big.Int).Set(tx.Value), new(big.Int).SetUint64(tx.Quantity)).String()
 		}
 
@@ -222,6 +233,7 @@ func buildRWARows(perShard [][]*coreblock.Block) []rwaTxRow {
 			unitPrice:           unitPrice,
 			quantity:            tx.Quantity,
 			insufficientBalance: insufficient,
+			rejected:            tx.Rejected,
 		})
 	}
 
@@ -278,6 +290,7 @@ func writeRWAOrdersCSV(path string, rows []rwaTxRow) error {
 			row.unitPrice,
 			fmt.Sprintf("%d", row.quantity),
 			strconv.FormatBool(row.insufficientBalance),
+			strconv.FormatBool(row.rejected),
 		}
 		if err := w.Write(record); err != nil {
 			return fmt.Errorf("write rwa csv row: %w", err)
@@ -316,21 +329,26 @@ func buildRWASummary(rows []rwaTxRow) []rwaSummaryRow {
 			if row.agentID != "" {
 				summary.sellers[row.agentID] = struct{}{}
 			}
+
 			if price, ok := new(big.Int).SetString(row.unitPrice, 10); ok {
 				summary.unitPrices = append(summary.unitPrices, price)
 			}
 		case transaction.RWAActionBuy:
 			summary.buyCount++
+
 			summary.totalBuyQuantity += row.quantity
 			if row.agentID != "" {
 				summary.buyers[row.agentID] = struct{}{}
 			}
+
 			if value, ok := new(big.Int).SetString(row.value, 10); ok {
 				summary.totalBuyValue.Add(summary.totalBuyValue, value)
 			}
+
 			if price, ok := new(big.Int).SetString(row.unitPrice, 10); ok {
 				summary.unitPrices = append(summary.unitPrices, price)
 			}
+
 			if row.insufficientBalance {
 				summary.insufficientBalanceCount++
 			}
@@ -362,6 +380,7 @@ func writeRWASummaryCSV(path string, rows []rwaSummaryRow) error {
 
 	for _, row := range rows {
 		minPrice, maxPrice, avgPrice, medianPrice := summarizePrices(row.unitPrices)
+
 		record := []string{
 			row.computeID,
 			fmt.Sprintf("%d", row.sellCount),
@@ -395,6 +414,7 @@ func summarizePrices(prices []*big.Int) (string, string, string, string) {
 	for i, price := range prices {
 		sorted[i] = new(big.Int).Set(price)
 	}
+
 	sort.Slice(sorted, func(i, j int) bool { return sorted[i].Cmp(sorted[j]) < 0 })
 
 	sum := big.NewInt(0)
@@ -403,6 +423,7 @@ func summarizePrices(prices []*big.Int) (string, string, string, string) {
 	}
 
 	avg := new(big.Int).Div(sum, new(big.Int).SetInt64(int64(len(sorted))))
+
 	median := new(big.Int).Set(sorted[len(sorted)/2])
 	if len(sorted)%2 == 0 {
 		median.Add(sorted[len(sorted)/2-1], sorted[len(sorted)/2])

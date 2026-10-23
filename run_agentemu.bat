@@ -65,9 +65,10 @@ for /f "delims=" %%D in ('dir /b /ad "%ARCH_ROOT%\agentemu-results-*" 2^>nul') d
   if /i not "%%D"=="agentemu-results-%ARCH_STAMP%" rmdir /s /q "%ARCH_ROOT%\%%D"
 )
 
-rem Post-experiment figures: plot agent balances from the latest round, build
-rem an HTML gallery and open it in the default browser. A failed experiment
-rem aborts earlier, so this only runs on success (parity with run_agentemu.sh).
+rem Post-experiment figures: plot computing resources trading figures from the latest round,
+rem build an HTML gallery and open it in the default browser. A failed
+rem experiment aborts earlier, so this only runs on success (parity with
+rem run_agentemu.sh).
 set "FIGS_CODE=figs\python_code"
 set "FIGS_OUT=figs\figs_results"
 set "PY=python"
@@ -76,16 +77,16 @@ where python >nul 2>nul || set "PY=py -3"
 set "LATEST_ROUND="
 for /d %%D in ("exp\agentemu-results\round_*") do set "LATEST_ROUND=%%~D\"
 
-if not "%LATEST_ROUND%"=="" if exist "%LATEST_ROUND%agents\agent-*.csv" (
+if not "%LATEST_ROUND%"=="" if exist "%LATEST_ROUND%computing_resources\computing_resources_orders.csv" (
   if not exist "%FIGS_OUT%" mkdir "%FIGS_OUT%"
   rem Drop figures from the previous run so the gallery never mixes runs.
-  del /q "%FIGS_OUT%\*.png" "%FIGS_OUT%\index.html" 2>nul
-  %PY% "%FIGS_CODE%\plot_agent_balance.py" --data-dir "%LATEST_ROUND%agents" --fig-dir "%FIGS_OUT%"
+  del /q "%FIGS_OUT%\*.png" "%FIGS_OUT%\*.pdf" "%FIGS_OUT%\index.html" 2>nul
+  %PY% "%FIGS_CODE%\plot_computing_resources_trades.py" --rwa-dir "%LATEST_ROUND%computing_resources" --fig-dir "%FIGS_OUT%"
   if errorlevel 1 exit /b 1
-  %PY% "%FIGS_CODE%\build_fig_html.py" --fig-dir "%FIGS_OUT%" --data-dir "%LATEST_ROUND%agents"
+  %PY% "%FIGS_CODE%\build_fig_html.py" --fig-dir "%FIGS_OUT%" --rwa-dir "%LATEST_ROUND%computing_resources"
   if errorlevel 1 exit /b 1
   echo   figures ^& gallery : %FIGS_OUT%\index.html
   start "" "%FIGS_OUT%\index.html"
 ) else (
-  echo warn: no agent CSVs under exp\agentemu-results; skip plotting 1>&2
+  echo warn: no computing_resources_orders.csv under exp\agentemu-results; skip computing resources plotting 1>&2
 )

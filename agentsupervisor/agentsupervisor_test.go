@@ -277,3 +277,108 @@ func TestHostRWABuyRequiresSellQuote(t *testing.T) {
 	})
 	require.ErrorContains(t, err, "missing sell quote")
 }
+
+// TestRWABuyInventoryAccounting covers the listing-stock lifecycle: a buy
+// exceeding the remaining stock is refused as a zero-value record-only
+// transfer, a repeated sell accumulates into the remaining stock, and the
+// retry after re-listing settles at unit_price × quantity. The refused buys
+// never move the stock.
+func TestRWABuyInventoryAccounting(t *testing.T) {
+	cfg := testConfig(t)
+	sup, err := NewAgentSupervisor(cfg)
+	require.NoError(t, err)
+
+	sellerAddr, err := didAddress(allocatedDID(cfg.Experiment.Seed, "seller"))
+	require.NoError(t, err)
+
+	result, err := sup.Process([]Record{
+		{AgentID: "seller", Action: ActionJoin, ParamsHash: "seller-doc", TS: 1, Seq: 1},
+		{AgentID: "buyer", Action: ActionJoin, ParamsHash: "buyer-doc", TS: 2, Seq: 2},
+		{AgentID: "seller", Action: ActionSell, ComputeID: "gpu-a100-hour", UnitPrice: "1000", Quantity: 500, RequestID: "s1", TS: 3, Seq: 3},
+		{AgentID: "buyer", Target: "seller", Action: ActionBuy, ComputeID: "gpu-a100-hour", Quantity: 1000, RequestID: "b1", TS: 4, Seq: 4},
+		{AgentID: "seller", Action: ActionSell, ComputeID: "gpu-a100-hour", UnitPrice: "1000", Quantity: 500, RequestID: "s2", TS: 5, Seq: 5},
+		{AgentID: "buyer", Target: "seller", Action: ActionBuy, ComputeID: "gpu-a100-hour", Quantity: 1000, RequestID: "b2", TS: 6, Seq: 6},
+		{AgentID: "buyer", Target: "seller", Action: ActionBuy, ComputeID: "gpu-a100-hour", Quantity: 1, RequestID: "b3", TS: 7, Seq: 7},
+	})
+	require.NoError(t, err)
+	require.Len(t, result.Transactions, 7) // 2 registers + 2 sells + 3 buys
+
+	// First buy exceeds the 500 listing: refused, zero value, recipient is
+	// still the seller so the intent is auditable on-chain.
+	rejected1 := result.Transactions[3]
+	require.True(t, rejected1.IsRWABuyRejected())
+	require.True(t, rejected1.IsRWABuy())
+	require.Equal(t, sellerAddr, rejected1.Recipient)
+	require.Zero(t, rejected1.Value.Int64())
+	require.Empty(t, rejected1.Data)
+	require.EqualValues(t, 1000, rejected1.Quantity)
+
+	// Second buy settles after the seller re-listed 500 more (500+500=1000).
+	settled := result.Transactions[5]
+	require.True(t, settled.IsRWABuy())
+	require.False(t, settled.IsRWABuyRejected())
+	require.Equal(t, sellerAddr, settled.Recipient)
+	require.Equal(t, "1000000", settled.Value.String()) // 1000 × 1000
+
+	// Third buy hits an empty stock (1000-1000=0): refused again.
+	rejected2 := result.Transactions[6]
+	require.True(t, rejected2.IsRWABuyRejected())
+	require.Zero(t, rejected2.Value.Int64())
+
+	// One metric per action; refused buys carry their own kind.
+	kinds := make([]string, 0, len(result.Metrics))
+	for _, event := range result.Metrics {
+		kinds = append(kinds, event.Kind)
+	}
+	require.Equal(t, []string{
+		"did_register", "did_register",
+		"rwa_sell_onchain", "rwa_buy_rejected",
+		"rwa_sell_onchain", "rwa_buy_onchain",
+		"rwa_buy_rejected",
+	}, kinds)
+
+	// The action map and the plan carry the refused flag end-to-end.
+	outDir := t.TempDir()
+	require.NoError(t, sup.WriteResult(outDir, result))
+
+	links := readActionTxLinks(t, filepath.Join(outDir, ActionTxMapFileName))
+	require.Len(t, links, 7)
+	require.False(t, links[5].Rejected)
+	require.True(t, links[3].Rejected)
+	require.True(t, links[6].Rejected)
+	require.Len(t, links[3].TxHashes, 1) // refused buys still map to their record tx
+
+	planRaw, err := os.ReadFile(filepath.Join(outDir, PlanFileName))
+	require.NoError(t, err)
+	require.Contains(t, string(planRaw), `"rwa_rejected":true`)
+	require.Len(t, findAllPlanLines(t, string(planRaw)), 7)
+}
+
+func readActionTxLinks(t *testing.T, path string) []ActionTxLink {
+	t.Helper()
+
+	raw, err := os.ReadFile(path)
+	require.NoError(t, err)
+
+	links := make([]ActionTxLink, 0, 8)
+	for _, line := range strings.Split(strings.TrimSpace(string(raw)), "\n") {
+		var link ActionTxLink
+		require.NoError(t, json.Unmarshal([]byte(line), &link))
+		links = append(links, link)
+	}
+
+	return links
+}
+
+func findAllPlanLines(t *testing.T, raw string) []map[string]any {
+	t.Helper()
+
+	lines := make([]map[string]any, 0, 8)
+	for _, line := range strings.Split(strings.TrimSpace(raw), "\n") {
+		var obj map[string]any
+		require.NoError(t, json.Unmarshal([]byte(line), &obj))
+		lines = append(lines, obj)
+	}
+
+	return lines
+}

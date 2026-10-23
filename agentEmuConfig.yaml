@@ -6,7 +6,7 @@ base:
   module_root: "."
 experiment:
   seed: 20260903
-  trace: ./traces/rwa_compute_demo.jsonl
+  trace: ./traces/computing_resources_demo.jsonl
 chain:
   # When true, each round's transaction plan is automatically executed on a
   # freshly launched BlockEmulator-X cluster (consensus nodes + supervisor):

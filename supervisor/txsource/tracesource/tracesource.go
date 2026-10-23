@@ -32,6 +32,8 @@ type traceLine struct {
 	ComputeID string `json:"compute_id"`
 	UnitPrice string `json:"unit_price"`
 	Quantity  uint64 `json:"quantity"`
+
+	RWARejected bool `json:"rwa_rejected"`
 }
 
 // TraceSourceJSONL implements TxSource by reading a JSONL trace file
@@ -201,6 +203,7 @@ func fillRWATxOpt(tx *transaction.Transaction, tl traceLine) error {
 			RequestID: tl.RequestID,
 			ComputeID: tl.ComputeID,
 			Quantity:  tl.Quantity,
+			Rejected:  tl.RWARejected,
 		}
 	default:
 		return fmt.Errorf("unsupported rwa_action %q", tl.RWAAction)

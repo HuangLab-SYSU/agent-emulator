@@ -129,7 +129,10 @@ func validateAgentRecord(record Record, line int) error {
 		}
 	case ActionSell:
 		if record.ComputeID == "" || record.UnitPrice == "" || record.Quantity == 0 {
-			return fmt.Errorf("invalid sell trace line %d: compute_id, unit_price and positive quantity are required", line)
+			return fmt.Errorf(
+				"invalid sell trace line %d: compute_id, unit_price and positive quantity are required",
+				line,
+			)
 		}
 
 		price, ok := new(big.Int).SetString(record.UnitPrice, 10)

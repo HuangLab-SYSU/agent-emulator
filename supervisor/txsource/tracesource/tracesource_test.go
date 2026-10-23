@@ -69,6 +69,7 @@ func TestTraceSourceJSONLMissingFile(t *testing.T) {
 func TestTraceSourceJSONLReadsRWATransactions(t *testing.T) {
 	fixture := `{"hash":"s1","sender":"0x0000000000000000000000000000000000000001","recipient":"","value":"","nonce":0,"data":"0x","rwa_action":"sell","agent_id":"seller","request_id":"sell-1","compute_id":"gpu-a100-hour","unit_price":"500000","quantity":100}
 {"hash":"b1","sender":"0x0000000000000000000000000000000000000002","recipient":"0x0000000000000000000000000000000000000001","value":"5000000","nonce":0,"data":"0x","rwa_action":"buy","agent_id":"buyer","target_id":"seller","request_id":"buy-1","compute_id":"gpu-a100-hour","quantity":10}
+{"hash":"b2","sender":"0x0000000000000000000000000000000000000002","recipient":"0x0000000000000000000000000000000000000001","value":"0","nonce":1,"data":"0x","rwa_action":"buy","agent_id":"buyer","target_id":"seller","request_id":"buy-2","compute_id":"gpu-a100-hour","quantity":1000,"rwa_rejected":true}
 `
 	dir := t.TempDir()
 	file := filepath.Join(dir, "agent_transactions.jsonl")
@@ -79,7 +80,7 @@ func TestTraceSourceJSONLReadsRWATransactions(t *testing.T) {
 
 	txs, err := src.ReadTxs(10)
 	require.NoError(t, err)
-	require.Len(t, txs, 2)
+	require.Len(t, txs, 3)
 	require.True(t, txs[0].IsRWASell())
 	require.Equal(t, transaction.NormalTxType, txs[0].TxType())
 	require.Empty(t, txs[0].Data)
@@ -87,6 +88,12 @@ func TestTraceSourceJSONLReadsRWATransactions(t *testing.T) {
 	require.True(t, txs[1].IsRWABuy())
 	require.Equal(t, "5000000", txs[1].Value.String())
 	require.EqualValues(t, 10, txs[1].Quantity)
+	require.False(t, txs[1].IsRWABuyRejected())
+
+	// A refused buy keeps its record-only marker through the replay.
+	require.True(t, txs[2].IsRWABuyRejected())
+	require.Zero(t, txs[2].Value.Int64())
+	require.EqualValues(t, 1000, txs[2].Quantity)
 }
 
 func TestTraceSourceJSONLRejectsRWAData(t *testing.T) {

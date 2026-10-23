@@ -6,11 +6,13 @@ infrastructure by HuangLab @ SYSU, built on top of BlockEmulator-X (module
 as JSONL **traces** of agent behavior (`join` / `pay` / `leave` + plain transfers);
 the **agentSupervisor** compiles a trace into a transaction dataset, launches a
 fresh BlockEmulator-X chain, replays the transactions, records per-agent ledgers,
-and plots balance figures into a bilingual HTML gallery.
+and plots computing resources trading figures into a bilingual HTML gallery.
 
 ## How an experiment runs
 - Entry point `bash run_agentemu.sh` (Windows: `run_agentemu.bat`): `go build ./...`
-  → wipe `./exp` → run `cmd/agentemu` → auto-plot → open `figs/archived_results/figs_results-rwa-20261009-1350/index.html`.
+  → wipe `./exp` → run `cmd/agentemu` → rolling-archive results into
+  `archived_runs/` (timestamped, only the newest archive is kept, local-only
+  per `.gitignore`) → auto-plot → open `figs/figs_results/index.html`.
 - `cmd/agentemu/main.go` loads `agentEmuConfig.yaml`, then `agentsupervisor` drives
   the pipeline: `trace.go` (parse/validate trace, derive DIDs from `seed`+`agent_id`,
   nonces, data fields) → `registry.go` (`agent_registry.json`, `active` state) →
@@ -32,6 +34,11 @@ and plots balance figures into a bilingual HTML gallery.
 - `pay`: both `agent_id` and `target` must be `active` (joined, not left); `amount`
   must be a positive integer; `request_id` should be globally unique (links intent →
   tx hashes → ledgers); `params_hash` is version metadata, written through as-is.
+- `buy`/`sell`: a `sell` lists stock for `(agent_id, compute_id)` and repeated sells
+  ACCUMULATE the remaining quantity (latest `unit_price` wins). A `buy` whose
+  `quantity` exceeds the remaining stock is REFUSED: it compiles to a zero-value
+  record-only transfer flagged `RWATxOpt.Rejected` (on-chain audit trail, no balance
+  movement, stock untouched) and the run continues; settled buys decrement the stock.
 - `join`/`leave` compile to DID `register`/`revoke` contract calls (record-only in
   v1.0 — the DID contract is not deployed); `pay` compiles to a real balance transfer.
   Never write DIDs into traces — they are derived deterministically from `seed`.
@@ -46,16 +53,27 @@ and plots balance figures into a bilingual HTML gallery.
   (`direct`/`libp2p`). When changing shard/node counts, also update `ip_table.json`.
 
 ## Outputs & analysis
-- `archived_runs/agentmu-results-rwa-expanded-20261009-1350/agentemu-results/`: `agent_registry.json`, `rounds_summary.json`,
+- Rolling archives live in `archived_runs/agentemu-results-<timestamp>/` (newest
+  kept, local-only): `agent_registry.json`, `rounds_summary.json`,
   `round_001/{agent_transactions.jsonl, agent_action_txs.jsonl, Agent_Events.csv,
-  agents/agent-XXX.csv, chain/{logs/, results/relay_stats_*.csv}}`.
+  agents/agent-XXX.csv, computing_resources/*.csv, chain/{logs/, results/relay_stats_*.csv},
+  audit_report.json, audit_trail.csv}`.
 - Agent CSV columns: `block_height, tx_hash, sender, recipient, value, balance,
   block_time_ms`. `balance` ≈ 10^36 — exceeds int64, always read as string.
 - Confirmation analysis joins `agent_action_txs.jsonl` (request_id → tx hashes) with
   `relay_stats_detail_tx_info.csv` (hash → commit times); latency =
   `Tx finally commit time − Tx create time`.
-- Plotting: `figs/python_code/plot_agent_balance.py` + `build_fig_html.py`; rerun
-  manually with `--data-dir exp/agentemu-results/round_XXX/agents` and `--fig-dir`.
+- Plotting: the run scripts auto-plot with `figs/python_code/plot_computing_resources_trades.py` +
+  `build_fig_html.py` (Times New Roman, no in-figure titles — the gallery puts the
+  numbered captions outside the images; outputs PNG for the gallery + PDF for paper
+  typesetting). Rerun manually with
+  `--rwa-dir exp/agentemu-results/round_XXX/computing_resources` and `--fig-dir`. The plot script
+  de-duplicates `computing_resources_orders.csv` rows by `tx_hash` (each cross-shard tx is committed
+  on two shards) and counts only settled buys for trading stats; refused buys
+  (`rejected` / `insufficient_balance`) appear as a third bar in the per-agent
+  counts figure only. `computing_resources_agent_network` draws the directed
+  buyer->seller trade network (edge width proportional to settled value).
+  `plot_agent_balance.py` still exists for per-agent balance figures (manual only).
   Both `exp/` and `figs/figs_results/` are wiped on every run — back up before reruns.
 - Generate test traces with `scripts/gen_pay_trace.py`; samples live in `traces/`
   (`minimal.jsonl`, `agent=100_txs=10000.jsonl`).

@@ -22,7 +22,7 @@
 {"agent_id":"agent-010","action":"sell","compute_id":"cpu-epyc-core-hour","unit_price":"92000","quantity":700,"ts":22,"request_id":"sell-agent-010-epyc"}
 {"agent_id":"agent-011","action":"sell","compute_id":"tpu-v4-hour","unit_price":"1220000","quantity":36,"ts":23,"request_id":"sell-agent-011-tpu"}
 {"agent_id":"agent-012","action":"sell","compute_id":"fpga-vu9p-hour","unit_price":"585000","quantity":90,"ts":24,"request_id":"sell-agent-012-fpga"}
-{"agent_id":"agent-003","action":"buy","target":"agent-001","compute_id":"gpu-a100-hour","quantity":12,"ts":25,"request_id":"buy-001"}
+{"agent_id":"agent-003","action":"buy","target":"agent-001","compute_id":"gpu-a100-hour","quantity":1000,"ts":25,"request_id":"buy-001"}
 {"agent_id":"agent-004","action":"buy","target":"agent-002","compute_id":"gpu-a100-hour","quantity":8,"ts":26,"request_id":"buy-002"}
 {"agent_id":"agent-005","action":"buy","target":"agent-003","compute_id":"gpu-h100-hour","quantity":6,"ts":27,"request_id":"buy-003"}
 {"agent_id":"agent-006","action":"buy","target":"agent-004","compute_id":"gpu-h100-hour","quantity":4,"ts":28,"request_id":"buy-004"}
@@ -46,3 +46,12 @@
 {"agent_id":"agent-011","action":"buy","target":"agent-006","compute_id":"cpu-xeon-core-hour","quantity":210,"ts":46,"request_id":"buy-022"}
 {"agent_id":"agent-001","action":"buy","target":"agent-012","compute_id":"fpga-vu9p-hour","quantity":13,"ts":47,"request_id":"buy-023"}
 {"agent_id":"agent-003","action":"buy","target":"agent-011","compute_id":"tpu-v4-hour","quantity":4,"ts":48,"request_id":"buy-024"}
+{"agent_id":"agent-001","action":"sell","compute_id":"gpu-a100-hour","unit_price":"480000","quantity":100,"ts":49,"request_id":"sell-agent-001-a100-2"}
+{"agent_id":"agent-003","action":"buy","target":"agent-001","compute_id":"gpu-a100-hour","quantity":250,"ts":50,"request_id":"buy-025"}
+{"agent_id":"agent-003","action":"buy","target":"agent-001","compute_id":"gpu-a100-hour","quantity":1,"ts":51,"request_id":"buy-026"}
+{"agent_id":"agent-003","action":"buy","target":"agent-001","compute_id":"gpu-a100-hour","quantity":1,"ts":52,"request_id":"buy-027"}
+{"agent_id":"agent-005","action":"buy","target":"agent-007","compute_id":"tpu-v4-hour","quantity":40,"ts":53,"request_id":"buy-028"}
+{"agent_id":"agent-007","action":"buy","target":"agent-002","compute_id":"gpu-a100-hour","quantity":100,"ts":54,"request_id":"buy-029"}
+{"agent_id":"agent-005","action":"buy","target":"agent-008","compute_id":"fpga-vu9p-hour","quantity":60,"ts":55,"request_id":"buy-030"}
+{"agent_id":"agent-009","action":"buy","target":"agent-011","compute_id":"tpu-v4-hour","quantity":50,"ts":56,"request_id":"buy-031"}
+{"agent_id":"agent-007","action":"buy","target":"agent-012","compute_id":"fpga-vu9p-hour","quantity":90,"ts":57,"request_id":"buy-032"}

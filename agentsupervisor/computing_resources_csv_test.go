@@ -1,7 +1,10 @@
 package agentsupervisor
 
 import (
+	"encoding/csv"
 	"math/big"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -66,4 +69,61 @@ func TestBuildRWARowsMarksInsufficientBalance(t *testing.T) {
 	rows := buildRWARows([][]*coreblock.Block{{newBlock(1, time.UnixMilli(10), *buy)}})
 	require.Len(t, rows, 1)
 	require.True(t, rows[0].insufficientBalance)
+}
+
+// TestBuildRWARowsMarksRejectedBuy verifies that a refused buy keeps its
+// zero-value record-only transfer in the orders CSV with rejected=true and
+// without a derived unit price.
+func TestBuildRWARowsMarksRejectedBuy(t *testing.T) {
+	seller := account.Address{1}
+	buyer := account.Address{2}
+
+	buy := transaction.NewTransaction(buyer, seller, big.NewInt(0), big.NewInt(0), 0, time.UnixMilli(1))
+	buy.RWATxOpt = transaction.RWATxOpt{
+		RWAAction: transaction.RWAActionBuy,
+		AgentID:   "buyer",
+		TargetID:  "seller",
+		RequestID: "b1",
+		ComputeID: "gpu-a100-hour",
+		Quantity:  1000,
+		Rejected:  true,
+	}
+
+	rows := buildRWARows([][]*coreblock.Block{{newBlock(1, time.UnixMilli(10), *buy)}})
+	require.Len(t, rows, 1)
+	require.True(t, rows[0].rejected)
+	require.False(t, rows[0].insufficientBalance)
+	require.Equal(t, "0", rows[0].value)
+	require.Equal(t, "", rows[0].unitPrice)
+
+	records := writeAndReadOrdersCSV(t, rows)
+	require.Equal(t, "true", records[0]["rejected"])
+}
+
+// writeAndReadOrdersCSV round-trips rows through writeRWAOrdersCSV so header
+// and cell alignment stay honest.
+func writeAndReadOrdersCSV(t *testing.T, rows []rwaTxRow) []map[string]string {
+	t.Helper()
+
+	path := filepath.Join(t.TempDir(), "rwa_orders.csv")
+	require.NoError(t, writeRWAOrdersCSV(path, rows))
+
+	f, err := os.Open(path)
+	require.NoError(t, err)
+	defer func() { _ = f.Close() }()
+
+	records, err := csv.NewReader(f).ReadAll()
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, len(records), 2)
+
+	out := make([]map[string]string, 0, len(records)-1)
+	for _, record := range records[1:] {
+		row := map[string]string{}
+		for i, name := range rwaOrdersHeader {
+			row[name] = record[i]
+		}
+		out = append(out, row)
+	}
+
+	return out
 }

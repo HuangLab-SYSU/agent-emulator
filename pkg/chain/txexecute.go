@@ -62,7 +62,14 @@ func normalTxExecute(v *vm.Executor, tx transaction.Transaction) error {
 
 	if !core.CanTransfer(s, sAddr, uVal) {
 		if tx.IsRWABuy() {
-			slog.Warn("rwa buy balance is not enough; keep transaction on-chain without balance update", "sender", fmt.Sprintf("%x", tx.Sender), "value", tx.Value.String())
+			slog.Warn(
+				"rwa buy balance is not enough; keep transaction on-chain without balance update",
+				"sender",
+				fmt.Sprintf("%x", tx.Sender),
+				"value",
+				tx.Value.String(),
+			)
+
 			return nil
 		}
 

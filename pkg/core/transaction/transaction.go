@@ -78,6 +78,11 @@ type RWATxOpt struct {
 	ComputeID string
 	UnitPrice *big.Int
 	Quantity  uint64
+	// Rejected marks a buy the supervisor refused because the requested
+	// quantity exceeded the seller's remaining listed stock: it is compiled
+	// as a zero-value record-only transfer so the refused intent stays
+	// auditable on-chain without moving any balance.
+	Rejected bool
 }
 
 func NewTransaction(
@@ -125,6 +130,12 @@ func (tx *Transaction) IsRWABuy() bool {
 
 func (tx *Transaction) IsRWASell() bool {
 	return tx.RWAAction == RWAActionSell
+}
+
+// IsRWABuyRejected reports whether this transaction is a refused RWA buy
+// kept on-chain as a zero-value record-only transfer.
+func (tx *Transaction) IsRWABuyRejected() bool {
+	return tx.IsRWABuy() && tx.Rejected
 }
 
 // TxType returns the type of a transaction by its variables.

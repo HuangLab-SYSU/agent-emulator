@@ -115,6 +115,7 @@ func (c *CLPARelayCommittee) HandleMsg(_ context.Context, msg *rpcserver.Wrapped
 		if tx.IsRWATx() {
 			continue
 		}
+
 		c.state.AddEdge(partition.Vertex{Addr: tx.Sender}, partition.Vertex{Addr: tx.Recipient})
 	}
 
@@ -122,6 +123,7 @@ func (c *CLPARelayCommittee) HandleMsg(_ context.Context, msg *rpcserver.Wrapped
 		if tx.IsRWATx() {
 			continue
 		}
+
 		c.state.AddEdge(partition.Vertex{Addr: tx.Sender}, partition.Vertex{Addr: tx.Recipient})
 	}
 

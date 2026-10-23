@@ -252,6 +252,7 @@ func (c *CLPABrokerCommittee) handleBlockInfoMsg(ctx context.Context, bInfo *mes
 		if tx.IsRWATx() {
 			continue
 		}
+
 		c.state.AddEdge(partition.Vertex{Addr: tx.Sender}, partition.Vertex{Addr: tx.Recipient})
 	}
 
@@ -259,6 +260,7 @@ func (c *CLPABrokerCommittee) handleBlockInfoMsg(ctx context.Context, bInfo *mes
 		if tx.IsRWATx() {
 			continue
 		}
+
 		c.state.AddEdge(partition.Vertex{Addr: tx.Sender}, partition.Vertex{Addr: tx.Recipient})
 	}
 

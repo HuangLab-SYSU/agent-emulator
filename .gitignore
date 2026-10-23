@@ -43,3 +43,8 @@ __pycache__/
 # only the newest is kept. Local demo/audit evidence, not version-controlled.
 archived_runs/
 figs/archived_results/
+
+# ZCode 会话目录与本地测试产物, 不入库
+# ZCode session dir and local test artifacts, not tracked.
+.zcode/
+pkg/vm/test_vm_state/

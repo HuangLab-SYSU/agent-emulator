@@ -492,7 +492,7 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 
 
-以下各小节依次介绍自动绘图流程、四张实验图表的展示内容、图册页面的使用方法，以及无需重新运行实验的手动绘图方法。
+以下各小节依次介绍自动绘图流程、算力资源交易图表的展示内容、图册页面的使用方法，以及无需重新运行实验的手动绘图方法。
 
 
 
@@ -500,13 +500,13 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 `run_agentemu.sh`（Windows 下为 `run_agentemu.bat`）脚本文件在实验成功结束后将自动执行以下操作：
 
-1. 定位 `exp/agentemu-results/` 路径下 round 编号最大一轮的 `agents/` 目录
+1. 定位 `exp/agentemu-results/` 路径下 round 编号最大一轮的 `computing_resources/` 目录（须包含 `computing_resources_orders.csv`）
 
 2. 清空 `figs/figs_results/` 里的旧实验图与旧 `index.html`文件
 
-3. 运行 `figs/python_code/plot_agent_balance.py` 生成全部实验图的 PNG 格式图片
+3. 运行 `figs/python_code/plot_computing_resources_trades.py` 生成全部算力资源交易图的 PNG 与 PDF 文件；脚本会先按 `tx_hash` 去重（同一笔跨分片交易会在两个分片各提交一次），成交统计只使用真正成交的买单
 
-4. 运行 `figs/python_code/build_fig_html.py` 生成展示实验结果图表的 html 页面
+4. 运行 `figs/python_code/build_fig_html.py` 生成展示算力资源交易图表的 html 页面，图标题放在图像外侧的章节标题栏
 
 5. 模拟器调用网页打开命令在实验人员计算机的默认浏览器中打开 `figs/figs_results/index.html` 页面，展示绘图结果。根据实验人员设备的操作系统类型不同，网页打开命令具体如下：macOS 使用 `open`命令，Linux 使用 `xdg-open`命令，Windows 使用 `start`命令。
 
@@ -518,12 +518,19 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 |实验结果图表的 HTML 页面中实验图编号|内容|对应的 PNG 文件|
 |---|---|---|
-|图 1|全部 Agent 余额变化总览：左图“按 Agent ID”，右图“按 Δbalance 升序”展示所有 Agent 余额变化的柱状图|`fig1_all_agents_overview.png`|
-|图 2|按照交易顺序统计所有 Agent 的余额分布。主要过程如下：先按照 tx_hash 去重后按确定性顺序回放 每个 Agent 的余额变化，然后展示所有 Agent 余额变化最小/最大位置线、四分位线与均值线|`fig2_global_tx_order.png`|
-|图 3|按不同 Agent 的交易进度归一化对齐：各 Agent 自身交易序号拉伸到 0–1 后叠加，另附所有 Agent 的交易处理完成后所有 Agent 余额变化均值标注|`fig3_normalized_progress.png`|
-|图 4|分组展示各个 Agent 的余额变化：每 5 个 Agents 一张子图，使用虚线标注每个 Agent 所在分片相邻两个区块的分界点|`fig4_agents_001-005.png` … `fig4_agents_096-100.png`|
+|图 1|各 Agent 成交买入次数、挂卖次数与未成交买单次数分组柱状图|`computing_resources_agent_buy_sell_counts.png`|
+|图 2|各 Agent 净交易额（作为卖方所得 − 作为买方支出），绿色为净卖方、红色为净买方|`computing_resources_agent_net_value.png`|
+|图 3|Agent 交易网络图：节点为 Agent，有向边由买方指向卖方，线宽∝成交金额；节点大小=交易总规模，颜色=净买方/净卖方|`computing_resources_agent_network.png`|
+|图 4|各算力资源（compute_id）成交总金额柱状图|`computing_resources_value_by_compute.png`|
+|图 5|各算力资源按成交金额的市场份额饼图|`computing_resources_compute_market_share.png`|
+|图 6|各算力资源总成交数量-总成交金额气泡图，气泡大小=成交笔数，气泡到原点斜率≈平均成交单价|`computing_resources_quantity_value_bubble.png`|
+|图 7|各算力资源成交单价分布箱线图|`computing_resources_price_boxplot.png`|
+|图 8|各算力资源成交数量分布箱线图|`computing_resources_quantity_boxplot.png`|
+|图 9|单笔成交单价-数量散点图，颜色区分算力资源、点大小=成交金额|`computing_resources_price_quantity_scatter.png`|
+|图 10|各算力资源按成交顺序的累计成交金额阶梯曲线|`computing_resources_cumulative_value_timeline.png`|
+|图 11|买方-卖方成交金额热力图（谁向谁买了多少）|`computing_resources_buyer_seller_heatmap.png`|
 
-请注意，所有实验图绘制的是**相对初始余额的变化量 Δbalance = balance − 初始余额**。
+请注意：缺数据的图会自动跳过；图内不含标题，标题由图册页面放在图像外侧的章节标题栏；所有金额均以 wei 原始单位计。
 
 
 
@@ -581,7 +588,7 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 - 顶部深色页眉：标题、生成时间、图表数量、数据来源目录与 Agent 数
 
-- 绘制出的实验图中，图 1/2/3 整幅展示，图 4 为所有 Agents 按照每 5 个 Agent 为一组绘制的 Agent 余额变化图；实验人员可**点击任意图片即可打开对应的原图**
+- 绘制出的算力资源交易图每张独占一个编号章节（图 1..N），标题放在图像外侧的章节标题栏；实验人员可**点击任意图片即可打开对应的原图**
 
 - **中英文切换**：右上角按钮（当前中文时显示 "EN"，英文时显示"中文"），或按键盘 `L` 键；切换作用于页面标题、章节标题、元信息与页脚，语言偏好自动记忆，下次打开该 html 页面时保持上一次的设置
 
@@ -603,15 +610,15 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 ```Bash
 # 默认：自动选取最新一轮实验结果，输出到 figs/figs_results/
-python3 figs/python_code/plot_agent_balance.py
+python3 figs/python_code/plot_computing_resources_trades.py
 python3 figs/python_code/build_fig_html.py
 
 # 指定数据目录与输出目录（例如用历史快照重新绘制）
-python3 figs/python_code/plot_agent_balance.py \
-    --data-dir exp/agentemu-results/round_001/agents \
+python3 figs/python_code/plot_computing_resources_trades.py \
+    --rwa-dir exp/agentemu-results/round_001/computing_resources \
     --fig-dir figs/figs_results
 python3 figs/python_code/build_fig_html.py \
-    --data-dir exp/agentemu-results/round_001/agents
+    --rwa-dir exp/agentemu-results/round_001/computing_resources
 
 # 只生成页面不重新画图
 python3 figs/python_code/build_fig_html.py
@@ -623,11 +630,11 @@ open figs/figs_results/index.html        # macOS
 Windows 下等价命令（实验人员可通过 cmd 运行以下命令，路径使用反斜杠；`python` 不可用时改用 `py -3`）：
 
 ```Plaintext
-python figs\python_code\plot_agent_balance.py
+python figs\python_code\plot_computing_resources_trades.py
 python figs\python_code\build_fig_html.py
 
-python figs\python_code\plot_agent_balance.py --data-dir exp\agentemu-results\round_001\agents --fig-dir figs\figs_results
-python figs\python_code\build_fig_html.py --data-dir exp\agentemu-results\round_001\agents
+python figs\python_code\plot_computing_resources_trades.py --rwa-dir exp\agentemu-results\round_001\computing_resources --fig-dir figs\figs_results
+python figs\python_code\build_fig_html.py --rwa-dir exp\agentemu-results\round_001\computing_resources
 
 rem 打开图册
 start "" figs\figs_results\index.html
@@ -637,10 +644,10 @@ start "" figs\figs_results\index.html
 
 |脚本|参数|默认值|说明|
 |---|---|---|---|
-|`plot_agent_balance.py`|`--data-dir`|自动选最新一轮 `agents/`|Agent CSV 所在目录|
-||`--fig-dir`|`figs/figs_results/`|绘图结果的 PNG 图片输出目录|
+|`plot_computing_resources_trades.py`|`--rwa-dir`|自动选最新一轮 `computing_resources/`|包含 `computing_resources_orders.csv` 的算力资源数据目录|
+||`--fig-dir`|`figs/figs_results/`|绘图结果的 PNG/PDF 图片输出目录|
 |`build_fig_html.py`|`--fig-dir`|`figs/figs_results/`|扫描 PNG 并在此生成 `index.html`页面|
-||`--data-dir`|无|仅用于页面显示数据来源与 Agent 数量|
+||`--rwa-dir`|无|仅用于页面显示算力资源数据来源|
 
 
 
@@ -737,13 +744,13 @@ join 操作只有在 Agent **首次加入或离开后重新加入**时才会生�
 
 **Q8：实验人员如何使用历史数据重新绘制实验图？**
 
-实验人员可将 `--data-dir` 参数设置为目标实验轮次的 `round_XXX/agents/` 目录，并手动执行绘图脚本。由于 `run_agentemu.sh` 每次运行时都会清空 `exp/` 和 `figs/figs_results/` 目录，实验人员应在运行前备份需要保留的历史数据和图表。
+实验人员可将 `--rwa-dir` 参数设置为目标实验轮次的 `round_XXX/computing_resources/` 目录，并手动执行绘图脚本。由于 `run_agentemu.sh` 每次运行时都会清空 `exp/` 和 `figs/figs_results/` 目录，实验人员应在运行前备份需要保留的历史数据和图表。
 
 
 
-**Q9：实验图图 4 包含较多子图，实验人员如何调整 Agent 的展示范围或分组方式？**
+**Q9：实验人员如何新增或调整算力资源交易图表？**
 
-当前绘图脚本按照每组 5 个 Agent 的规则生成实验图图 4 的子图。实验人员可修改 `figs/python_code/plot_agent_balance.py` 文件中图 4 对应的绘图代码，筛选需要展示的 Agent，或调整分组大小。其中，`range(0, len(dfs), 5)` 中的 `5` 表示每组包含的 Agent 数量。
+每张算力资源图对应 `figs/python_code/plot_computing_resources_trades.py` 中的一个 `save_*` 绘图函数。实验人员可修改已有函数的统计口径或样式，或仿照现有函数新增绘图函数并在 `main()` 中调用；若需在 HTML 图册中展示新图，还应把新图的 PNG 文件名前缀登记到 `figs/python_code/build_fig_html.py` 的 `FIG_SECTIONS` 列表中（列表顺序即图册展示顺序）。
 
 
 

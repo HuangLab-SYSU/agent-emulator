@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -52,8 +53,12 @@ type sellQuote struct {
 	ComputeID     string
 	UnitPrice     *big.Int
 	Quantity      uint64
-	RequestID     string
-	TS            int64
+	// Remaining is the compile-time inventory still available for this
+	// quote: every sell action accumulates into it and every settled buy
+	// decrements it. Rejected buys leave it untouched.
+	Remaining uint64
+	RequestID string
+	TS        int64
 }
 
 // ActionTxLink is one trace action and the transactions it compiled into.
@@ -70,6 +75,10 @@ type ActionTxLink struct {
 	RequestID  string   `json:"request_id"`
 	ParamsHash string   `json:"params_hash"`
 	TxHashes   []string `json:"tx_hashes"`
+	// Rejected marks a buy refused for exceeding the seller's remaining
+	// listed quantity; its single transaction is a zero-value record-only
+	// transfer.
+	Rejected bool `json:"rejected,omitempty"`
 }
 
 // AgentSupervisor compiles lifecycle and payment actions into existing transactions.
@@ -222,12 +231,25 @@ func (s *AgentSupervisor) processSell(record Record) error {
 		return err
 	}
 
+	// A repeated sell listing accumulates into the remaining stock of the
+	// same (seller, compute_id) quote; the latest unit price wins.
+	remaining, err := addQuantity(s.quotes[quoteKey(record.AgentID, record.ComputeID)].Remaining, record.Quantity)
+	if err != nil {
+		return fmt.Errorf(
+			"accumulate sell quantity for seller %q compute_id %q: %w",
+			record.AgentID,
+			record.ComputeID,
+			err,
+		)
+	}
+
 	quote := sellQuote{
 		SellerAgentID: record.AgentID,
 		SellerAddr:    sellerAddr,
 		ComputeID:     record.ComputeID,
 		UnitPrice:     new(big.Int).Set(unitPrice),
 		Quantity:      record.Quantity,
+		Remaining:     remaining,
 		RequestID:     record.RequestID,
 		TS:            record.TS,
 	}
@@ -268,6 +290,31 @@ func (s *AgentSupervisor) processBuy(record Record) error {
 	if !ok {
 		return fmt.Errorf("missing sell quote for seller %q compute_id %q", record.Target, record.ComputeID)
 	}
+
+	if record.Quantity > quote.Remaining {
+		// Refuse the buy but keep the intent auditable on-chain: compile a
+		// zero-value record-only transfer to the seller; the remaining stock
+		// stays untouched.
+		tx := s.appendBigTx(buyerAddr, quote.SellerAddr, big.NewInt(0), nil, record.TS)
+		tx.RWATxOpt = transaction.RWATxOpt{
+			RWAAction: transaction.RWAActionBuy,
+			AgentID:   record.AgentID,
+			TargetID:  record.Target,
+			RequestID: record.RequestID,
+			ComputeID: record.ComputeID,
+			Quantity:  record.Quantity,
+			Rejected:  true,
+		}
+
+		s.links[s.curLink].Rejected = true
+		s.linkLastTxTo(s.curLink)
+		s.metric("rwa_buy_rejected", record)
+
+		return nil
+	}
+
+	quote.Remaining -= record.Quantity
+	s.quotes[quoteKey(record.Target, record.ComputeID)] = quote
 
 	value := new(big.Int).Mul(quote.UnitPrice, new(big.Int).SetUint64(record.Quantity))
 	tx := s.appendBigTx(buyerAddr, quote.SellerAddr, value, nil, record.TS)
@@ -374,7 +421,12 @@ func (s *AgentSupervisor) appendTx(from, to account.Address, amount uint64, data
 	s.appendBigTx(from, to, new(big.Int).SetUint64(amount), data, ts)
 }
 
-func (s *AgentSupervisor) appendBigTx(from, to account.Address, amount *big.Int, data []byte, ts int64) *transaction.Transaction {
+func (s *AgentSupervisor) appendBigTx(
+	from, to account.Address,
+	amount *big.Int,
+	data []byte,
+	ts int64,
+) *transaction.Transaction {
 	nonce := s.nonces[from]
 	s.nonces[from]++
 	tx := transaction.NewTransaction(from, to, new(big.Int).Set(amount), big.NewInt(0), nonce, time.UnixMilli(ts))
@@ -410,6 +462,15 @@ func (s *AgentSupervisor) appendContractTx(from account.Address, address string,
 
 func quoteKey(agentID, computeID string) string {
 	return agentID + "\x00" + computeID
+}
+
+// addQuantity sums two stock quantities, refusing uint64 overflow.
+func addQuantity(a, b uint64) (uint64, error) {
+	if a > math.MaxUint64-b {
+		return 0, fmt.Errorf("quantity overflow: %d + %d exceeds uint64", a, b)
+	}
+
+	return a + b, nil
 }
 
 func parseRWAUnitPrice(raw string) (*big.Int, error) {
@@ -493,19 +554,20 @@ func writeActionTxMap(dir string, links []ActionTxLink) error {
 }
 
 type planLine struct {
-	Hash      string `json:"hash"`
-	Sender    string `json:"sender"`
-	Recipient string `json:"recipient"`
-	Value     string `json:"value"`
-	Nonce     uint64 `json:"nonce"`
-	Data      string `json:"data"`
-	RWAAction string `json:"rwa_action,omitempty"`
-	AgentID   string `json:"agent_id,omitempty"`
-	TargetID  string `json:"target_id,omitempty"`
-	RequestID string `json:"request_id,omitempty"`
-	ComputeID string `json:"compute_id,omitempty"`
-	UnitPrice string `json:"unit_price,omitempty"`
-	Quantity  uint64 `json:"quantity,omitempty"`
+	Hash        string `json:"hash"`
+	Sender      string `json:"sender"`
+	Recipient   string `json:"recipient"`
+	Value       string `json:"value"`
+	Nonce       uint64 `json:"nonce"`
+	Data        string `json:"data"`
+	RWAAction   string `json:"rwa_action,omitempty"`
+	AgentID     string `json:"agent_id,omitempty"`
+	TargetID    string `json:"target_id,omitempty"`
+	RequestID   string `json:"request_id,omitempty"`
+	ComputeID   string `json:"compute_id,omitempty"`
+	UnitPrice   string `json:"unit_price,omitempty"`
+	Quantity    uint64 `json:"quantity,omitempty"`
+	RWARejected bool   `json:"rwa_rejected,omitempty"`
 }
 
 func makePlanLine(tx transaction.Transaction) (planLine, error) {
@@ -530,9 +592,12 @@ func makePlanLine(tx transaction.Transaction) (planLine, error) {
 		line.RequestID = tx.RequestID
 		line.ComputeID = tx.ComputeID
 		line.Quantity = tx.Quantity
+
+		line.RWARejected = tx.Rejected
 		if tx.UnitPrice != nil {
 			line.UnitPrice = tx.UnitPrice.String()
 		}
+
 		if tx.IsRWASell() {
 			line.Recipient = ""
 			line.Value = ""
@@ -551,6 +616,7 @@ func writeResult(dir string, result Result) error {
 	defer func() { _ = plan.Close() }()
 
 	planWriter := bufio.NewWriter(plan)
+
 	for _, tx := range result.Transactions {
 		line, err := makePlanLine(tx)
 		if err != nil {
