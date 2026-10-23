@@ -48,3 +48,9 @@ figs/archived_results/
 # ZCode session dir and local test artifacts, not tracked.
 .zcode/
 pkg/vm/test_vm_state/
+
+# 实验室内部文档(算力资源交易方案/测试方案等), 仅本地保留, 不对外展示
+# Internal lab documents (computing resources plan/test plan etc.) are
+# local-only and must not appear in the public repository.
+docs/computing_resources/
+docs/rwa/
