@@ -777,6 +777,6 @@ HuangLab 近 7 年专注于区块链分片（Blockchain Sharding）理论与技�
 
 ## 许可证
 
-本项目采用知识共享署名-非商业性使用 4.0 国际许可协议（CC BY-NC 4.0）授权，不允许商用。见 [LICENSE](LICENSE)。
+本项目采用 PolyForm Noncommercial License 1.0.0 授权，不允许商用。见 [LICENSE](LICENSE)。
 
 
