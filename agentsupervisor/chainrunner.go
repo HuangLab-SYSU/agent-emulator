@@ -47,6 +47,9 @@ type ChainOutcome struct {
 // self-contained config and ip table per round, so rounds never share mutable
 // state such as bolt/level databases or block records.
 type ChainRunner struct {
+	InitialBalances map[string]string
+	// OnlineConfigPath enables a single persistent hybrid runtime.
+	OnlineConfigPath string
 	// ModuleRoot is the BlockEmulator-X module root (contains go.mod, cmd/, ...).
 	ModuleRoot string
 	// BaseConfig is the template BlockEmulator-X config (config.yaml).
@@ -230,6 +233,30 @@ func (c *ChainRunner) prepare(chainDir string, spec RoundSpec) (string, string, 
 	doc, err := c.loadBaseConfig()
 	if err != nil {
 		return "", "", "", err
+	}
+
+	if c.OnlineConfigPath != "" {
+		mode, _ := doc["system"].(map[string]any)
+		if mode["consensus_type"] != "static_relay" {
+			return "", "", "", fmt.Errorf("agent_api requires static_relay consensus")
+		}
+
+		setYAMLPath(doc, []string{"system", "agent_runtime_config"}, c.OnlineConfigPath)
+	}
+
+	if len(c.InitialBalances) > 0 {
+		system, _ := doc["system"].(map[string]any)
+
+		allocations, _ := system["initial_balances"].(map[string]any)
+		if allocations == nil {
+			allocations = make(map[string]any)
+		}
+
+		for address, balance := range c.InitialBalances {
+			allocations[address] = balance
+		}
+
+		setYAMLPath(doc, []string{"system", "initial_balances"}, allocations)
 	}
 
 	planPath, err := filepath.Abs(spec.PlanPath)
@@ -431,12 +458,13 @@ func (g *processGroup) start(bin, logDir, name string, args ...string) (*os.Proc
 	}
 
 	g.procs = append(g.procs, cmd.Process)
-	g.done[cmd.Process.Pid] = make(chan error, 1)
+	done := make(chan error, 1)
+	g.done[cmd.Process.Pid] = done
 
 	go func() {
 		defer func() { _ = logFile.Close() }()
 
-		g.done[cmd.Process.Pid] <- cmd.Wait()
+		done <- cmd.Wait()
 	}()
 
 	return cmd.Process, nil
@@ -451,6 +479,8 @@ func (g *processGroup) wait(p *os.Process, abort <-chan struct{}) error {
 
 	select {
 	case err := <-ch:
+		// This process has been reaped; do not wait on its consumed channel again.
+		delete(g.done, p.Pid)
 		return err
 	case <-abort:
 		return fmt.Errorf("aborted before exit: %w", context.Canceled)

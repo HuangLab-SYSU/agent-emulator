@@ -75,7 +75,24 @@ func WriteAgentCSVs(ctx context.Context, chainDir string, shardNum int64, reg *R
 		blocks[shard] = bs
 	}
 
-	rows := buildAgentRows(blocks, agents)
+	initialBalances := make(map[account.Address]*big.Int)
+
+	chainConfigPath := filepath.Join(chainDir, "config.yaml")
+	if _, err := os.Stat(chainConfigPath); err == nil {
+		chainConfig, err := config.LoadConfig(chainConfigPath)
+		if err != nil {
+			return fmt.Errorf("load ledger initial balances: %w", err)
+		}
+
+		initialBalances, err = config.ParseInitialBalances(chainConfig.GlobalSys.InitialBalances)
+		if err != nil {
+			return err
+		}
+	} else if !os.IsNotExist(err) {
+		return fmt.Errorf("inspect ledger chain config: %w", err)
+	}
+
+	rows := buildAgentRows(blocks, agents, initialBalances)
 
 	if err := os.MkdirAll(outDir, 0o755); err != nil {
 		return fmt.Errorf("create agents dir: %w", err)
@@ -156,7 +173,11 @@ func readShardBlocks(ctx context.Context, boltDir string, shard int64) ([]*coreb
 // in the order the chain actually executed the transactions. An account is
 // lazily initialized to NormalInitBalance on its first appearance, exactly
 // like the chain does.
-func buildAgentRows(perShard [][]*coreblock.Block, agents map[account.Address]string) map[string][]agentTxRow {
+func buildAgentRows(
+	perShard [][]*coreblock.Block,
+	agents map[account.Address]string,
+	allocations ...map[account.Address]*big.Int,
+) map[string][]agentTxRow {
 	type txRef struct {
 		blockTime time.Time
 		shard     int
@@ -208,6 +229,13 @@ func buildAgentRows(perShard [][]*coreblock.Block, agents map[account.Address]st
 		}
 
 		b := new(big.Int).Set(init)
+
+		if len(allocations) > 0 {
+			if balance, ok := allocations[0][addr]; ok {
+				b.Set(balance)
+			}
+		}
+
 		balances[addr] = b
 
 		return b

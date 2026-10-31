@@ -1,0 +1,6 @@
+{"agent_id":"agent-alice","action":"join","params_hash":"alice-wait-for-funds","ts":0}
+{"agent_id":"agent-bob","action":"join","params_hash":"bob-payment-recipient","ts":0}
+{"agent_id":"agent-carol","action":"join","params_hash":"carol-funding-source","ts":0}
+{"agent_id":"agent-alice","action":"pay","target":"agent-bob","amount":10,"request_id":"intent-replaced-by-model","ts":1000}
+{"agent_id":"agent-carol","action":"pay","target":"agent-alice","amount":3,"request_id":"funding-part-1","ts":35000}
+{"agent_id":"agent-carol","action":"pay","target":"agent-alice","amount":5,"request_id":"funding-part-2","ts":70000}

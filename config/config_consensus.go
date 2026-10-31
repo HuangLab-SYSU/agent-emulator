@@ -8,11 +8,13 @@ const (
 )
 
 type SystemCfg struct {
-	ShardNum       int64  `json:"shard_num"      yaml:"shard_num"`
-	NodeNum        int64  `json:"node_num"       yaml:"node_num"`
-	ConsensusType  string `json:"consensus_type" yaml:"consensus_type"`
-	BlockSizeLimit int64  `json:"limit"          yaml:"limit"`
-	LogCfg         `       json:"log"            yaml:"log"`
+	InitialBalances    map[string]string `json:"initial_balances,omitempty"     yaml:"initial_balances,omitempty"`
+	AgentRuntimeConfig string            `json:"agent_runtime_config,omitempty" yaml:"agent_runtime_config,omitempty"`
+	ShardNum           int64             `json:"shard_num"                      yaml:"shard_num"`
+	NodeNum            int64             `json:"node_num"                       yaml:"node_num"`
+	ConsensusType      string            `json:"consensus_type"                 yaml:"consensus_type"`
+	BlockSizeLimit     int64             `json:"limit"                          yaml:"limit"`
+	LogCfg             `                  json:"log"                            yaml:"log"`
 }
 
 type SupervisorCfg struct {

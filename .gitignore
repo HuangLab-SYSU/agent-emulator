@@ -36,3 +36,6 @@ USER_GUIDE.md
 # 不要上传 Python 缓存目录
 # Do not upload Python cache directories.
 __pycache__/
+
+# Local API credentials (never commit key files).
+/.secrets/

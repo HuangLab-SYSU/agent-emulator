@@ -1,0 +1,8 @@
+{"agent_id":"agent-alice","action":"join","params_hash":"alice-v1","ts":0}
+{"agent_id":"agent-bob","action":"join","params_hash":"bob-v1","ts":0}
+{"agent_id":"agent-carol","action":"join","params_hash":"carol-v1","ts":0}
+{"agent_id":"agent-alice","action":"pay","target":"agent-bob","amount":999,"request_id":"replaced-by-model","ts":1000}
+{"agent_id":"agent-bob","action":"pay","target":"agent-alice","amount":3,"request_id":"background-1","ts":15000}
+{"agent_id":"agent-carol","action":"pay","target":"agent-bob","amount":2,"request_id":"background-2","ts":30000}
+{"agent_id":"agent-bob","action":"pay","target":"agent-alice","amount":4,"request_id":"background-3","ts":60000}
+{"agent_id":"agent-carol","action":"pay","target":"agent-alice","amount":6,"request_id":"background-4","ts":90000}

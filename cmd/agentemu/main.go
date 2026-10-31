@@ -56,7 +56,13 @@ func main() {
 	// multi-round feedback via the AgentAPI hook.
 	runner := &agentsupervisor.Runner{Cfg: cfg, Records: records, Chain: chain}
 
-	rounds, err := runner.Run(ctx)
+	var rounds []agentsupervisor.RoundResult
+	if cfg.AgentAPI.Enabled {
+		rounds, err = agentsupervisor.RunHybrid(ctx, cfg, chain)
+	} else {
+		rounds, err = runner.Run(ctx)
+	}
+
 	for _, rr := range rounds {
 		slog.Info("round finished",
 			"round", rr.Round,

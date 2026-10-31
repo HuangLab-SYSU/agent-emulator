@@ -3,6 +3,7 @@ package agentsupervisor
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"gopkg.in/yaml.v3"
 )
@@ -10,7 +11,8 @@ import (
 // Config is intentionally separate from BlockEmulator-X's config.yaml so legacy
 // experiments retain their existing configuration and execution paths.
 type Config struct {
-	Base struct {
+	AgentAPI ModelConfig `yaml:"agent_api"`
+	Base     struct {
 		BlockEmulatorConfig string `yaml:"blockemulator_config"`
 		ResultDir           string `yaml:"result_dir"`
 		// ModuleRoot is the BlockEmulator-X module root used to build and launch
@@ -89,6 +91,21 @@ func LoadConfig(path string) (Config, error) {
 
 	if cfg.Protocols.Pay.Plugin != "direct-pay" {
 		return Config{}, fmt.Errorf("initial release only supports protocols.pay.plugin=direct-pay")
+	}
+
+	if err := cfg.AgentAPI.normalize(cfg.Chain.Enabled); err != nil {
+		return Config{}, err
+	}
+
+	// Resolve relative to the input YAML before the supervisor loads the saved
+	// configuration from a different output directory.
+	if cfg.AgentAPI.APIKeyFile != "" && !filepath.IsAbs(cfg.AgentAPI.APIKeyFile) {
+		resolved, err := filepath.Abs(filepath.Join(filepath.Dir(path), cfg.AgentAPI.APIKeyFile))
+		if err != nil {
+			return Config{}, fmt.Errorf("resolve API key file: %w", err)
+		}
+
+		cfg.AgentAPI.APIKeyFile = resolved
 	}
 
 	return cfg, nil
