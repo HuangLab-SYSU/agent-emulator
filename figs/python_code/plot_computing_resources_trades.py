@@ -537,7 +537,7 @@ def save_agent_network(df: pd.DataFrame, fig_dir: Path) -> str | None:
         lx, ly = x * 1.14, y * 1.14
         ha = "right" if x < -0.35 else ("left" if x > 0.35 else "center")
         va = "bottom" if y > 0.9 else ("top" if y < -0.9 else "center")
-        ax.text(lx, ly, a, ha=ha, va=va, fontsize=17)
+        ax.text(lx, ly, a.capitalize(), ha=ha, va=va, fontsize=17)
 
     ax.set_xlim(-1.5, 1.5)
     ax.set_ylim(-1.45, 1.5)
@@ -545,11 +545,11 @@ def save_agent_network(df: pd.DataFrame, fig_dir: Path) -> str | None:
     # 图例: 左下=节点颜色含义, 右下=线宽与金额的对应(取最大流量的比例样本)。
     node_handles = [
         Line2D([], [], marker="o", ls="", color=COLOR_GREEN, markersize=13,
-               label="Net seller (earned > spent)"),
+               label="agent (earned > spent)"),
         Line2D([], [], marker="o", ls="", color=COLOR_RED, markersize=13,
-               label="Net buyer (spent > earned)"),
+               label="agent (earned < spent)"),
         Line2D([], [], marker="o", ls="", color="#8c8c8c", markersize=13,
-               label="Neutral"),
+               label="agent (earned = spent)"),
     ]
     leg = ax.legend(handles=node_handles, loc="lower left", fontsize=16, framealpha=0.5)
     ax.add_artist(leg)
