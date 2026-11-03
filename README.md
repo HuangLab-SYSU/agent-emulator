@@ -7,6 +7,10 @@ AgentEmulator is an **emulation and experimentation platform for trustworthy AI 
 
 AgentEmulator is an **experimental tool** for scenarios that combine AI agent behavior with blockchain, built on **[BlockEmulator-X](https://github.com/HuangLab-SYSU/block-emulator-x)** (i.e., BlockEmulator v2.0). BlockEmulator-X (BlockEmulator v2.0) is a blockchain emulation tool **open-sourced by HuangLab in May 2026**, as the upgraded successor to the original BlockEmulator v1.0; its GitHub repository is available at [github.com/HuangLab-SYSU/block-emulator-x](https://github.com/HuangLab-SYSU/block-emulator-x).
 
+### Demo Video
+
+**[AgentEmulator Demo Video](https://www.bilibili.com/video/BV1d54g6oEST/)** (on Bilibili)
+
 ### Paper
 
 **[AgentEmulator: A Blockchain-Empowered Testbed for Trustworthy AI Agent Infrastructure](https://www.researchgate.net/publication/415363728_AgentEmulator_A_Blockchain-Empowered_Testbed_for_Trustworthy_AI_Agent_Infrastructure)**
