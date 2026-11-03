@@ -289,3 +289,88 @@ func TestHybridWaitForFundsIntegration(t *testing.T) {
 	require.Equal(t, "2", ledger[1][5])
 	require.Equal(t, "0", ledger[len(ledger)-1][5])
 }
+
+func TestHybridTraceFailureIntegration(t *testing.T) {
+	if os.Getenv("AGENTEMU_INTEGRATION") != "1" {
+		t.Skip("set AGENTEMU_INTEGRATION=1 to launch the trace rejection scenario")
+	}
+	wd, err := os.Getwd()
+	require.NoError(t, err)
+	root := filepath.Dir(wd)
+	cfg := testConfig(t)
+	cfg.Base.ModuleRoot = root
+	cfg.Chain.Enabled = true
+	cfg.Experiment.Trace = filepath.Join(t.TempDir(), "trace-rejection.jsonl")
+	trace := "{\"agent_id\":\"alice\",\"action\":\"join\",\"ts\":0}\n{\"agent_id\":\"bob\",\"action\":\"join\",\"ts\":0}\n{\"agent_id\":\"carol\",\"action\":\"join\",\"ts\":0}\n{\"agent_id\":\"bob\",\"action\":\"pay\",\"target\":\"alice\",\"amount\":3,\"request_id\":\"invalid-after-leave\",\"ts\":20000}\n{\"agent_id\":\"bob\",\"action\":\"pay\",\"target\":\"carol\",\"amount\":4,\"request_id\":\"valid-after-rejection\",\"ts\":26000}\n"
+	require.NoError(t, os.WriteFile(cfg.Experiment.Trace, []byte(trace), 0o600))
+	data, err := os.ReadFile(filepath.Join(root, "config.yaml"))
+	require.NoError(t, err)
+	var template map[string]any
+	require.NoError(t, yaml.Unmarshal(data, &template))
+	setYAMLPath(template, []string{"system", "shard_num"}, 2)
+	setYAMLPath(template, []string{"system", "node_num"}, 4)
+	setYAMLPath(template, []string{"system", "consensus_type"}, "static_relay")
+	setYAMLPath(template, []string{"system", "log", "log_level"}, "warn")
+	setYAMLPath(template, []string{"consensus_node", "block_interval"}, 500)
+	setYAMLPath(template, []string{"network", "communication_mode"}, "direct")
+	data, err = yaml.Marshal(template)
+	require.NoError(t, err)
+	cfg.Base.BlockEmulatorConfig = filepath.Join(t.TempDir(), "chain.yaml")
+	require.NoError(t, os.WriteFile(cfg.Base.BlockEmulatorConfig, data, 0o600))
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_ = json.NewEncoder(w).Encode(map[string]any{"choices": []any{map[string]any{"message": map[string]string{"content": `{"action":"leave"}`}}}})
+	}))
+	defer server.Close()
+	cfg.AgentAPI = ModelConfig{Enabled: true, AgentID: "alice", BaseURL: server.URL, Model: "leave-policy-test", Goal: "leave", DecisionTimeoutSeconds: 5, DecisionIntervalSeconds: 1, RunDurationSeconds: 40, DrainTimeoutSeconds: 30}
+	require.NoError(t, cfg.AgentAPI.normalize(true))
+	chain := &ChainRunner{ModuleRoot: root, BaseConfig: cfg.Base.BlockEmulatorConfig, WorkRoot: cfg.Base.ResultDir, RunTimeout: 120 * time.Second, NodeExitGrace: 15 * time.Second}
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+	defer cancel()
+	require.NoError(t, chain.Build(ctx))
+	rounds, err := RunHybrid(ctx, cfg, chain)
+	require.NoError(t, err)
+	require.Len(t, rounds, 1)
+	require.Equal(t, 5, rounds[0].TxCount, "three joins, API leave and the later valid payment")
+	data, err = os.ReadFile(filepath.Join(cfg.Base.ResultDir, HybridSummaryFile))
+	require.NoError(t, err)
+	var summary struct {
+		Phase     string          `json:"phase"`
+		Failed    int             `json:"trace_actions_failed"`
+		Remaining int             `json:"trace_actions_remaining"`
+		Pending   int             `json:"pending_transactions"`
+		Decisions []DecisionAudit `json:"decisions"`
+		Latest    Observation     `json:"latest_snapshot"`
+	}
+	require.NoError(t, json.Unmarshal(data, &summary))
+	require.Equal(t, phaseFinished, summary.Phase)
+	require.Equal(t, 1, summary.Failed)
+	require.Zero(t, summary.Remaining)
+	require.Zero(t, summary.Pending)
+	require.Len(t, summary.Decisions, 1)
+	require.Equal(t, "leave", summary.Decisions[0].Reply.Decision.Action)
+	require.Equal(t, "accepted", summary.Decisions[0].Result)
+	data, err = os.ReadFile(filepath.Join(rounds[0].OutputDir, TraceFailuresFile))
+	require.NoError(t, err)
+	var failure TraceFailure
+	require.NoError(t, json.Unmarshal(data, &failure))
+	require.Equal(t, 4, failure.TraceLine)
+	require.Equal(t, "invalid-after-leave", failure.Record.RequestID)
+	require.Contains(t, failure.Reason, "not active")
+	data, err = os.ReadFile(filepath.Join(rounds[0].OutputDir, ActionTxMapFileName))
+	require.NoError(t, err)
+	require.NotContains(t, string(data), "invalid-after-leave")
+	require.Contains(t, string(data), "valid-after-rejection")
+	initial, ok := new(big.Int).SetString(account.NormalInitBalanceStr, 10)
+	require.True(t, ok)
+	for _, agent := range summary.Latest.Agents {
+		switch agent.AgentID {
+		case "alice":
+			require.False(t, agent.Active)
+			require.Equal(t, initial.String(), agent.Balance)
+		case "bob":
+			require.Equal(t, new(big.Int).Sub(initial, big.NewInt(4)).String(), agent.Balance)
+		case "carol":
+			require.Equal(t, new(big.Int).Add(initial, big.NewInt(4)).String(), agent.Balance)
+		}
+	}
+}

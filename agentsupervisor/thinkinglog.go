@@ -40,6 +40,8 @@ func (h *HybridRuntime) logThinkingStarted(obs Observation) {
 		"event", "thinking_started",
 		"decision", h.decision,
 		"observed_at", obs.ObservedAt,
+		"elapsed_ms", obs.ElapsedMS,
+		"settled_payments_by_target", obs.SettledPaymentsByTarget,
 		"balance", balance,
 		"available_balance", available,
 		"shard_heights", obs.Heights,

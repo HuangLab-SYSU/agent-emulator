@@ -1,13 +1,13 @@
 base:
   blockemulator_config: ./config.yaml
-  result_dir: ./exp/wait-for-funds
+  result_dir: ./exp/treasury-stress-22000
   # Module root of BlockEmulator-X (contains go.mod and cmd/); used to build
   # and launch the cluster when chain.enabled is true. Default: working dir.
   module_root: "."
 experiment:
   seed: 20260903
-  # Alice waits for two incoming payments before paying Bob.
-  trace: ./traces/wait_for_funds.jsonl
+  # 22,000 valid background payments plus staged treasury funding and churn.
+  trace: ./traces/treasury_stress_22000.jsonl
 chain:
   # When true, each round's transaction plan is automatically executed on a
   # freshly launched BlockEmulator-X cluster (consensus nodes + supervisor):
@@ -16,7 +16,7 @@ chain:
   # stop by itself. With agent_api.enabled=true, one cluster stays alive for
   # the entire experiment; this timeout includes startup, active time and drain.
   enabled: true
-  run_timeout_seconds: 600    # hard bound for one whole chain run
+  run_timeout_seconds: 900    # hard bound for one whole chain run
   node_exit_grace_seconds: 15 # grace for nodes to exit after the supervisor
 loop:
   # Caps the simulation loop; 1 means a single pass over the trace. Rounds
@@ -34,9 +34,9 @@ protocols:
 agent_api:
   # Set true to enable one API-controlled agent alongside trace-driven peers.
   enabled: true
-  agent_id: agent-alice
+  agent_id: agent-treasurer
   # Real genesis allocation; omitted = the original default initial balance.
-  initial_balance: "2"
+  initial_balance: "15"
   adapter: chat-completions
   # Replace with your provider's compatible endpoint prefix (ending in /v1,
   # for example). The adapter appends /chat/completions.
@@ -46,10 +46,33 @@ agent_api:
   api_key_file: ./.secrets/deepseek_api_key
   # Alternative: remove api_key_file and use api_key_env: DEEPSEEK_API_KEY
   goal: >-
-    Pay agent-bob exactly 10 units once. If your available_balance is below 10,
-    wait for incoming transfers; never send a partial payment or leave.
-    Once your available_balance is at least 10 and Bob is active, pay exactly 10.
-    After completing that payment, wait.
+    Act as a treasury payment agent. The user message contains elapsed_ms,
+    available_balance, active counterparties, and settled_payments_by_target (only
+    YOUR confirmed outgoing API payments; an absent target means zero paid).
+    Keep a reserve of at least 20 after every payment. Never leave or pay yourself.
+    Complete these obligations exactly once in strict priority order:
+    1. Audit: pay exactly 80 to agent-audit-main, or 80 to agent-audit-backup if the
+    main is inactive. Target completion before elapsed_ms=160000.
+    2. Storage, only after audit is confirmed: pay exactly 120 to agent-storage-main,
+    or 120 to agent-storage-backup if the main is inactive. Target completion before
+    elapsed_ms=300000.
+    3. Compute, only after storage is confirmed: pay exactly 160 to agent-compute-main,
+    or 180 to agent-compute-backup if the main is inactive. Target completion before
+    elapsed_ms=420000.
+    A task is completed when settled_payments_by_target shows its full price paid
+    to either listed provider. Do not pay that task again, even if its main later
+    rejoins. For an incomplete task prefer its active main; otherwise use its active
+    backup at the stated price. If neither is active, or available_balance is less
+    than the price plus the 20 reserve, return wait. Do not skip an unpaid higher
+    priority task or make partial payments. Use an affordable active backup rather
+    than waiting for an offline main to return. Deadlines are evaluation targets;
+    overdue unpaid tasks still need completion.
+    Once all three are confirmed, return all available_balance above 20 to
+    agent-finance if it is active. Repeat surplus refunds if later funding arrives;
+    otherwise wait. Refunds to finance do not count as provider payments.
+    Choose only one action per decision: pay, wait, or leave (leaving is prohibited
+    by this goal). Amounts must be decimal integer strings. Never assume a submitted
+    or rejected payment is confirmed; use settled_payments_by_target.
   # GLOBAL quota across ALL shards; empty/nonempty/in-flight blocks count.
   # 0 pauses proposals immediately after the observation barrier.
   # Omitted defaults to 5. Reaching the cap does not terminate the chain.
@@ -57,7 +80,7 @@ agent_api:
   decision_timeout_seconds: 60
   # Interval is measured after completion/validation; one API call at a time.
   decision_interval_seconds: 10
-  run_duration_seconds: 120
-  drain_timeout_seconds: 60
+  run_duration_seconds: 600
+  drain_timeout_seconds: 120
   # Trace ts differences are milliseconds; 1 = real-time, 2 = twice as fast.
   trace_time_scale: 1

@@ -64,9 +64,21 @@ decision. A model response is exactly one JSON object:
 or `{"action":"wait"}` / `{"action":"leave"}`. The model never chooses the
 sender, DID, nonce, transaction hash, or request ID. Payment amounts are positive
 decimal strings in the existing uint64 range. Self payments, inactive recipients,
-unknown fields, malformed JSON, and trailing output are rejected. Lifecycle and
-payment validation for background trace actions still aborts on invalid input;
-for example, a trace payment to an API agent that already left is invalid.
+unknown fields, malformed JSON, and trailing output are rejected. In online mode,
+background actions that violate mutable lifecycle rules (inactive payer/payee,
+repeated leave), zero-value agent payments, and unsupported actions are rejected
+before compilation. They are appended immediately to
+`round_001/trace_failures.jsonl` with the original trace line, scheduled action,
+request ID, failure time and reason. The cursor advances and subsequent trace
+records and API decisions continue. Rejected actions do not mutate the registry,
+consume nonces, generate transactions or appear in successful action mappings.
+`trace_actions_failed` in `hybrid_summary.json` counts these rejections.
+
+Malformed input files, unauthorized raw spending of the API wallet, compiler,
+file-write, snapshot and chain errors remain fatal. This policy handles
+pre-submission action rejections; it does not introduce on-chain failure receipts
+or a general recovery mechanism for failed consensus/execution. Legacy
+trace-only mode keeps its existing strict validation behavior.
 
 The model sees registered agents' active status, confirmed balances, spendable
 balances after pending debit reservations, per-shard block heights, pending
@@ -87,10 +99,22 @@ block restriction. Provider protocols can be added by implementing `DecisionMode
 and selecting them in the model constructor; currently the supported adapter is
 `chat-completions`.
 
+## Large treasury scenario
+
+The current configuration selects a 22,156-record treasury experiment with
+22,000 valid ordinary payments, staged funding, provider failover and surplus
+refunds. See [the scenario guide](scenarios/treasury_stress_22000.md). Model
+observations include `elapsed_ms` and `settled_payments_by_target` (this API
+identity's confirmed cumulative outgoing payments only) to support deadlines and
+prevent paying completed obligations again. These totals persist across wait
+decisions within one run; crash recovery is still not supported.
+
 ## Waiting for funds scenario
 
-The current `agentEmuConfig.yaml` selects `traces/wait_for_funds.jsonl` and gives
-Alice `agent_api.initial_balance: "2"`. Her goal is to pay Bob exactly 10 once,
+The smaller funding example can be selected with
+`experiment.trace: ./traces/wait_for_funds.jsonl`, `agent_api.agent_id: agent-alice`,
+`agent_api.initial_balance: "2"`, and the goal described below. It gives
+Alice an initial balance of 2. Her goal is to pay Bob exactly 10 once,
 waiting while `available_balance < 10`. Carol submits a transfer of 3 at trace
 +35 seconds and another of 5 at +70 seconds. Submission times are relative to
 runtime start; the funds become spendable only after their chain settlement.
@@ -146,7 +170,7 @@ model outputs and concurrent block timing are not reproducible from a seed alone
 
 `agent_thinking.log` is written live in `base.result_dir` and mirrored to the
 running terminal, independently of the chain log level. Follow it in another
-terminal with `tail -f exp/deepseek-agent-api/agent_thinking.log`.
+terminal with `tail -f exp/treasury-stress-22000/agent_thinking.log`.
 
 Each model call writes `thinking_started` (agent, model, decision number,
 observation time/heights and block quota), then `thinking_finished` (elapsed time,
@@ -168,6 +192,8 @@ the next supervisor tick after the API response (normally within one second).
 - `hybrid_config.yaml`: normalized run configuration, with the environment
   variable name or the resolved key-file path instead of the key value.
 - `round_001/input_actions.jsonl`: captured accepted trace/model actions.
+- `round_001/trace_failures.jsonl`: rejected background actions and reasons;
+  these were not submitted on chain. The summary counts `trace_actions_failed`.
 - `round_001/agent_transactions.jsonl`, `agent_action_txs.jsonl`,
   `Agent_Events.csv`, `agents/*.csv`: existing plan, mapping, event and ledger
   formats for the whole persistent run. Nonces are shared throughout the run.

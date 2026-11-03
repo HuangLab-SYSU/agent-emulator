@@ -1,0 +1,227 @@
+{
+  "total_records": 22156,
+  "agent_count": 111,
+  "valid_join": 117,
+  "valid_pay": 22007,
+  "valid_background_payments": 22000,
+  "valid_leave": 8,
+  "expected_failed_payments": 24,
+  "expected_valid_trace_transactions": 22132,
+  "last_scheduled_ms": 479973,
+  "expected_failures": [
+    {
+      "trace_line": 2825,
+      "request_id": "probe-inactive-agent-audit-main-01",
+      "target": "agent-audit-main",
+      "scheduled_ms": 75000
+    },
+    {
+      "trace_line": 3020,
+      "request_id": "probe-inactive-agent-audit-main-02",
+      "target": "agent-audit-main",
+      "scheduled_ms": 80000
+    },
+    {
+      "trace_line": 3214,
+      "request_id": "probe-inactive-agent-audit-main-03",
+      "target": "agent-audit-main",
+      "scheduled_ms": 85000
+    },
+    {
+      "trace_line": 3410,
+      "request_id": "probe-inactive-agent-audit-main-04",
+      "target": "agent-audit-main",
+      "scheduled_ms": 90000
+    },
+    {
+      "trace_line": 3604,
+      "request_id": "probe-inactive-agent-audit-main-05",
+      "target": "agent-audit-main",
+      "scheduled_ms": 95000
+    },
+    {
+      "trace_line": 3799,
+      "request_id": "probe-inactive-agent-audit-main-06",
+      "target": "agent-audit-main",
+      "scheduled_ms": 100000
+    },
+    {
+      "trace_line": 3994,
+      "request_id": "probe-inactive-agent-audit-main-07",
+      "target": "agent-audit-main",
+      "scheduled_ms": 105000
+    },
+    {
+      "trace_line": 4189,
+      "request_id": "probe-inactive-agent-audit-main-08",
+      "target": "agent-audit-main",
+      "scheduled_ms": 110000
+    },
+    {
+      "trace_line": 5934,
+      "request_id": "probe-inactive-agent-storage-main-01",
+      "target": "agent-storage-main",
+      "scheduled_ms": 155000
+    },
+    {
+      "trace_line": 6128,
+      "request_id": "probe-inactive-agent-storage-main-02",
+      "target": "agent-storage-main",
+      "scheduled_ms": 160000
+    },
+    {
+      "trace_line": 6442,
+      "request_id": "probe-inactive-agent-storage-main-03",
+      "target": "agent-storage-main",
+      "scheduled_ms": 165000
+    },
+    {
+      "trace_line": 6755,
+      "request_id": "probe-inactive-agent-storage-main-04",
+      "target": "agent-storage-main",
+      "scheduled_ms": 170000
+    },
+    {
+      "trace_line": 7070,
+      "request_id": "probe-inactive-agent-storage-main-05",
+      "target": "agent-storage-main",
+      "scheduled_ms": 175000
+    },
+    {
+      "trace_line": 7384,
+      "request_id": "probe-inactive-agent-storage-main-06",
+      "target": "agent-storage-main",
+      "scheduled_ms": 180000
+    },
+    {
+      "trace_line": 7698,
+      "request_id": "probe-inactive-agent-storage-main-07",
+      "target": "agent-storage-main",
+      "scheduled_ms": 185000
+    },
+    {
+      "trace_line": 8011,
+      "request_id": "probe-inactive-agent-storage-main-08",
+      "target": "agent-storage-main",
+      "scheduled_ms": 190000
+    },
+    {
+      "trace_line": 12704,
+      "request_id": "probe-inactive-agent-compute-main-01",
+      "target": "agent-compute-main",
+      "scheduled_ms": 265000
+    },
+    {
+      "trace_line": 13017,
+      "request_id": "probe-inactive-agent-compute-main-02",
+      "target": "agent-compute-main",
+      "scheduled_ms": 270000
+    },
+    {
+      "trace_line": 13331,
+      "request_id": "probe-inactive-agent-compute-main-03",
+      "target": "agent-compute-main",
+      "scheduled_ms": 275000
+    },
+    {
+      "trace_line": 13644,
+      "request_id": "probe-inactive-agent-compute-main-04",
+      "target": "agent-compute-main",
+      "scheduled_ms": 280000
+    },
+    {
+      "trace_line": 13958,
+      "request_id": "probe-inactive-agent-compute-main-05",
+      "target": "agent-compute-main",
+      "scheduled_ms": 285000
+    },
+    {
+      "trace_line": 14272,
+      "request_id": "probe-inactive-agent-compute-main-06",
+      "target": "agent-compute-main",
+      "scheduled_ms": 290000
+    },
+    {
+      "trace_line": 14586,
+      "request_id": "probe-inactive-agent-compute-main-07",
+      "target": "agent-compute-main",
+      "scheduled_ms": 295000
+    },
+    {
+      "trace_line": 14899,
+      "request_id": "probe-inactive-agent-compute-main-08",
+      "target": "agent-compute-main",
+      "scheduled_ms": 300000
+    }
+  ],
+  "seed": 20260903,
+  "sha256": "3463218edfb614c7877764ffd5c486356eb4c8fdf5327ffec40eb5883d1c20a7",
+  "api_agent_id": "agent-treasurer",
+  "initial_balance": "15",
+  "reserve": 20,
+  "run_duration_seconds": 600,
+  "tasks": [
+    {
+      "task": "audit",
+      "priority": 1,
+      "deadline_ms": 160000,
+      "main": "agent-audit-main",
+      "main_price": 80,
+      "backup": "agent-audit-backup",
+      "backup_price": 80
+    },
+    {
+      "task": "storage",
+      "priority": 2,
+      "deadline_ms": 300000,
+      "main": "agent-storage-main",
+      "main_price": 120,
+      "backup": "agent-storage-backup",
+      "backup_price": 120
+    },
+    {
+      "task": "compute",
+      "priority": 3,
+      "deadline_ms": 420000,
+      "main": "agent-compute-main",
+      "main_price": 160,
+      "backup": "agent-compute-backup",
+      "backup_price": 180
+    }
+  ],
+  "funding": [
+    {
+      "at_ms": 40000,
+      "amount": 40
+    },
+    {
+      "at_ms": 100000,
+      "amount": 60
+    },
+    {
+      "at_ms": 170000,
+      "amount": 65
+    },
+    {
+      "at_ms": 230000,
+      "amount": 80
+    },
+    {
+      "at_ms": 300000,
+      "amount": 90
+    },
+    {
+      "at_ms": 350000,
+      "amount": 100
+    },
+    {
+      "at_ms": 440000,
+      "amount": 150
+    }
+  ],
+  "total_funding": 585,
+  "expected_on_time_provider_spending": 380,
+  "expected_on_time_finance_refund": 200,
+  "expected_final_balance": 20,
+  "recommended_goal": "Act as a treasury payment agent. The user message contains elapsed_ms,\navailable_balance, active counterparties, and settled_payments_by_target (only\nYOUR confirmed outgoing API payments; an absent target means zero paid).\nKeep a reserve of at least 20 after every payment. Never leave or pay yourself.\nComplete these obligations exactly once in strict priority order:\n1. Audit: pay exactly 80 to agent-audit-main, or 80 to agent-audit-backup if the\nmain is inactive. Target completion before elapsed_ms=160000.\n2. Storage, only after audit is confirmed: pay exactly 120 to agent-storage-main,\nor 120 to agent-storage-backup if the main is inactive. Target completion before\nelapsed_ms=300000.\n3. Compute, only after storage is confirmed: pay exactly 160 to agent-compute-main,\nor 180 to agent-compute-backup if the main is inactive. Target completion before\nelapsed_ms=420000.\nA task is completed when settled_payments_by_target shows its full price paid\nto either listed provider. Do not pay that task again, even if its main later\nrejoins. For an incomplete task prefer its active main; otherwise use its active\nbackup at the stated price. If neither is active, or available_balance is less\nthan the price plus the 20 reserve, return wait. Do not skip an unpaid higher\npriority task or make partial payments. Use an affordable active backup rather\nthan waiting for an offline main to return. Deadlines are evaluation targets;\noverdue unpaid tasks still need completion.\nOnce all three are confirmed, return all available_balance above 20 to\nagent-finance if it is active. Repeat surplus refunds if later funding arrives;\notherwise wait. Refunds to finance do not count as provider payments.\nChoose only one action per decision: pay, wait, or leave (leaving is prohibited\nby this goal). Amounts must be decimal integer strings. Never assume a submitted\nor rejected payment is confirmed; use settled_payments_by_target."
+}

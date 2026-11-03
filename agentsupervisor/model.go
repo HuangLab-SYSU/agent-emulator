@@ -112,14 +112,16 @@ type ObservedAgent struct {
 }
 
 type Observation struct {
-	LatestBlocks        map[int64]message.SnapshotBlock `json:"latest_blocks"`
-	AgentID             string                          `json:"agent_id"`
-	Decision            uint64                          `json:"decision"`
-	ObservedAt          time.Time                       `json:"observed_at"`
-	Heights             map[int64]uint64                `json:"shard_heights"`
-	Agents              []ObservedAgent                 `json:"agents"`
-	PendingTransactions int                             `json:"pending_transactions"`
-	PreviousResult      string                          `json:"previous_result,omitempty"`
+	ElapsedMS               int64                           `json:"elapsed_ms"`
+	SettledPaymentsByTarget map[string]string               `json:"settled_payments_by_target"`
+	LatestBlocks            map[int64]message.SnapshotBlock `json:"latest_blocks"`
+	AgentID                 string                          `json:"agent_id"`
+	Decision                uint64                          `json:"decision"`
+	ObservedAt              time.Time                       `json:"observed_at"`
+	Heights                 map[int64]uint64                `json:"shard_heights"`
+	Agents                  []ObservedAgent                 `json:"agents"`
+	PendingTransactions     int                             `json:"pending_transactions"`
+	PreviousResult          string                          `json:"previous_result,omitempty"`
 }
 
 type Decision struct {
