@@ -35,7 +35,7 @@ func TestThinkingLogVisibleDuringDecision(t *testing.T) {
 		failure  error
 		expected string
 	}{
-		{"pay", Decision{Action: "pay", Target: "bob", Amount: "5"}, nil, "accepted"},
+		{"pay", Decision{Action: "pay", Target: "bob", Amount: "5", Summary: "当前余额充足，决定向 bob 转账 5。"}, nil, "accepted"},
 		{"wait", Decision{Action: "wait"}, nil, "accepted"},
 		{"leave", Decision{Action: "leave"}, nil, "accepted"},
 		{"rejected", Decision{Action: "pay", Target: "bob", Amount: "50"}, nil, "rejected"},
@@ -78,6 +78,7 @@ func TestThinkingLogVisibleDuringDecision(t *testing.T) {
 				if item.name == "pay" {
 					require.Contains(t, text, "target=bob")
 					require.Contains(t, text, "amount=5")
+					require.Contains(t, text, `summary="当前余额充足，决定向 bob 转账 5。"`)
 					require.Contains(t, text, "transaction_hash="+hash)
 					require.NotEmpty(t, hash)
 				}
@@ -107,4 +108,24 @@ func TestThinkingLogExperimentEndPairsStartAndFinish(t *testing.T) {
 	require.Equal(t, 1, strings.Count(text, "event=thinking_finished"))
 	require.Contains(t, text, "experiment duration reached")
 	require.Contains(t, text, "status=error")
+}
+
+func TestThinkingSummary(t *testing.T) {
+	for _, item := range []struct {
+		name     string
+		decision Decision
+		failure  error
+		want     string
+	}{
+		{"pay fallback", Decision{Action: "pay", Target: "bob", Amount: "5"}, nil, "决定向 bob 转账 5。"},
+		{"wait fallback", Decision{Action: "wait"}, nil, "决定继续等待，本轮不发起交易。"},
+		{"leave fallback", Decision{Action: "leave"}, nil, "决定退出。"},
+		{"single line", Decision{Action: "wait", Summary: "等待资金到账。\n\t 暂不付款。"}, nil, "等待资金到账。 暂不付款。"},
+		{"bounded unicode", Decision{Summary: strings.Repeat("等", 121)}, nil, strings.Repeat("等", 120) + "…"},
+		{"failed reply", Decision{Summary: "决定付款。"}, context.DeadlineExceeded, "本次未能完成决策，请查看 error 字段。"},
+	} {
+		t.Run(item.name, func(t *testing.T) {
+			require.Equal(t, item.want, thinkingSummary(item.decision, item.failure))
+		})
+	}
 }

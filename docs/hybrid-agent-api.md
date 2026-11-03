@@ -174,7 +174,11 @@ terminal with `tail -f exp/treasury-stress-22000/agent_thinking.log`.
 
 Each model call writes `thinking_started` (agent, model, decision number,
 observation time/heights and block quota), then `thinking_finished` (elapsed time,
-returned action/target/amount or API failure). A `decision_result` line records
+returned action/target/amount or API failure). Both completion and result lines
+include a `summary`: a brief Chinese decision explanation supplied by the model,
+for example `当前可用余额充足，决定向 agent-bob 转账 5。`. If the model
+omits it, the runtime describes the action instead. Summaries are flattened to
+one line and capped at 120 characters; detailed model reasoning is not printed. A `decision_result` line records
 subsequent validation as accepted/rejected/failed, including the transaction hash
 when a transaction was submitted. An accepted decision is not yet proof of final
 chain settlement; confirm the hash in the ledger or chain measurements. Wait

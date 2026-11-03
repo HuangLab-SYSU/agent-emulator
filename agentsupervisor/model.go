@@ -124,10 +124,13 @@ type Observation struct {
 	PreviousResult          string                          `json:"previous_result,omitempty"`
 }
 
+const decisionActionWait = "wait"
+
 type Decision struct {
-	Action string `json:"action"`
-	Target string `json:"target,omitempty"`
-	Amount string `json:"amount,omitempty"`
+	Summary string `json:"summary,omitempty"`
+	Action  string `json:"action"`
+	Target  string `json:"target,omitempty"`
+	Amount  string `json:"amount,omitempty"`
 }
 
 type ModelReply struct {
@@ -146,7 +149,7 @@ type ChatModel struct {
 }
 
 func (m *ChatModel) Decide(ctx context.Context, observation Observation) (ModelReply, error) {
-	prompt := "You control only agent " + m.Config.AgentID + ". Goal: " + m.Config.Goal + ". Return exactly one JSON object: {\"action\":\"pay\",\"target\":\"agent-id\",\"amount\":\"positive decimal integer\"}, or {\"action\":\"wait\"}, or {\"action\":\"leave\"}. Pay only an active other agent and never exceed your available_balance. Do not return reasoning, markdown, IDs, timestamps or transactions."
+	prompt := "You control only agent " + m.Config.AgentID + ". Goal: " + m.Config.Goal + ". Return exactly one JSON object: {\"action\":\"pay\",\"target\":\"agent-id\",\"amount\":\"positive decimal integer\"}, or {\"action\":\"wait\"}, or {\"action\":\"leave\"}. Pay only an active other agent and never exceed your available_balance. Include a summary field in every decision: one short Chinese sentence (at most 80 characters) describing the decision and its key basis, e.g. 当前可用余额充足，决定向 agent-bob 转账 5。 For wait, briefly state what you are waiting for. This is a concise decision summary, not step-by-step reasoning. Base it only on the observation; a decision to pay is not proof of submission or confirmation. Do not return detailed reasoning, markdown, extra IDs, timestamps or transactions."
 
 	observationJSON, err := json.Marshal(observation)
 	if err != nil {
@@ -274,7 +277,7 @@ func (m *ChatModel) Decide(ctx context.Context, observation Observation) (ModelR
 		}
 
 		switch reply.Decision.Action {
-		case "pay", "wait", "leave":
+		case "pay", decisionActionWait, "leave":
 		default:
 			return reply, fmt.Errorf("unsupported decision action %q", reply.Decision.Action)
 		}

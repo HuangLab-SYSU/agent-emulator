@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // AgentThinkingLogFile is a live, unbuffered log alongside hybrid_summary.json.
@@ -65,6 +66,7 @@ func (h *HybridRuntime) logThinkingFinished(failure error) {
 		"finished_at", h.current.Finished,
 		"duration_ms", h.current.DurationMS,
 		"status", status,
+		"summary", thinkingSummary(decision, failure),
 		"action", decision.Action,
 		"target", decision.Target,
 		"amount", decision.Amount,
@@ -81,7 +83,36 @@ func (h *HybridRuntime) logDecisionResult() {
 		"target", decision.Target,
 		"amount", decision.Amount,
 		"result", h.current.Result,
+		"summary", thinkingSummary(decision, nil),
 		"transaction_hash", h.current.TransactionHash,
 		"blocks_granted", h.current.BlocksGranted,
 		"blocks_committed", h.current.BlocksCommitted)
+}
+
+// Keep model-provided summaries brief and on one line in the live log.
+func thinkingSummary(decision Decision, failure error) string {
+	if failure != nil {
+		return "本次未能完成决策，请查看 error 字段。"
+	}
+
+	summary := strings.Join(strings.Fields(decision.Summary), " ")
+	if summary == "" {
+		switch decision.Action {
+		case string(ActionPay):
+			summary = fmt.Sprintf("决定向 %s 转账 %s。", decision.Target, decision.Amount)
+		case decisionActionWait:
+			summary = "决定继续等待，本轮不发起交易。"
+		case string(ActionLeave):
+			summary = "决定退出。"
+		default:
+			summary = "未获得有效决策。"
+		}
+	}
+
+	runes := []rune(summary)
+	if len(runes) > 120 {
+		return string(runes[:120]) + "…"
+	}
+
+	return summary
 }
