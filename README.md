@@ -1,9 +1,15 @@
 # AgentEmulator
 
-## Overview
-AgentEmulator is an **emulation and experimentation platform for trustworthy AI agent infrastructure**. The platform was initiated by **[HuangLab](http://www.xintelligence.pro/)**, led by Professor Huawei Huang at the School of Software Engineering, Sun Yat-sen University. AgentEmulator uses blockchain as the foundation for trusted records and settlement. Researchers and students can investigate agent identity, behavioral auditing, payment settlement, incentives, and governance. AgentEmulator aims to support research into trustworthy interaction and collaboration among AI agents.
+<p align="right"><a href="README_zh.md">中文</a> | <b>英文</b></p>
 
-AgentEmulator is built on **[BlockEmulator-X](https://github.com/HuangLab-SYSU/block-emulator-x)**, HuangLab's blockchain emulation platform. HuangLab released BlockEmulator-X as open source in June 2026 as the successor to the original BlockEmulator. AgentEmulator extends BlockEmulator-X to experiments that combine AI agent behavior with blockchain execution.
+## Overview
+AgentEmulator is an **emulation and experimentation platform for trustworthy AI agent infrastructure**. The platform was initiated by **[HuangLab](http://www.xintelligence.pro/)**, led by Professor Huawei Huang at the School of Software Engineering, Sun Yat-sen University. AgentEmulator uses blockchain as the foundation for trusted records and settlement. **It aims to help researchers and students** investigate agent identity, behavioral auditing, payment settlement, incentives, and governance, and to grow into a **research tool** that supports trustworthy interaction and collaboration among AI agents.
+
+AgentEmulator is an **experimental tool** for scenarios that combine AI agent behavior with blockchain, built on **[BlockEmulator-X](https://github.com/HuangLab-SYSU/block-emulator-x)** (i.e., BlockEmulator v2.0). BlockEmulator-X (BlockEmulator v2.0) is a blockchain emulation tool **open-sourced by HuangLab in May 2026**, as the upgraded successor to the original BlockEmulator v1.0; its GitHub repository is available at [github.com/HuangLab-SYSU/block-emulator-x](https://github.com/HuangLab-SYSU/block-emulator-x).
+
+### Demo Video
+
+**[AgentEmulator Demo Video](https://www.bilibili.com/video/BV1d54g6oEST/)** (on Bilibili)
 
 ### Paper
 
@@ -46,7 +52,7 @@ AgentEmulator measures the infrastructure layer, not agent capability. Capabilit
 
 **What v1.0 does (current release):**
 
-AgentEmulator v1.0 supports trace-driven behavior replay, records of identity registration and revocation, direct payments, experimental data collection, and visualization. Researchers describe agent actions in a JSONL trace file. The `agentSupervisor` module compiles the trace into a transaction dataset. The module then starts a BlockEmulator-X blockchain and submits the transactions for on-chain execution and recording. After the experiment, AgentEmulator records transaction and account data and generates computing resources trading figures. AgentEmulator also creates an HTML gallery with Chinese and English interface options. The launch script opens the gallery in the default browser.
+AgentEmulator v1.0 supports trace-driven behavior replay, records of identity registration and revocation, direct payments, experimental data collection, and visualization. Researchers describe agent actions in a JSONL trace file. The `agentSupervisor` module compiles the trace into a transaction dataset. The module then starts a BlockEmulator-X blockchain and submits the transactions for on-chain execution and recording. After the experiment, AgentEmulator records transaction and account data and generates balance plots. AgentEmulator also creates an HTML gallery with Chinese and English interface options. The launch script opens the gallery in the default browser.
 
 In v1.0, agent behavior is predefined in the trace. Transactions follow the **User-specified Original Sequence** policy. No additional transaction orchestration or scheduling algorithm is included. Researchers can extend the default policy with mechanisms such as transaction reordering, priority rules, or agent weights.
 
@@ -88,17 +94,17 @@ AgentEmulator is part of HuangLab's blockchain experimentation stack at Sun Yat-
 
 | Project | Role | Link |
 | --- | --- | --- |
-| BlockEmulator | Emulator for blockchain sharding protocols (IEEE TSC 2025) | https://github.com/HuangLab-SYSU/block-emulator |
-| BlockEmulator-X | Successor with EVM execution; the backend of AgentEmulator | https://github.com/HuangLab-SYSU/block-emulator-x |
-| AgentEmulator | This project — agent behavior on a sharded blockchain | https://github.com/HuangLab-SYSU/agent-emulator |
-| BrokerChain | Academic sharded blockchain testnet (~400 external nodes) | https://github.com/HuangLab-SYSU/BrokerChain |
+| BlockEmulator | Emulator for blockchain sharding protocols (IEEE TSC 2025). BlockEmulator v1.0, open-sourced in 2023 | https://github.com/HuangLab-SYSU/block-emulator |
+| BlockEmulator-X | Successor with EVM execution; the backend of AgentEmulator. BlockEmulator v2.0, open-sourced in May 2026 | https://github.com/HuangLab-SYSU/block-emulator-x |
+| AgentEmulator | This project — agent behavior on a sharded blockchain. BlockEmulator v3.0, open-sourced in September 2026 | https://github.com/HuangLab-SYSU/agent-emulator |
+| BrokerChain | Sharded blockchain testnet — academic edition (~400 external nodes), originating from "BrokerChain: A Cross-Shard Blockchain Protocol for Account/Balance-based State Sharding" (INFOCOM 2022) | https://github.com/HuangLab-SYSU/BrokerChain |
 | brokerchain-mcp | MCP server (`register_agent` / `append_log` / `open_channel` / `pay`) with dual backends: AgentEmulator simulation and BrokerChain testnet | in development |
 
 
 
 ### What does AgentEmulator support?
 
-AgentEmulator is designed to simplify experiment setup, mechanism validation, and data analysis. Researchers can configure the underlying blockchain, observe agent behavior, and evaluate how different mechanisms affect experimental outcomes.
+**The AgentEmulator platform is designed to simplify experiment setup, mechanism validation, and data analysis**, enabling **researchers** to configure the underlying blockchain, observe agent behavior, and evaluate how different mechanisms affect experimental outcomes.
 
 
 ### Roadmap
@@ -204,7 +210,7 @@ The launch script performs these steps automatically:
 1. **Build** the project with `go build ./...`.
 2. **Clear previous experiment data** by deleting `./exp`.
 3. **Run the experiment:** read `agentEmuConfig.yaml` and compile the trace into transactions. Start BlockEmulator-X with 4 shards and 4 nodes per shard by default. Stop the blockchain after all transactions have been committed.
-4. **Generate plots** from the latest round's computing resources order CSV and save PNG/PDF files to `figs/figs_results/`.
+4. **Generate plots** from the latest round's agent ledgers and save PNG files to `figs/figs_results/`.
 5. **Build and open the HTML gallery** containing the plots.
 
 Press `Ctrl-C` to stop an experiment safely. Consensus node subprocesses started by BlockEmulator-X will also be cleaned up.
@@ -326,7 +332,7 @@ Start an experiment as described in the quick start:
 bash run_agentemu.sh            # Or: bash run_agentemu.sh <config-file>
 ```
 
-- **Blockchain logs stream to the console.** Full logs are also saved under the run's `exp/agentemu-results/round_XXX/chain/logs/`, and every run is rolling-archived to `archived_runs/agentemu-results-<timestamp>/` (only the newest archive is kept; archives are local evidence and not committed).
+- **Blockchain logs stream to the console.** Full logs are also saved to `exp/agentemu-results/round_001/chain/logs/`.
 - To preview the compiled transaction dataset without running the blockchain, set `chain.enabled` to `false` in `agentEmuConfig.yaml`.
 - At the end of a run, the script prints the output paths for experiment data and generated figures.
 
@@ -386,35 +392,28 @@ The following example shows a record from **`agent_action_txs.jsonl`**. Each act
 
 ## Visualizing Results
 
-After a successful experiment, AgentEmulator reads the computing resources order CSV of the latest round (`round_XXX/computing_resources/computing_resources_orders.csv`) and generates computing resources trading figures styled for academic publications (Times New Roman, no in-figure titles — the gallery places the numbered captions outside the images). PNG files (plus PDF copies for paper typesetting) are saved to `figs/figs_results/` and assembled into a static HTML gallery at `figs/figs_results/index.html`. The gallery supports Chinese and English interface text and opens automatically in the default browser.
+After a successful experiment, AgentEmulator reads the agent ledger CSV files and generates balance plots styled for academic publications. PNG files are saved to `figs/figs_results/` and assembled into a static HTML gallery at `figs/figs_results/index.html`. The gallery supports Chinese and English interface text and opens automatically in the default browser.
 
 ### Automatic plotting workflow
 
 After a successful run, `run_agentemu.sh` (or `run_agentemu.bat` on Windows):
 
-1. Locates the `computing_resources/` directory of the highest-numbered round under `exp/agentemu-results/` (it must contain `computing_resources_orders.csv`).
+1. Locates the `agents/` directory in the highest-numbered round under `exp/agentemu-results/`.
 2. Clears previous plots and `index.html` from `figs/figs_results/`.
-3. Runs `figs/python_code/plot_computing_resources_trades.py` to generate the figures (PNG + PDF). The script de-duplicates order rows by `tx_hash` (each cross-shard transaction is committed on two shards) and uses only settled buys for the trading statistics.
-4. Runs `figs/python_code/build_fig_html.py` to build the gallery with the figure titles placed outside the images.
+3. Runs `figs/python_code/plot_agent_balance.py` to generate the PNG figures.
+4. Runs `figs/python_code/build_fig_html.py` to build the gallery.
 5. Opens the gallery using `open` on macOS, `xdg-open` on Linux, or `start` on Windows.
 
 ### Generated figures
 
-Each figure gets its own numbered section in the gallery; the title is rendered outside the image. Figures whose data is absent are skipped:
+All plots show **changes relative to the initial balance: Δbalance = balance − initial balance**.
 
 | Figure | Content | PNG file |
 | --- | --- | --- |
-| 1 | Settled buy, listed sell, and refused buy counts per agent. | `computing_resources_agent_buy_sell_counts.png` |
-| 2 | Net trading value per agent (earned as seller − spent as buyer); green = net seller, red = net buyer. | `computing_resources_agent_net_value.png` |
-| 3 | Agent trade network: nodes = agents, directed edges from buyer to seller with width proportional to settled value; node size = traded volume, node color = net direction. | `computing_resources_agent_network.png` |
-| 4 | Total settled buy value per compute ID. | `computing_resources_value_by_compute.png` |
-| 5 | Market share of each compute ID by settled buy value. | `computing_resources_compute_market_share.png` |
-| 6 | Total quantity vs. total value per compute ID; bubble size = trade count (slope from the origin ≈ average unit price). | `computing_resources_quantity_value_bubble.png` |
-| 7 | Distribution of settled unit prices per compute ID. | `computing_resources_price_boxplot.png` |
-| 8 | Distribution of settled buy quantities per compute ID. | `computing_resources_quantity_boxplot.png` |
-| 9 | Settled unit price vs. quantity per trade; color = compute ID, marker size = trade value. | `computing_resources_price_quantity_scatter.png` |
-| 10 | Cumulative settled buy value per compute ID over the buy sequence. | `computing_resources_cumulative_value_timeline.png` |
-| 11 | Buyer × seller settled value heatmap (who bought from whom). | `computing_resources_buyer_seller_heatmap.png` |
+| 1 | Final balance changes for all agents, ordered by agent ID. Each bar represents one agent; green bars indicate balance increases, and red bars indicate balance decreases. | `fig1_all_agents_overview.png` |
+| 2 | Agent balance changes over the global transaction index. Transactions are deduplicated by `tx_hash` and replayed in a deterministic order. The plot shows the minimum–maximum envelope, the P25–P75 interquartile band, and the mean across agents. | `fig2_global_tx_order.png` |
+| 3 | Agent balance changes aligned by normalized transaction progress. Each agent's transaction index is scaled to 0–1, and each gray line represents an agent. The mean curve falls below zero during intermediate stages and returns to zero at the endpoint. | `fig3_normalized_progress.png` |
+| 4 | Individual agent balance changes in groups of five, ordered by each agent's related transaction index. | `fig4_agents_001-005.png` … `fig4_agents_096-100.png` |
 
 ### Example experiment
 
@@ -470,15 +469,15 @@ You can regenerate plots without rerunning the experiment. Run these commands fr
 
 ```bash
 # Use the latest round; save plots to figs/figs_results/
-python3 figs/python_code/plot_computing_resources_trades.py
+python3 figs/python_code/plot_agent_balance.py
 python3 figs/python_code/build_fig_html.py
 
 # Specify data and output directories, for example to plot a saved run
-python3 figs/python_code/plot_computing_resources_trades.py \
-    --rwa-dir exp/agentemu-results/round_001/computing_resources \
+python3 figs/python_code/plot_agent_balance.py \
+    --data-dir exp/agentemu-results/round_001/agents \
     --fig-dir figs/figs_results
 python3 figs/python_code/build_fig_html.py \
-    --rwa-dir exp/agentemu-results/round_001/computing_resources
+    --data-dir exp/agentemu-results/round_001/agents
 
 # Rebuild only the gallery, using existing plots
 python3 figs/python_code/build_fig_html.py
@@ -490,11 +489,11 @@ open figs/figs_results/index.html
 On **Windows**, use the following commands in Command Prompt. Replace `python` with `py -3` if needed.
 
 ```bat
-python figs\python_code\plot_computing_resources_trades.py
+python figs\python_code\plot_agent_balance.py
 python figs\python_code\build_fig_html.py
 
-python figs\python_code\plot_computing_resources_trades.py --rwa-dir exp\agentemu-results\round_001\computing_resources --fig-dir figs\figs_results
-python figs\python_code\build_fig_html.py --rwa-dir exp\agentemu-results\round_001\computing_resources
+python figs\python_code\plot_agent_balance.py --data-dir exp\agentemu-results\round_001\agents --fig-dir figs\figs_results
+python figs\python_code\build_fig_html.py --data-dir exp\agentemu-results\round_001\agents
 
 rem Open the gallery
 start "" figs\figs_results\index.html
@@ -502,10 +501,10 @@ start "" figs\figs_results\index.html
 
 | Script | Option | Default | Description |
 | --- | --- | --- | --- |
-| `plot_computing_resources_trades.py` | `--rwa-dir` | Latest round's `computing_resources/` directory | Directory containing `computing_resources_orders.csv` |
-| `plot_computing_resources_trades.py` | `--fig-dir` | `figs/figs_results/` | Output directory for PNG/PDF figures |
+| `plot_agent_balance.py` | `--data-dir` | Latest round's `agents/` directory | Directory containing agent CSV files |
+| `plot_agent_balance.py` | `--fig-dir` | `figs/figs_results/` | Output directory for PNG figures |
 | `build_fig_html.py` | `--fig-dir` | `figs/figs_results/` | Directory to scan for PNG files and write `index.html` |
-| `build_fig_html.py` | `--rwa-dir` | None | Used only to display the computing resources data source on the page |
+| `build_fig_html.py` | `--data-dir` | None | Used only to display the data source and agent count |
 
 ## Analyzing Results
 
@@ -590,11 +589,11 @@ Alternatively, run the scripts with a Python interpreter that already has these 
 
 ### Q8. How can I regenerate plots from historical data?
 
-Set `--rwa-dir` to the desired `round_XXX/computing_resources/` directory and run the plotting scripts manually. Back up historical data and figures before starting a new experiment. `run_agentemu.sh` clears both `exp/` and `figs/figs_results/` on every run.
+Set `--data-dir` to the desired `round_XXX/agents/` directory and run the plotting scripts manually. Back up historical data and figures before starting a new experiment. `run_agentemu.sh` clears both `exp/` and `figs/figs_results/` on every run.
 
-### Q9. How can I add or adjust computing resources trading figures?
+### Q9. How can I change which agents appear in Figure 4 or adjust the group size?
 
-Each computing resources figure maps to one `save_*` function in `figs/python_code/plot_computing_resources_trades.py`. Edit an existing function's statistics or styling, or add a new function following the existing ones and call it from `main()`. To show a new figure in the HTML gallery, also register its PNG filename prefix in the `FIG_SECTIONS` list in `figs/python_code/build_fig_html.py` (the list order is the gallery order).
+Figure 4 currently groups agents in sets of five. Edit the Figure 4 section in `figs/python_code/plot_agent_balance.py` to filter agents or change the group size. The `5` in `range(0, len(dfs), 5)` specifies the number of agents per group.
 
 ### Q10. Are experiments reproducible?
 
@@ -634,4 +633,4 @@ Contributions are welcome via the standard GitHub pull-request flow: benchmarks,
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+This project is licensed under the PolyForm Noncommercial License 1.0.0. Commercial use is not permitted. See [LICENSE](LICENSE).

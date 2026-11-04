@@ -1,12 +1,18 @@
 # AgentEmulator
 
+<p align="right"><a href="README.md">英文</a> | <b>中文</b></p>
+
 ## 简介 / Overview
 
-AgentEmulator 是由**中山大学·软件工程学院·黄华威研究组（[HuangLab](http://www.xintelligence.pro/)）发起的、面向 AI 智能体可信基础设施的仿真与实验平台**。平台以区块链作为可信记录与结算的基础，旨在帮助研究者和学生围绕智能体的身份、行为审计、支付结算、激励与治理机制开展实验，逐步形成支持 AI 智能体可信交互与协作的研究工具。
+AgentEmulator 是由**中山大学·软件工程学院·黄华威研究组（[HuangLab](http://www.xintelligence.pro/)）发起的、面向 AI 智能体可信基础设施的仿真与实验平台**。平台以区块链作为可信记录与结算的基础，**旨在帮助研究者和学生**围绕智能体的身份、行为审计、支付结算、激励与治理机制开展实验，逐步形成支持 AI 智能体可信交互与协作的**研究工具**。
 
 
 
-AgentEmulator 是面向 AI 智能体行为与区块链相结合的场景、基于 BlockEmulator-X 构建的**实验工具**。其中，BlockEmulator-X 是 HuangLab 于2026年6月开源的区块链仿真实验工具，是初代 BlockEmulator 的升级迭代版本，其 GitHub 代码仓库地址为 [github.com/HuangLab-SYSU/block-emulator-x](https://github.com/HuangLab-SYSU/block-emulator-x) 。
+AgentEmulator 是面向 AI 智能体行为与区块链相结合的场景、基于 BlockEmulator-X（即 BlockEmulator 2.0 版本） 构建的**实验工具**。其中，BlockEmulator-X（BlockEmulator 2.0 版本） 是 HuangLab **于2026年5月开源的区块链仿真实验工具**，是初代 BlockEmulator 1.0 的升级迭代版本，其 GitHub 代码仓库地址为 [github.com/HuangLab-SYSU/block-emulator-x](https://github.com/HuangLab-SYSU/block-emulator-x) 。
+
+### 演示视频
+
+**[AgentEmulator 演示视频](https://www.bilibili.com/video/BV1d54g6oEST/)**（Bilibili）
 
 ### 论文
 
@@ -93,20 +99,20 @@ AgentEmulator 对应可信智能体基础设施的五层分类法。五层定义
 
 AgentEmulator 是中山大学 HuangLab 区块链实验技术栈的一部分：
 
-| 项目 | 角色 | 链接 |
-| --- | --- | --- |
-| BlockEmulator | 区块链分片协议仿真器（IEEE TSC 2025） | https://github.com/HuangLab-SYSU/block-emulator |
-| BlockEmulator-X | 支持 EVM 执行的继任版本，AgentEmulator 的后端 | https://github.com/HuangLab-SYSU/block-emulator-x |
-| AgentEmulator | 本项目——分片区块链上的智能体行为仿真 | https://github.com/HuangLab-SYSU/agent-emulator |
-| BrokerChain | 学术分片区块链测试网（约 400 个外部节点） | https://github.com/HuangLab-SYSU/BrokerChain |
-| brokerchain-mcp | MCP server（`register_agent` / `append_log` / `open_channel` / `pay`），双后端：AgentEmulator 仿真 + BrokerChain 测试网 | 开发中 |
+| 项目 | 角色                                                                                                                                     | 链接 |
+| --- |----------------------------------------------------------------------------------------------------------------------------------------| --- |
+| BlockEmulator | 区块链分片协议仿真器（IEEE TSC 2025） BlockEmulator v1.0 版本，2023 年开源                                                                               | https://github.com/HuangLab-SYSU/block-emulator |
+| BlockEmulator-X | 支持 EVM 执行的继任版本，AgentEmulator 的后端。 BlockEmulator v2.0 版本，2026 年 5 月开源                                                                   | https://github.com/HuangLab-SYSU/block-emulator-x |
+| AgentEmulator | 本项目——分片区块链上的智能体行为仿真。BlockEmulator v3.0 版本，2026 年 9 月开源                                                                                 | https://github.com/HuangLab-SYSU/agent-emulator |
+| BrokerChain | 分片区块链测试网-学术版本（约 400 个外部节点），起源于 "BrokerChain: A Cross-Shard Blockchain Protocol for Account/Balance-based State Sharding"（INFOCOM 2022） | https://github.com/HuangLab-SYSU/BrokerChain |
+| brokerchain-mcp | MCP server（`register_agent` / `append_log` / `open_channel` / `pay`），双后端：AgentEmulator 仿真 + BrokerChain 测试网                            | 开发中 |
 
 
 
 
 ### AgentEmulator 有什么用？
 
-AgentEmulator 实验平台的**设计目标**是简化 AI Agent 相关的实验环境搭建配置、机制验证和数据分析，使实验人员能够轻松地配置底层区块链环境、观察 AI 智能体的行为，并通过实验数据分析在不同机制控制时的运行效果。
+**AgentEmulator 实验平台**的**设计目标是简化 AI Agent 相关的实验环境搭建配置、机制验证和数据分析**，**使实验人员**能够轻松地配置底层区块链环境、观察 AI 智能体的行为，并通过实验数据分析在不同机制控制时的运行效果。
 
 
 
@@ -408,7 +414,7 @@ agentSupervisor 以 `config.yaml` 文件为模板，用于为每次实验生成�
 bash run_agentemu.sh            # 或 bash run_agentemu.sh <配置文件>
 ```
 
-- **BlockEmulator-X 区块链运行过程中的日志会实时镜像到控制台中输出。**同时，完整的实验日志会保存在本轮的 `exp/agentemu-results/round_XXX/chain/logs/` 目录中；每轮运行结束后，`run_agentemu` 会把本轮结果滚动归档到 `archived_runs/agentemu-results-<时间戳>/`（只保留最新一份归档，归档属于本地证据、不入库）。
+- **BlockEmulator-X 区块链运行过程中的日志会实时镜像到控制台中输出。**同时，完整的实验日志会保存在 `exp/agentemu-results/round_001/chain/logs/`目录中。
 
 - 如果实验人员只想预览编译出的交易数据集，而不启动 **BlockEmulator-X** 运行区块链进行实验，请在 agentEmuConfig.yaml 配置文件中把 `chain.enabled` 改为 `false`即可（该配置下，agentSupervisor 仅将 trace 文件编译成交易数据集，而不会启动 BlockEmulator-X 运行区块链）
 
@@ -492,7 +498,7 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 
 
-以下各小节依次介绍自动绘图流程、算力资源交易图表的展示内容、图册页面的使用方法，以及无需重新运行实验的手动绘图方法。
+以下各小节依次介绍自动绘图流程、四张实验图表的展示内容、图册页面的使用方法，以及无需重新运行实验的手动绘图方法。
 
 
 
@@ -500,13 +506,13 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 `run_agentemu.sh`（Windows 下为 `run_agentemu.bat`）脚本文件在实验成功结束后将自动执行以下操作：
 
-1. 定位 `exp/agentemu-results/` 路径下 round 编号最大一轮的 `computing_resources/` 目录（须包含 `computing_resources_orders.csv`）
+1. 定位 `exp/agentemu-results/` 路径下 round 编号最大一轮的 `agents/` 目录
 
 2. 清空 `figs/figs_results/` 里的旧实验图与旧 `index.html`文件
 
-3. 运行 `figs/python_code/plot_computing_resources_trades.py` 生成全部算力资源交易图的 PNG 与 PDF 文件；脚本会先按 `tx_hash` 去重（同一笔跨分片交易会在两个分片各提交一次），成交统计只使用真正成交的买单
+3. 运行 `figs/python_code/plot_agent_balance.py` 生成全部实验图的 PNG 格式图片
 
-4. 运行 `figs/python_code/build_fig_html.py` 生成展示算力资源交易图表的 html 页面，图标题放在图像外侧的章节标题栏
+4. 运行 `figs/python_code/build_fig_html.py` 生成展示实验结果图表的 html 页面
 
 5. 模拟器调用网页打开命令在实验人员计算机的默认浏览器中打开 `figs/figs_results/index.html` 页面，展示绘图结果。根据实验人员设备的操作系统类型不同，网页打开命令具体如下：macOS 使用 `open`命令，Linux 使用 `xdg-open`命令，Windows 使用 `start`命令。
 
@@ -518,19 +524,12 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 |实验结果图表的 HTML 页面中实验图编号|内容|对应的 PNG 文件|
 |---|---|---|
-|图 1|各 Agent 成交买入次数、挂卖次数与未成交买单次数分组柱状图|`computing_resources_agent_buy_sell_counts.png`|
-|图 2|各 Agent 净交易额（作为卖方所得 − 作为买方支出），绿色为净卖方、红色为净买方|`computing_resources_agent_net_value.png`|
-|图 3|Agent 交易网络图：节点为 Agent，有向边由买方指向卖方，线宽∝成交金额；节点大小=交易总规模，颜色=净买方/净卖方|`computing_resources_agent_network.png`|
-|图 4|各算力资源（compute_id）成交总金额柱状图|`computing_resources_value_by_compute.png`|
-|图 5|各算力资源按成交金额的市场份额饼图|`computing_resources_compute_market_share.png`|
-|图 6|各算力资源总成交数量-总成交金额气泡图，气泡大小=成交笔数，气泡到原点斜率≈平均成交单价|`computing_resources_quantity_value_bubble.png`|
-|图 7|各算力资源成交单价分布箱线图|`computing_resources_price_boxplot.png`|
-|图 8|各算力资源成交数量分布箱线图|`computing_resources_quantity_boxplot.png`|
-|图 9|单笔成交单价-数量散点图，颜色区分算力资源、点大小=成交金额|`computing_resources_price_quantity_scatter.png`|
-|图 10|各算力资源按成交顺序的累计成交金额阶梯曲线|`computing_resources_cumulative_value_timeline.png`|
-|图 11|买方-卖方成交金额热力图（谁向谁买了多少）|`computing_resources_buyer_seller_heatmap.png`|
+|图 1|全部 Agent 期末余额变化总览：按 Agent ID 排序的柱状图，每根柱子代表一个 Agent，绿色柱表示余额增加、红色柱表示余额减少|`fig1_all_agents_overview.png`|
+|图 2|按照全局交易顺序统计所有 Agent 的余额分布：先按 tx_hash 去重、再按确定性顺序回放各 Agent 的余额变化；图中以阴影带展示最小–最大包络与 P25–P75 四分位带，并叠加全体均值线（均值恒为 0）|`fig2_global_tx_order.png`|
+|图 3|按各 Agent 的交易进度归一化对齐：各 Agent 自身交易序号拉伸到 0–1 后叠加，每条灰色曲线代表一个 Agent；均值曲线在中间阶段低于 0、终点回到 0|`fig3_normalized_progress.png`|
+|图 4|分组展示各个 Agent 的余额变化：每 5 个 Agent 一张子图，横轴为各 Agent 自身的交易序号|`fig4_agents_001-005.png` … `fig4_agents_096-100.png`|
 
-请注意：缺数据的图会自动跳过；图内不含标题，标题由图册页面放在图像外侧的章节标题栏；所有金额均以 wei 原始单位计。
+请注意，所有实验图绘制的是**相对初始余额的变化量 Δbalance = balance − 初始余额**。
 
 
 
@@ -588,7 +587,7 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 - 顶部深色页眉：标题、生成时间、图表数量、数据来源目录与 Agent 数
 
-- 绘制出的算力资源交易图每张独占一个编号章节（图 1..N），标题放在图像外侧的章节标题栏；实验人员可**点击任意图片即可打开对应的原图**
+- 绘制出的实验图中，图 1/2/3 整幅展示，图 4 为所有 Agents 按照每 5 个 Agent 为一组绘制的 Agent 余额变化图；实验人员可**点击任意图片即可打开对应的原图**
 
 - **中英文切换**：右上角按钮（当前中文时显示 "EN"，英文时显示"中文"），或按键盘 `L` 键；切换作用于页面标题、章节标题、元信息与页脚，语言偏好自动记忆，下次打开该 html 页面时保持上一次的设置
 
@@ -610,15 +609,15 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 
 ```Bash
 # 默认：自动选取最新一轮实验结果，输出到 figs/figs_results/
-python3 figs/python_code/plot_computing_resources_trades.py
+python3 figs/python_code/plot_agent_balance.py
 python3 figs/python_code/build_fig_html.py
 
 # 指定数据目录与输出目录（例如用历史快照重新绘制）
-python3 figs/python_code/plot_computing_resources_trades.py \
-    --rwa-dir exp/agentemu-results/round_001/computing_resources \
+python3 figs/python_code/plot_agent_balance.py \
+    --data-dir exp/agentemu-results/round_001/agents \
     --fig-dir figs/figs_results
 python3 figs/python_code/build_fig_html.py \
-    --rwa-dir exp/agentemu-results/round_001/computing_resources
+    --data-dir exp/agentemu-results/round_001/agents
 
 # 只生成页面不重新画图
 python3 figs/python_code/build_fig_html.py
@@ -630,11 +629,11 @@ open figs/figs_results/index.html        # macOS
 Windows 下等价命令（实验人员可通过 cmd 运行以下命令，路径使用反斜杠；`python` 不可用时改用 `py -3`）：
 
 ```Plaintext
-python figs\python_code\plot_computing_resources_trades.py
+python figs\python_code\plot_agent_balance.py
 python figs\python_code\build_fig_html.py
 
-python figs\python_code\plot_computing_resources_trades.py --rwa-dir exp\agentemu-results\round_001\computing_resources --fig-dir figs\figs_results
-python figs\python_code\build_fig_html.py --rwa-dir exp\agentemu-results\round_001\computing_resources
+python figs\python_code\plot_agent_balance.py --data-dir exp\agentemu-results\round_001\agents --fig-dir figs\figs_results
+python figs\python_code\build_fig_html.py --data-dir exp\agentemu-results\round_001\agents
 
 rem 打开图册
 start "" figs\figs_results\index.html
@@ -644,10 +643,10 @@ start "" figs\figs_results\index.html
 
 |脚本|参数|默认值|说明|
 |---|---|---|---|
-|`plot_computing_resources_trades.py`|`--rwa-dir`|自动选最新一轮 `computing_resources/`|包含 `computing_resources_orders.csv` 的算力资源数据目录|
-||`--fig-dir`|`figs/figs_results/`|绘图结果的 PNG/PDF 图片输出目录|
+|`plot_agent_balance.py`|`--data-dir`|自动选最新一轮 `agents/`|Agent CSV 所在目录|
+||`--fig-dir`|`figs/figs_results/`|绘图结果的 PNG 图片输出目录|
 |`build_fig_html.py`|`--fig-dir`|`figs/figs_results/`|扫描 PNG 并在此生成 `index.html`页面|
-||`--rwa-dir`|无|仅用于页面显示算力资源数据来源|
+||`--data-dir`|无|仅用于页面显示数据来源与 Agent 数量|
 
 
 
@@ -744,13 +743,13 @@ join 操作只有在 Agent **首次加入或离开后重新加入**时才会生�
 
 **Q8：实验人员如何使用历史数据重新绘制实验图？**
 
-实验人员可将 `--rwa-dir` 参数设置为目标实验轮次的 `round_XXX/computing_resources/` 目录，并手动执行绘图脚本。由于 `run_agentemu.sh` 每次运行时都会清空 `exp/` 和 `figs/figs_results/` 目录，实验人员应在运行前备份需要保留的历史数据和图表。
+实验人员可将 `--data-dir` 参数设置为目标实验轮次的 `round_XXX/agents/` 目录，并手动执行绘图脚本。由于 `run_agentemu.sh` 每次运行时都会清空 `exp/` 和 `figs/figs_results/` 目录，实验人员应在运行前备份需要保留的历史数据和图表。
 
 
 
-**Q9：实验人员如何新增或调整算力资源交易图表？**
+**Q9：实验图图 4 包含较多子图，实验人员如何调整 Agent 的展示范围或分组方式？**
 
-每张算力资源图对应 `figs/python_code/plot_computing_resources_trades.py` 中的一个 `save_*` 绘图函数。实验人员可修改已有函数的统计口径或样式，或仿照现有函数新增绘图函数并在 `main()` 中调用；若需在 HTML 图册中展示新图，还应把新图的 PNG 文件名前缀登记到 `figs/python_code/build_fig_html.py` 的 `FIG_SECTIONS` 列表中（列表顺序即图册展示顺序）。
+当前绘图脚本按照每组 5 个 Agent 的规则生成实验图图 4 的子图。实验人员可修改 `figs/python_code/plot_agent_balance.py` 文件中图 4 对应的绘图代码，筛选需要展示的 Agent，或调整分组大小。其中，`range(0, len(dfs), 5)` 中的 `5` 表示每组包含的 Agent 数量。
 
 
 
@@ -782,6 +781,6 @@ HuangLab 近 7 年专注于区块链分片（Blockchain Sharding）理论与技�
 
 ## 许可证
 
-MIT。见 [LICENSE](LICENSE)。
+本项目采用 PolyForm Noncommercial License 1.0.0 授权，不允许商用。见 [LICENSE](LICENSE)。
 
 
