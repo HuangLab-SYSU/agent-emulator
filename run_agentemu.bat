@@ -27,23 +27,27 @@ if errorlevel 1 (
   exit /b 1
 )
 
+set "RESULT_DIR="
+for /f "delims=" %%D in ('go run cmd/agentemu/main.go -config "%CONFIG%" -print-result-dir') do set "RESULT_DIR=%%D"
+if not defined RESULT_DIR exit /b 1
+
 rem Clean previous outputs: measurement files are created exclusively, and a
 rem stale agent_registry.json would suppress re-registration of active agents.
 if exist ".\exp" rmdir /s /q ".\exp"
 
 rem Run the whole pipeline: trace -> plan -> auto-launched cluster -> results.
 rem Cluster logs are mirrored to this console and kept under
-rem exp\agentemu-results\round_001\chain\logs\.
+rem %RESULT_DIR%\round_001\chain\logs\.
 go run cmd/agentemu/main.go -config "%CONFIG%"
 if errorlevel 1 exit /b 1
 
 echo.
 echo agentemu finished; results:
-echo   plan ^& action map : exp\agentemu-results\round_001\
-echo   agent csvs        : exp\agentemu-results\round_001\agents\
-echo   agent registry    : exp\agentemu-results\agent_registry.json
-echo   chain measurements: exp\agentemu-results\round_001\chain\results\
-echo   round summary     : exp\agentemu-results\rounds_summary.json
+echo   plan ^& action map : %RESULT_DIR%\round_001\
+echo   agent csvs        : %RESULT_DIR%\round_001\agents\
+echo   agent registry    : %RESULT_DIR%\agent_registry.json
+echo   chain measurements: %RESULT_DIR%\round_001\chain\results\
+echo   round summary     : %RESULT_DIR%\rounds_summary.json
 
 rem Post-experiment figures: plot agent balances from the latest round, build
 rem an HTML gallery and open it in the default browser. A failed experiment
@@ -54,18 +58,23 @@ set "PY=python"
 where python >nul 2>nul || set "PY=py -3"
 
 set "LATEST_ROUND="
-for /d %%D in ("exp\agentemu-results\round_*") do set "LATEST_ROUND=%%~D\"
+for /d %%D in ("%RESULT_DIR%\round_*") do set "LATEST_ROUND=%%~D\"
 
-if not "%LATEST_ROUND%"=="" if exist "%LATEST_ROUND%agents\agent-*.csv" (
+set "PLOT="
+if defined LATEST_ROUND if exist "%LATEST_ROUND%agents\agent-*.csv" set "PLOT=1"
+if defined LATEST_ROUND if exist "%RESULT_DIR%\hybrid_summary.json" set "PLOT=1"
+if defined PLOT (
   if not exist "%FIGS_OUT%" mkdir "%FIGS_OUT%"
   rem Drop figures from the previous run so the gallery never mixes runs.
   del /q "%FIGS_OUT%\*.png" "%FIGS_OUT%\index.html" 2>nul
-  %PY% "%FIGS_CODE%\plot_agent_balance.py" --data-dir "%LATEST_ROUND%agents" --fig-dir "%FIGS_OUT%"
-  if errorlevel 1 exit /b 1
+  if exist "%LATEST_ROUND%agents\agent-*.csv" (
+    %PY% "%FIGS_CODE%\plot_agent_balance.py" --data-dir "%LATEST_ROUND%agents" --fig-dir "%FIGS_OUT%"
+    if errorlevel 1 exit /b 1
+  )
   %PY% "%FIGS_CODE%\build_fig_html.py" --fig-dir "%FIGS_OUT%" --data-dir "%LATEST_ROUND%agents"
   if errorlevel 1 exit /b 1
   echo   figures ^& gallery : %FIGS_OUT%\index.html
   start "" "%FIGS_OUT%\index.html"
 ) else (
-  echo warn: no agent CSVs under exp\agentemu-results; skip plotting 1>&2
+  echo warn: no agent CSVs under %RESULT_DIR%; skip plotting 1>&2
 )

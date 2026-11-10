@@ -23,14 +23,14 @@ func TestChatModelConfigurableRequest(t *testing.T) {
 		var body map[string]any
 		require.NoError(t, json.NewDecoder(r.Body).Decode(&body))
 		require.Equal(t, "some-provider-model", body["model"])
-		require.Contains(t, body["messages"].([]any)[0].(map[string]any)["content"], "summary field")
-		require.NoError(t, json.NewEncoder(w).Encode(map[string]any{"choices": []any{map[string]any{"message": map[string]string{"content": `{"action":"pay","target":"bob","amount":"12","summary":"当前余额充足，决定向 bob 转账 12。"}`}}}, "usage": map[string]int{"total_tokens": 42}}))
+		require.Contains(t, body["messages"].([]any)[0].(map[string]any)["content"], "one short English sentence")
+		require.NoError(t, json.NewEncoder(w).Encode(map[string]any{"choices": []any{map[string]any{"message": map[string]string{"content": `{"action":"pay","target":"bob","amount":"12","summary":"Available funds are sufficient to pay bob 12."}`}}}, "usage": map[string]int{"total_tokens": 42}}))
 	}))
 	defer server.Close()
 	model := ChatModel{Config: ModelConfig{AgentID: "alice", Model: "some-provider-model", BaseURL: server.URL + "/v1/", APIKeyEnv: "AGENT_TEST_KEY"}, Client: server.Client()}
 	reply, err := model.Decide(context.Background(), Observation{AgentID: "alice"})
 	require.NoError(t, err)
-	require.Equal(t, Decision{Action: "pay", Target: "bob", Amount: "12", Summary: "当前余额充足，决定向 bob 转账 12。"}, reply.Decision)
+	require.Equal(t, Decision{Action: "pay", Target: "bob", Amount: "12", Summary: "Available funds are sufficient to pay bob 12."}, reply.Decision)
 	require.Contains(t, string(reply.Raw), "total_tokens")
 }
 

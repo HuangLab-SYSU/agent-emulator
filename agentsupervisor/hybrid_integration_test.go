@@ -101,16 +101,30 @@ func TestHybridPersistentChainIntegration(t *testing.T) {
 		Latest               Observation     `json:"latest_snapshot"`
 		Decisions            []DecisionAudit `json:"decisions"`
 		TraceActionsReplaced int             `json:"trace_actions_replaced"`
+		BlocksCommitted      uint64          `json:"blocks_committed"`
+		BlockCommits         []blockCommit   `json:"block_commits"`
 	}
 	require.NoError(t, json.Unmarshal(data, &summary))
 	require.Equal(t, phaseFinished, summary.Phase)
 	require.Zero(t, summary.PendingTransactions)
 	require.Equal(t, 1, summary.TraceActionsReplaced)
 	require.GreaterOrEqual(t, len(summary.Decisions), 2)
+	require.Len(t, summary.BlockCommits, int(summary.BlocksCommitted))
+	seen := make(map[[2]uint64]bool)
+	for _, commit := range summary.BlockCommits {
+		key := [2]uint64{uint64(commit.Shard), commit.Height}
+		require.False(t, seen[key], "each shard block should be recorded once")
+		seen[key] = true
+		require.Greater(t, commit.Height, uint64(1))
+		require.False(t, commit.Time.IsZero())
+	}
 	accepted := int64(0)
 	failed := false
 	saturated := false
 	for _, audit := range summary.Decisions {
+		require.NotNil(t, audit.SnapshotStarted)
+		require.False(t, audit.SnapshotStarted.After(audit.Started))
+		require.False(t, audit.Finished.Before(audit.Started))
 		require.LessOrEqual(t, audit.BlocksGranted, budget)
 		require.LessOrEqual(t, audit.BlocksCommitted, budget)
 		if audit.BlocksGranted == budget {
