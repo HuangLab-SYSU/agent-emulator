@@ -21,6 +21,8 @@ import html
 from datetime import datetime
 from pathlib import Path
 
+from agent_timeline import timeline_section
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_FIG_DIR = REPO_ROOT / "figs" / "figs_results"
 
@@ -175,12 +177,14 @@ def main():
     parser.add_argument("--fig-dir", type=Path, default=DEFAULT_FIG_DIR,
                         help=f"Directory containing the PNGs; index.html is also written here (default: {DEFAULT_FIG_DIR})")
     parser.add_argument("--data-dir", type=Path, default=None,
-                        help="Directory of experiment agent CSVs (only used to show the data source and agent count on the page)")
+                        help="Directory of experiment agent CSVs, also used to find hybrid timeline data")
     args = parser.parse_args()
 
     fig_dir = args.fig_dir
     fig1, tail, groups, others = collect_pngs(fig_dir)
     n_figs = (1 if fig1 else 0) + len(tail) + len(groups) + len(others)
+    timeline = timeline_section(args.data_dir.parent.parent, args.data_dir) if args.data_dir else ""
+    n_figs += bool(timeline)
     if n_figs == 0:
         raise SystemExit(f"No PNG files found in {fig_dir}; please run plot_agent_balance.py first")
 
@@ -219,6 +223,9 @@ def main():
         "</header>",
         "<main>",
     ]
+
+    if timeline:
+        parts.append(timeline)
 
     # 图 1
     if fig1:
@@ -260,10 +267,10 @@ def main():
     parts.append("<script>" + JS % (repr(PAGE_TITLE_ZH), repr(PAGE_TITLE_EN)) + "</script>")
     parts.append("</body></html>")
 
+    fig_dir.mkdir(parents=True, exist_ok=True)
     out = fig_dir / "index.html"
     out.write_text("\n".join(parts), encoding="utf-8")
-    print(f"Generated HTML gallery: {out} ({n_figs} figures; numbering by display order: "
-          f"overview=fig1, global order=fig2, normalized=fig3, groups=fig4)")
+    print(f"Generated HTML gallery: {out} ({n_figs} figures)")
 
 
 if __name__ == "__main__":

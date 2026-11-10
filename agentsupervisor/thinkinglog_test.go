@@ -35,7 +35,7 @@ func TestThinkingLogVisibleDuringDecision(t *testing.T) {
 		failure  error
 		expected string
 	}{
-		{"pay", Decision{Action: "pay", Target: "bob", Amount: "5", Summary: "当前余额充足，决定向 bob 转账 5。"}, nil, "accepted"},
+		{"pay", Decision{Action: "pay", Target: "bob", Amount: "5", Summary: "Available funds are sufficient to pay bob 5."}, nil, "accepted"},
 		{"wait", Decision{Action: "wait"}, nil, "accepted"},
 		{"leave", Decision{Action: "leave"}, nil, "accepted"},
 		{"rejected", Decision{Action: "pay", Target: "bob", Amount: "50"}, nil, "rejected"},
@@ -55,6 +55,7 @@ func TestThinkingLogVisibleDuringDecision(t *testing.T) {
 			h.startDecision(obs, now)
 			text := readLog()
 			require.Contains(t, text, "event=thinking_started", "start must be visible before the model returns or the file is closed")
+			require.Contains(t, text, `msg="Agent started thinking"`)
 			require.Contains(t, text, "decision=1")
 			require.Contains(t, text, "agent_id=alice")
 			require.NotContains(t, text, "event=thinking_finished")
@@ -63,6 +64,7 @@ func TestThinkingLogVisibleDuringDecision(t *testing.T) {
 			require.NoError(t, h.pollModel(now.Add(2*time.Second)))
 			text = readLog()
 			require.Contains(t, text, "event=thinking_finished")
+			require.Contains(t, text, `msg="Agent finished thinking"`)
 			require.Contains(t, text, "duration_ms=2000")
 			if item.failure == nil {
 				require.NotContains(t, text, "event=decision_result", "receiving a model reply must not claim it passed validation")
@@ -78,11 +80,12 @@ func TestThinkingLogVisibleDuringDecision(t *testing.T) {
 				if item.name == "pay" {
 					require.Contains(t, text, "target=bob")
 					require.Contains(t, text, "amount=5")
-					require.Contains(t, text, `summary="当前余额充足，决定向 bob 转账 5。"`)
+					require.Contains(t, text, `summary="Available funds are sufficient to pay bob 5."`)
 					require.Contains(t, text, "transaction_hash="+hash)
 					require.NotEmpty(t, hash)
 				}
 			}
+			require.Contains(t, text, `msg="Agent decision result"`)
 			require.Contains(t, text, item.expected)
 			require.Equal(t, 1, strings.Count(text, "event=thinking_started"))
 			require.Equal(t, 1, strings.Count(text, "event=thinking_finished"))
@@ -117,12 +120,13 @@ func TestThinkingSummary(t *testing.T) {
 		failure  error
 		want     string
 	}{
-		{"pay fallback", Decision{Action: "pay", Target: "bob", Amount: "5"}, nil, "决定向 bob 转账 5。"},
-		{"wait fallback", Decision{Action: "wait"}, nil, "决定继续等待，本轮不发起交易。"},
-		{"leave fallback", Decision{Action: "leave"}, nil, "决定退出。"},
-		{"single line", Decision{Action: "wait", Summary: "等待资金到账。\n\t 暂不付款。"}, nil, "等待资金到账。 暂不付款。"},
-		{"bounded unicode", Decision{Summary: strings.Repeat("等", 121)}, nil, strings.Repeat("等", 120) + "…"},
-		{"failed reply", Decision{Summary: "决定付款。"}, context.DeadlineExceeded, "本次未能完成决策，请查看 error 字段。"},
+		{"pay fallback", Decision{Action: "pay", Target: "bob", Amount: "5"}, nil, "Decided to pay bob 5."},
+		{"wait fallback", Decision{Action: "wait"}, nil, "Decided to wait without submitting a transaction."},
+		{"leave fallback", Decision{Action: "leave"}, nil, "Decided to leave."},
+		{"single line", Decision{Action: "wait", Summary: "Waiting for funds.\n\t No payment yet."}, nil, "Waiting for funds. No payment yet."},
+		{"Chinese summary falls back to English", Decision{Action: "pay", Target: "bob", Amount: "5", Summary: "Decided to pay. 余额充足。"}, nil, "Decided to pay bob 5."},
+		{"bounded unicode", Decision{Summary: strings.Repeat("é", 121)}, nil, strings.Repeat("é", 120) + "…"},
+		{"failed reply", Decision{Summary: "Decided to pay."}, context.DeadlineExceeded, "Decision failed. See the error field."},
 	} {
 		t.Run(item.name, func(t *testing.T) {
 			require.Equal(t, item.want, thinkingSummary(item.decision, item.failure))

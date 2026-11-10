@@ -51,7 +51,14 @@ type modelOutcome struct {
 	Err   error
 }
 
+type blockCommit struct {
+	Shard  int64     `json:"shard"`
+	Height uint64    `json:"height"`
+	Time   time.Time `json:"committed_at"`
+}
+
 type DecisionAudit struct {
+	SnapshotStarted *time.Time  `json:"snapshot_started,omitempty"`
 	Observation     Observation `json:"observation"`
 	Reply           ModelReply  `json:"reply"`
 	Started         time.Time   `json:"started"`
@@ -67,6 +74,7 @@ type DecisionAudit struct {
 // trace and budget state is confined to its serial supervisor loop. Only the
 // blocking model request runs in a separate goroutine, returning via a channel.
 type HybridRuntime struct {
+	blockCommits   []blockCommit
 	cfg            Config
 	chainCfg       config.SupervisorCfg
 	compiler       *AgentSupervisor
@@ -299,6 +307,8 @@ func (h *HybridRuntime) HandleMsg(_ context.Context, msg *rpcserver.WrappedMsg) 
 		if err := decodeRuntime(msg.GetPayload(), &info); err != nil {
 			return err
 		}
+
+		h.blockCommits = append(h.blockCommits, blockCommit{info.ShardID, info.BlockHeight, info.BlockCommitTime})
 
 		for _, tx := range info.InnerShardTxs {
 			hash, err := tx.Hash()
@@ -768,9 +778,10 @@ func (h *HybridRuntime) persist() error {
 		TraceActionsFailed    int             `json:"trace_actions_failed"`
 		PendingTransactions   int             `json:"pending_transactions"`
 		BlocksCommitted       uint64          `json:"blocks_committed"`
+		BlockCommits          []blockCommit   `json:"block_commits"`
 		Latest                Observation     `json:"latest_snapshot"`
 		Decisions             []DecisionAudit `json:"decisions"`
-	}{h.cfg.AgentAPI.AgentID, h.cfg.AgentAPI.Model, h.phase, h.skipped, len(h.records) - h.cursor, h.traceFailed, len(h.pending), h.budget.Committed, h.latest, h.audits}
+	}{h.cfg.AgentAPI.AgentID, h.cfg.AgentAPI.Model, h.phase, h.skipped, len(h.records) - h.cursor, h.traceFailed, len(h.pending), h.budget.Committed, h.blockCommits, h.latest, h.audits}
 
 	data, err := json.MarshalIndent(summary, "", "  ")
 	if err != nil {
@@ -894,7 +905,9 @@ func (h *HybridRuntime) advanceSnapshots(ctx context.Context, now time.Time) err
 		h.latest = obs
 		switch h.phase {
 		case phaseSnapshot:
+			snapshotStarted := h.phaseStarted
 			h.startDecision(obs, now)
+			h.current.SnapshotStarted = &snapshotStarted
 		case phaseValidationSnapshot:
 			hash, err := h.applyDecision(ctx, h.outcome.Reply.Decision, obs, now)
 			if err != nil && !errors.Is(err, errInvalidDecision) {

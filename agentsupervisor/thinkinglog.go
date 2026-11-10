@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode"
 )
 
 // AgentThinkingLogFile is a live, unbuffered log alongside hybrid_summary.json.
@@ -37,7 +38,7 @@ func (h *HybridRuntime) logThinkingStarted(obs Observation) {
 		}
 	}
 
-	h.thinkingLogger.Info("Agent 开始思考",
+	h.thinkingLogger.Info("Agent started thinking",
 		"event", "thinking_started",
 		"decision", h.decision,
 		"observed_at", obs.ObservedAt,
@@ -59,7 +60,7 @@ func (h *HybridRuntime) logThinkingFinished(failure error) {
 	}
 
 	decision := h.current.Reply.Decision
-	h.thinkingLogger.Info("Agent 思考结束",
+	h.thinkingLogger.Info("Agent finished thinking",
 		"event", "thinking_finished",
 		"decision", h.decision,
 		"started_at", h.current.Started,
@@ -76,7 +77,7 @@ func (h *HybridRuntime) logThinkingFinished(failure error) {
 
 func (h *HybridRuntime) logDecisionResult() {
 	decision := h.current.Reply.Decision
-	h.thinkingLogger.Info("Agent 决策结果",
+	h.thinkingLogger.Info("Agent decision result",
 		"event", "decision_result",
 		"decision", h.decision,
 		"action", decision.Action,
@@ -89,23 +90,23 @@ func (h *HybridRuntime) logDecisionResult() {
 		"blocks_committed", h.current.BlocksCommitted)
 }
 
-// Keep model-provided summaries brief and on one line in the live log.
+// Keep live summaries brief and use an English fallback if the model returns Chinese text.
 func thinkingSummary(decision Decision, failure error) string {
 	if failure != nil {
-		return "本次未能完成决策，请查看 error 字段。"
+		return "Decision failed. See the error field."
 	}
 
 	summary := strings.Join(strings.Fields(decision.Summary), " ")
-	if summary == "" {
+	if summary == "" || strings.ContainsFunc(summary, func(r rune) bool { return unicode.Is(unicode.Han, r) }) {
 		switch decision.Action {
 		case string(ActionPay):
-			summary = fmt.Sprintf("决定向 %s 转账 %s。", decision.Target, decision.Amount)
+			summary = fmt.Sprintf("Decided to pay %s %s.", decision.Target, decision.Amount)
 		case decisionActionWait:
-			summary = "决定继续等待，本轮不发起交易。"
+			summary = "Decided to wait without submitting a transaction."
 		case string(ActionLeave):
-			summary = "决定退出。"
+			summary = "Decided to leave."
 		default:
-			summary = "未获得有效决策。"
+			summary = "No valid decision was received."
 		}
 	}
 

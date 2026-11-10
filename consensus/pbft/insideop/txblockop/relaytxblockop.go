@@ -192,6 +192,7 @@ func (r *RelayTxBlockOp) deliverBlockInfo2Supervisor(
 		Epoch:            r.c.GetEpochID(),
 		BlockProposeTime: b.CreateTime,
 		BlockCommitTime:  time.Now(),
+		BlockHeight:      b.Number,
 	}
 
 	w, err := message.WrapMsg(rbm)

@@ -13,4 +13,5 @@ type RelayBlockInfoMsg struct {
 	Epoch                               int64
 	BlockProposeTime, BlockCommitTime   time.Time
 	ShardID                             int64
+	BlockHeight                         uint64
 }
