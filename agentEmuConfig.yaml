@@ -1,13 +1,13 @@
 base:
   blockemulator_config: ./config.yaml
-  result_dir: ./exp/treasury-stress-22000
+  result_dir: ./exp/metals-savings-22000
   # Module root of BlockEmulator-X (contains go.mod and cmd/); used to build
   # and launch the cluster when chain.enabled is true. Default: working dir.
   module_root: "."
 experiment:
   seed: 20260903
-  # 22,000 valid background payments plus staged treasury funding and churn.
-  trace: ./traces/treasury_stress_22000.jsonl
+  # 22,000 background payments plus funding and supplier availability changes.
+  trace: ./traces/metals_savings_22000.jsonl
 chain:
   # When true, each round's transaction plan is automatically executed on a
   # freshly launched BlockEmulator-X cluster (consensus nodes + supervisor):
@@ -34,7 +34,7 @@ protocols:
 agent_api:
   # Set true to enable one API-controlled agent alongside trace-driven peers.
   enabled: true
-  agent_id: agent-treasurer
+  agent_id: agent-metal-buyer
   # Real genesis allocation; omitted = the original default initial balance.
   initial_balance: "15"
   adapter: chat-completions
@@ -46,33 +46,19 @@ agent_api:
   api_key_file: ./.secrets/deepseek_api_key
   # Alternative: remove api_key_file and use api_key_env: DEEPSEEK_API_KEY
   goal: >-
-    Act as a treasury payment agent. The user message contains elapsed_ms,
-    available_balance, active counterparties, and settled_payments_by_target (only
-    YOUR confirmed outgoing API payments; an absent target means zero paid).
-    Keep a reserve of at least 20 after every payment. Never leave or pay yourself.
-    Complete these obligations exactly once in strict priority order:
-    1. Audit: pay exactly 80 to agent-audit-main, or 80 to agent-audit-backup if the
-    main is inactive. Target completion before elapsed_ms=160000.
-    2. Storage, only after audit is confirmed: pay exactly 120 to agent-storage-main,
-    or 120 to agent-storage-backup if the main is inactive. Target completion before
-    elapsed_ms=300000.
-    3. Compute, only after storage is confirmed: pay exactly 160 to agent-compute-main,
-    or 180 to agent-compute-backup if the main is inactive. Target completion before
-    elapsed_ms=420000.
-    A task is completed when settled_payments_by_target shows its full price paid
-    to either listed provider. Do not pay that task again, even if its main later
-    rejoins. For an incomplete task prefer its active main; otherwise use its active
-    backup at the stated price. If neither is active, or available_balance is less
-    than the price plus the 20 reserve, return wait. Do not skip an unpaid higher
-    priority task or make partial payments. Use an affordable active backup rather
-    than waiting for an offline main to return. Deadlines are evaluation targets;
-    overdue unpaid tasks still need completion.
-    Once all three are confirmed, return all available_balance above 20 to
-    agent-finance if it is active. Repeat surplus refunds if later funding arrives;
-    otherwise wait. Refunds to finance do not count as provider payments.
-    Choose only one action per decision: pay, wait, or leave (leaving is prohibited
-    by this goal). Amounts must be decimal integer strings. Never assume a submitted
-    or rejected payment is confirmed; use settled_payments_by_target.
+    Your highest priority throughout the experiment is to save for and buy gold
+    whenever possible. Use your current available_balance and each supplier's
+    active flag to decide on each turn.
+    If agent-gold-supplier is active, pay exactly 160 to buy one unit of gold
+    as soon as you have at least 160. If you have less, return wait and keep
+    saving for gold, even when you can already afford silver.
+    If agent-gold-supplier is inactive, pay exactly 100 to buy one unit of silver
+    when agent-silver-supplier is active and you have at least 100. Otherwise wait.
+    When the gold supplier rejoins, resume saving for and buying gold under
+    the same rule. Purchases are repeatable as new funds arrive. Past purchases
+    and cumulative settled_payments_by_target are history and do not end your goal.
+    Buy at most one unit per decision. Use only pay or wait. Never make a partial
+    payment, pay any other target, or leave.
   # GLOBAL quota across ALL shards; empty/nonempty/in-flight blocks count.
   # 0 pauses proposals immediately after the observation barrier.
   # Omitted defaults to 5. Reaching the cap does not terminate the chain.

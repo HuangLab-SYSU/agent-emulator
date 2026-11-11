@@ -17,11 +17,10 @@
 """
 
 import argparse
+import base64
 import html
 from datetime import datetime
 from pathlib import Path
-
-from agent_timeline import timeline_section
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_FIG_DIR = REPO_ROOT / "figs" / "figs_results"
@@ -118,10 +117,11 @@ JS = """
   function closeBox() { box.classList.remove('open'); }
   document.querySelectorAll('main a.fig-link').forEach(function (a) {
     a.addEventListener('click', function (ev) {
-      if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
+      if (a.getAttribute('href') !== '#' &&
+          (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey)) return;
       ev.preventDefault();
       var inner = a.querySelector('img');
-      boxImg.src = a.getAttribute('href');
+      boxImg.src = inner.src;
       boxImg.alt = inner ? (inner.alt || '') : '';
       box.classList.add('open');
     });
@@ -133,6 +133,7 @@ JS = """
   document.addEventListener('keydown', function (ev) {
     if (ev.key === 'Escape') closeBox();
   });
+
 })();
 """
 
@@ -166,10 +167,25 @@ def h2(zh: str, en: str) -> str:
             f'{html.escape(zh)}</h2>')
 
 
-def overview_img(p: Path, alt: str) -> str:
-    name = html.escape(p.name)
-    return (f'<div class="overview"><a class="fig-link" href="{name}" target="_blank">'
-            f'<img src="{name}" alt="{html.escape(alt)}"></a></div>')
+def image_link(src: str, alt: str, lazy: bool = False) -> str:
+    src = html.escape(src)
+    href = 'href="#"' if src.startswith("data:") else f'href="{src}" target="_blank"'
+    loading = ' loading="lazy"' if lazy else ""
+    return (f'<a class="fig-link" {href}>'
+            f'<img src="{src}" alt="{html.escape(alt)}"{loading}></a>')
+
+
+def png_data_uri(data: bytes) -> str:
+    return "data:image/png;base64," + base64.b64encode(data).decode("ascii")
+
+
+def figure_link(path: Path, alt: str, embed: bool, lazy: bool = False) -> str:
+    src = png_data_uri(path.read_bytes()) if embed else path.name
+    return image_link(src, alt, lazy)
+
+
+def overview_img(p: Path, alt: str, embed: bool) -> str:
+    return f'<div class="overview">{figure_link(p, alt, embed)}</div>'
 
 
 def main():
@@ -177,14 +193,14 @@ def main():
     parser.add_argument("--fig-dir", type=Path, default=DEFAULT_FIG_DIR,
                         help=f"Directory containing the PNGs; index.html is also written here (default: {DEFAULT_FIG_DIR})")
     parser.add_argument("--data-dir", type=Path, default=None,
-                        help="Directory of experiment agent CSVs, also used to find hybrid timeline data")
+                        help="Directory of experiment agent CSVs for the gallery metadata")
+    parser.add_argument("--embed-images", action="store_true",
+                        help="Embed PNGs in a standalone index-embedded.html")
     args = parser.parse_args()
 
     fig_dir = args.fig_dir
     fig1, tail, groups, others = collect_pngs(fig_dir)
     n_figs = (1 if fig1 else 0) + len(tail) + len(groups) + len(others)
-    timeline = timeline_section(args.data_dir.parent.parent, args.data_dir) if args.data_dir else ""
-    n_figs += bool(timeline)
     if n_figs == 0:
         raise SystemExit(f"No PNG files found in {fig_dir}; please run plot_agent_balance.py first")
 
@@ -224,34 +240,29 @@ def main():
         "<main>",
     ]
 
-    if timeline:
-        parts.append(timeline)
-
     # 图 1
     if fig1:
         parts.append(h2(*FIG1_ENTRY[1:]))
-        parts.append(overview_img(fig1, FIG1_ENTRY[1]))
+        parts.append(overview_img(fig1, FIG1_ENTRY[1], args.embed_images))
 
     # 图 4 / 图 3 等其余单幅图
     for p, zh, en in tail:
         parts.append(h2(zh, en))
-        parts.append(overview_img(p, zh))
+        parts.append(overview_img(p, zh, args.embed_images))
 
     # 图 2 分组网格(语言无关的 Agent 编号作说明), 排在页面最后
     if groups:
         parts.append(h2(GROUPS_HEAD_ZH, GROUPS_HEAD_EN))
         parts.append('<div class="grid">')
         for p in groups:
-            name = html.escape(p.name)
-            cap = html.escape(group_caption(p.name))
-            parts.append(f'<div class="card"><a class="fig-link" href="{name}" target="_blank">'
-                         f'<img src="{name}" alt="{cap}" loading="lazy"></a>'
-                         f'<div class="cap">{cap}</div></div>')
+            cap = group_caption(p.name)
+            link = figure_link(p, cap, args.embed_images, lazy=True)
+            parts.append(f'<div class="card">{link}<div class="cap">{html.escape(cap)}</div></div>')
         parts.append("</div>")
 
     for p in others:  # 兜底: 展示任何其他命名的图
         parts.append(f"<h2>{html.escape(p.stem)}</h2>")
-        parts.append(overview_img(p, p.stem))
+        parts.append(overview_img(p, p.stem, args.embed_images))
 
     footer_zh = ("由 figs/python_code/build_fig_html.py 自动生成 · "
                  "点击任意图片可在当前页放大查看，点击图片外区域或右上角 × 关闭")
@@ -268,7 +279,7 @@ def main():
     parts.append("</body></html>")
 
     fig_dir.mkdir(parents=True, exist_ok=True)
-    out = fig_dir / "index.html"
+    out = fig_dir / ("index-embedded.html" if args.embed_images else "index.html")
     out.write_text("\n".join(parts), encoding="utf-8")
     print(f"Generated HTML gallery: {out} ({n_figs} figures)")
 
