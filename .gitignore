@@ -7,6 +7,7 @@
 # Do not upload your experimental results!
 expTest
 exp
+/archived_runs/
 
 # 自动生成的实验图表与 HTML 图册
 # Auto-generated experiment figures and HTML gallery.

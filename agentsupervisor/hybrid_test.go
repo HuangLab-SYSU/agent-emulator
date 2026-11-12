@@ -56,6 +56,7 @@ func testHybrid(t *testing.T) *HybridRuntime {
 	cfg.Experiment.Trace = filepath.Join(t.TempDir(), "trace.jsonl")
 	require.NoError(t, os.WriteFile(cfg.Experiment.Trace, []byte("{\"agent_id\":\"alice\",\"action\":\"join\",\"ts\":0}\n{\"agent_id\":\"bob\",\"action\":\"join\",\"ts\":0}\n"), 0o600))
 	cfg.AgentAPI = ModelConfig{Enabled: true, AgentID: "alice", BaseURL: "http://localhost/v1", Model: "test"}
+	cfg.DecisionEndpoint = "http://127.0.0.1:1/decision"
 	data, err := yaml.Marshal(cfg)
 	require.NoError(t, err)
 	path := filepath.Join(t.TempDir(), "config.yaml")

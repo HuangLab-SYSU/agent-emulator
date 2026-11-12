@@ -11,8 +11,9 @@ import (
 // Config is intentionally separate from BlockEmulator-X's config.yaml so legacy
 // experiments retain their existing configuration and execution paths.
 type Config struct {
-	AgentAPI ModelConfig `yaml:"agent_api"`
-	Base     struct {
+	DecisionEndpoint string      `yaml:"decision_endpoint,omitempty"` // Generated for the child supervisor.
+	AgentAPI         ModelConfig `yaml:"agent_api"`
+	Base             struct {
 		BlockEmulatorConfig string `yaml:"blockemulator_config"`
 		ResultDir           string `yaml:"result_dir"`
 		// ModuleRoot is the BlockEmulator-X module root used to build and launch

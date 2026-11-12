@@ -1,6 +1,6 @@
 base:
   blockemulator_config: ./config.yaml
-  result_dir: ./exp/metals-savings-22000
+  result_dir: ./exp/metals-savings-22000-deepseek
   # Module root of BlockEmulator-X (contains go.mod and cmd/); used to build
   # and launch the cluster when chain.enabled is true. Default: working dir.
   module_root: "."
