@@ -11,7 +11,7 @@ import (
 )
 
 // RunHybrid starts exactly one cluster for the whole trace/API experiment.
-// The supervisor owns the runtime, model calls and globally reserved block quota.
+// AgentSupervisor calls the model while the child supervisor runs the chain.
 func RunHybrid(ctx context.Context, cfg Config, chain *ChainRunner) ([]RoundResult, error) {
 	if chain == nil {
 		return nil, fmt.Errorf("hybrid runtime requires a chain runner")
@@ -51,7 +51,24 @@ func RunHybrid(ctx context.Context, cfg Config, chain *ChainRunner) ([]RoundResu
 
 	runtimeConfig := filepath.Join(cfg.Base.ResultDir, "hybrid_config.yaml")
 
-	data, err := yaml.Marshal(cfg)
+	agent, err := NewAgentSupervisor(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	endpoint, closeDecisions, err := agent.serveDecisions(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	defer closeDecisions()
+
+	childConfig := cfg
+	childConfig.DecisionEndpoint = endpoint
+	childConfig.AgentAPI.APIKeyEnv = ""
+	childConfig.AgentAPI.APIKeyFile = ""
+
+	data, err := yaml.Marshal(childConfig)
 	if err != nil {
 		return nil, fmt.Errorf("encode runtime config: %w", err)
 	}

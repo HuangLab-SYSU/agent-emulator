@@ -72,7 +72,7 @@ type DecisionAudit struct {
 
 // HybridRuntime implements the supervisor committee contract. All mutable chain,
 // trace and budget state is confined to its serial supervisor loop. Only the
-// blocking model request runs in a separate goroutine, returning via a channel.
+// blocking request to AgentSupervisor runs in a separate goroutine.
 type HybridRuntime struct {
 	blockCommits   []blockCommit
 	cfg            Config
@@ -131,6 +131,10 @@ func NewHybridRuntime(
 		return nil, fmt.Errorf("agent runtime config must enable agent_api")
 	}
 
+	if cfg.DecisionEndpoint == "" {
+		return nil, fmt.Errorf("hybrid runtime requires an agent supervisor decision endpoint")
+	}
+
 	if chainCfg.TxInjectionSpeed <= 0 {
 		return nil, fmt.Errorf("hybrid runtime requires positive tx_injection_speed")
 	}
@@ -183,7 +187,7 @@ func NewHybridRuntime(
 		compiler:       compiler,
 		conn:           conn,
 		resolver:       resolver,
-		model:          &ChatModel{Config: cfg.AgentAPI},
+		model:          supervisorDecisionClient{endpoint: cfg.DecisionEndpoint},
 		budget:         NewBlockBudget(chainCfg.ShardNum),
 		records:        records,
 		skipped:        skipped,

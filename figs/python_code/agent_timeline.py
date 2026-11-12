@@ -99,13 +99,27 @@ def read_timeline(result_dir, agents_dir):
 
     hashes = {audit["transaction_hash"] for audit in audits if audit.get("transaction_hash")}
     injections = {}
+    gold_actions = {}
     links = round_dir / "agent_action_txs.jsonl"
-    if hashes and links.is_file():
+    if links.is_file():
         with links.open(encoding="utf-8") as source:
             for line in source:
                 action = json.loads(line)
+                if action.get("agent_id") == "agent-gold-supplier" and action["action"] in ("join", "leave"):
+                    for tx_hash in action["tx_hashes"] or []:
+                        gold_actions[tx_hash] = action["action"]
                 for tx_hash in hashes.intersection(action["tx_hashes"] or []):
                     injections[tx_hash] = action["ts"]
+
+    gold_status = []
+    measurements = round_dir / "chain" / "results" / "relay_stats_detail_tx_info.csv"
+    if gold_actions and measurements.is_file():
+        with measurements.open(encoding="utf-8", newline="") as source:
+            for row in csv.DictReader(source):
+                action = gold_actions.get(row["OriginalHash"])
+                if action and row["Tx finally commit time"]:
+                    gold_status.append((epoch_ms(row["Tx finally commit time"]), action == "join"))
+        gold_status.sort()
 
     decisions = []
     for audit in audits:
@@ -134,7 +148,7 @@ def read_timeline(result_dir, agents_dir):
     snapshots = [audit["observation"] for audit in audits] + [final_snapshot]
     started = next((epoch_ms(obs["observed_at"]) - obs["elapsed_ms"]
                     for obs in snapshots if "elapsed_ms" in obs), None)
-    return agent, balances, decisions, commit_times, zone, epoch_ms(reference), started, purchases
+    return agent, balances, decisions, commit_times, zone, epoch_ms(reference), started, purchases, gold_status
 
 
 def absolute_time(value, zone):
@@ -229,13 +243,15 @@ def purchase_callouts(purchases, balances, prices, x, y, left, right, top, botto
     return result
 
 
-def render_chart(agent, balances, decisions, commit_times, zone, end, started, purchases, by_block, prices=()):
+def render_chart(agent, balances, decisions, commit_times, zone, end, started, purchases, gold_status,
+                 by_block, prices=()):
     paper_style = not by_block
-    width, height = 1100, 455 if paper_style else 408
-    left, right = (205 if paper_style else 150), width - 30
+    width, height = (1292, 455) if paper_style else (1100, 408)
+    left, right = (397 if paper_style else 150), width - 30
     balance_top, balance_bottom = 35, 205
     events_top, events_bottom = 232, 392
-    labels = (("Block snapshot", "Agent thinking", "Trace proposal", "Trace injection") if paper_style else
+    labels = (("The latest block is broadcast", "Agent reasons using an LLM",
+               "Agent makes a decision", "Agent Supervisor updates the trace file") if paper_style else
               ("区块快照 / Snapshot", "Agent 思考 / Thinking", "新 trace / Proposed trace", "trace 注入 / Injection"))
     times = [time for time, _ in balances] + [
         time for decision in decisions for interval in decision["events"] for time in interval
@@ -315,9 +331,24 @@ def render_chart(agent, balances, decisions, commit_times, zone, end, started, p
         if paper_style:
             for label, price, color in prices:
                 price_y = y(price)
-                svg.append(f'<path d="M{left},{price_y:.2f} H{right}" fill="none" '
-                           f'stroke="{color}" stroke-width="1.5" stroke-dasharray="6,4"/>'
-                           f'<text font-size="16" fill="{color}" x="{left + 8}" y="{price_y - 7:.2f}">'
+                segments = [(left, right)]
+                if label == "Gold price" and gold_status:
+                    segments = []
+                    online_since = left
+                    for time, online in gold_status:
+                        position = min(right, max(left, x(time)))
+                        if online and online_since is None:
+                            online_since = position
+                        elif not online and online_since is not None:
+                            segments.append((online_since, position))
+                            online_since = None
+                    if online_since is not None:
+                        segments.append((online_since, right))
+                for segment_left, segment_right in segments:
+                    if segment_left < segment_right:
+                        svg.append(f'<path d="M{segment_left:.2f},{price_y:.2f} H{segment_right:.2f}" '
+                                   f'fill="none" stroke="{color}" stroke-width="1.5" stroke-dasharray="6,4"/>')
+                svg.append(f'<text font-size="16" fill="{color}" x="{left + 8}" y="{price_y - 7:.2f}">'
                            f'{label}: {price}</text>')
         first_time, first_balance = balances[0]
         steps = [f"M{x(first_time):.2f},{y(first_balance):.2f}"]
@@ -398,7 +429,7 @@ def main():
     data = read_timeline(args.data_dir.parent.parent, args.data_dir)
     if data is None:
         raise SystemExit("No hybrid_summary.json found for this experiment.")
-    _, _, _, commit_times, _, _, _, _ = data
+    _, _, _, commit_times, _, _, _, _, _ = data
     args.fig_dir.mkdir(parents=True, exist_ok=True)
     for by_block, name in ((False, "timeline-relative-time.png"), (True, "timeline-block-count.png")):
         if by_block and commit_times is None:
