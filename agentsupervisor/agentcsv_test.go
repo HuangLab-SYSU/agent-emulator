@@ -176,3 +176,22 @@ func TestAgentFileNameSanitizes(t *testing.T) {
 	require.Equal(t, "agent-001.csv", agentFileName("agent-001"))
 	require.Equal(t, "a_b_c.csv", agentFileName("a/b\\c"))
 }
+
+func TestAgentRowsUseExplicitInitialBalance(t *testing.T) {
+	alice, bob := agentCSVAddr(1), agentCSVAddr(2)
+	now := time.Now()
+	makeTx := func(from, to account.Address, value int64) transaction.Transaction {
+		return *transaction.NewTransaction(from, to, big.NewInt(value), big.NewInt(0), 0, now)
+	}
+	blocks := [][]*block.Block{{
+		newBlock(1, now, makeTx(alice, bob, 0)),
+		newBlock(2, now.Add(time.Second), makeTx(bob, alice, 3)),
+		newBlock(3, now.Add(2*time.Second), makeTx(bob, alice, 5)),
+		newBlock(4, now.Add(3*time.Second), makeTx(alice, bob, 10)),
+	}}
+	rows := buildAgentRows(blocks, map[account.Address]string{alice: "alice", bob: "bob"}, map[account.Address]*big.Int{alice: big.NewInt(2)})
+	require.Len(t, rows["alice"], 4)
+	for index, expected := range []string{"2", "5", "10", "0"} {
+		require.Equal(t, expected, rows["alice"][index].balance)
+	}
+}

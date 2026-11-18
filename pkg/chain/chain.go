@@ -36,14 +36,24 @@ type Chain struct {
 	shardID   int64
 	epochID   int64
 
-	cfg          config.BlockchainCfg
-	vmChainCfg   *params.ChainConfig
-	contractExec ContractExec
-	mux          sync.Mutex
+	initialBalances map[account.Address]*big.Int
+	cfg             config.BlockchainCfg
+	vmChainCfg      *params.ChainConfig
+	contractExec    ContractExec
+	mux             sync.Mutex
 }
 
 // NewChain creates a new blockchain data structure with given components.
 func NewChain(cfg config.BlockchainCfg, lp config.LocalParams) (*Chain, error) {
+	initialBalances, err := config.ParseInitialBalances(cfg.InitialBalances)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(initialBalances) > 0 && cfg.ShardNum <= 0 {
+		return nil, fmt.Errorf("initial balances require positive shard_num")
+	}
+
 	s, err := storage.NewStorage(cfg.StorageCfg, lp)
 	if err != nil {
 		return nil, err
@@ -58,9 +68,10 @@ func NewChain(cfg config.BlockchainCfg, lp config.LocalParams) (*Chain, error) {
 		epochID:   0,
 		shardID:   lp.ShardID,
 
-		cfg:          cfg,
-		vmChainCfg:   &vmChainCfg,
-		contractExec: NewEVMContractExecutor(),
+		initialBalances: initialBalances,
+		cfg:             cfg,
+		vmChainCfg:      &vmChainCfg,
+		contractExec:    NewEVMContractExecutor(),
 	}
 
 	genesisBlock, err := chain.initWithGenesisBlock()
@@ -422,6 +433,8 @@ func (c *Chain) txExecute(
 	addrLoc map[account.Address]int64,
 	tx transaction.Transaction,
 ) error {
+	c.preserveExplicitZeroBalances(v, tx)
+
 	switch tx.TxType() {
 	case transaction.NormalTxType:
 		if err := normalTxExecute(v, tx); err != nil {
@@ -533,6 +546,9 @@ func (c *Chain) getAccountStates(ctx context.Context, addresses []account.Addres
 
 	for i, addr := range addresses {
 		states[i] = readStateFromVMExecutor(addr, vme, uint64(locations[i]))
+		if _, configured := c.initialBalances[addr]; configured && !vme.StateDB().Exist(common.Address(addr)) {
+			states[i].Balance = new(big.Int)
+		}
 	}
 
 	return states, nil
@@ -577,6 +593,8 @@ func (c *Chain) getVMExecutor() (*vm.Executor, error) {
 }
 
 func (c *Chain) calcStateModification(ctx context.Context, v *vm.Executor, b *block.Block) ([][]byte, [][]byte, error) {
+	c.seedInitialBalances(v, b)
+
 	accountLocMap, err := c.getAccountLocationsInTxs(ctx, b.TxList)
 	if err != nil {
 		return nil, nil, fmt.Errorf("get account locations err: %w", err)

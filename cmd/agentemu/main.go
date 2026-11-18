@@ -17,6 +17,8 @@ import (
 func main() {
 	configPath := flag.String("config", "agentEmuConfig.yaml", "path to AgentEmulator YAML config")
 
+	printResultDir := flag.Bool("print-result-dir", false, "print the configured experiment output directory and exit")
+
 	flag.Parse()
 
 	// Ctrl-C must tear down any running cluster processes.
@@ -27,6 +29,12 @@ func main() {
 	if err != nil {
 		slog.Error("load config", "err", err)
 		os.Exit(1)
+	}
+
+	if *printResultDir {
+		fmt.Println(cfg.Base.ResultDir)
+
+		return
 	}
 
 	records, err := agentsupervisor.LoadTrace(cfg.Experiment.Trace)
@@ -56,7 +64,13 @@ func main() {
 	// multi-round feedback via the AgentAPI hook.
 	runner := &agentsupervisor.Runner{Cfg: cfg, Records: records, Chain: chain}
 
-	rounds, err := runner.Run(ctx)
+	var rounds []agentsupervisor.RoundResult
+	if cfg.AgentAPI.Enabled {
+		rounds, err = agentsupervisor.RunHybrid(ctx, cfg, chain)
+	} else {
+		rounds, err = runner.Run(ctx)
+	}
+
 	for _, rr := range rounds {
 		slog.Info("round finished",
 			"round", rr.Round,

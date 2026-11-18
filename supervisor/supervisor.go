@@ -2,11 +2,13 @@ package supervisor
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
 	"time"
 
+	"github.com/HuangLab-SYSU/block-emulator-x/agentsupervisor"
 	"github.com/HuangLab-SYSU/block-emulator-x/config"
 	"github.com/HuangLab-SYSU/block-emulator-x/pkg/message"
 	"github.com/HuangLab-SYSU/block-emulator-x/pkg/network"
@@ -47,7 +49,10 @@ func NewSupervisor(conn *network.ConnHandler, r nodetopo.NodeMapper, cfg config.
 			return nil, fmt.Errorf("failed to initialize relay stats: %w", err)
 		}
 
-		com, err = committee.NewStaticRelayCommittee(conn, r, cfg)
+		if cfg.AgentRuntimeConfig == "" {
+			com, err = committee.NewStaticRelayCommittee(conn, r, cfg)
+		}
+
 		if err != nil {
 			return nil, fmt.Errorf("failed to init a StaticRelayCommittee: %w", err)
 		}
@@ -85,6 +90,17 @@ func NewSupervisor(conn *network.ConnHandler, r nodetopo.NodeMapper, cfg config.
 		return nil, fmt.Errorf("undefined consensus type: %s", cfg.ConsensusType)
 	}
 
+	if cfg.AgentRuntimeConfig != "" {
+		if cfg.ConsensusType != config.StaticRelayConsensus {
+			return nil, fmt.Errorf("agent runtime requires static_relay")
+		}
+
+		com, err = agentsupervisor.NewHybridRuntime(conn, r, cfg)
+		if err != nil {
+			return nil, fmt.Errorf("initialize agent runtime: %w", err)
+		}
+	}
+
 	// create and valid cfg output path
 	if err = os.MkdirAll(cfg.ResultOutputDir, 0o755); err != nil {
 		return nil, fmt.Errorf("failed to create result output directory: %w", err)
@@ -103,12 +119,18 @@ func NewSupervisor(conn *network.ConnHandler, r nodetopo.NodeMapper, cfg config.
 	}, nil
 }
 
-func (s *Supervisor) Start() error {
+func (s *Supervisor) Start() (runErr error) {
+	if closer, ok := s.committee.(interface{ Close() error }); ok {
+		defer func() { runErr = errors.Join(runErr, closer.Close()) }()
+	}
+
 	tk := time.NewTicker(time.Second)
 
 	go s.measureSubroutine()
 
 	defer tk.Stop()
+
+	var runtimeErr error
 
 	slog.Info("supervisor main-goroutine started")
 
@@ -124,17 +146,33 @@ func (s *Supervisor) Start() error {
 
 		for _, msg := range msgList {
 			// Handle messages in the measure module which is run in another routine (measure routine)
-			s.measureMsgBuf <- msg
+			if s.cfg.AgentRuntimeConfig == "" || msg.GetMsgType() == message.RelayBlockInfoMessageType {
+				s.measureMsgBuf <- msg
+			}
 			// Handle messages in the contract execution module which in run in another routine.
 
 			// The messages should be handled by the committee
 			if err := s.committee.HandleMsg(ctx, msg); err != nil {
 				slog.ErrorContext(ctx, "failed to handle msg", "err", err)
+
+				if s.cfg.AgentRuntimeConfig != "" {
+					runtimeErr = err
+					break
+				}
 			}
+		}
+
+		if runtimeErr != nil {
+			break
 		}
 
 		if err := s.committee.SendTxsAndConsensus(ctx); err != nil {
 			slog.ErrorContext(ctx, "failed to send txs and consensus messages", "err", err)
+
+			if s.cfg.AgentRuntimeConfig != "" {
+				runtimeErr = err
+				break
+			}
 		}
 	}
 
@@ -171,7 +209,7 @@ func (s *Supervisor) Start() error {
 	slog.Info("supervisor is closing")
 	s.conn.Close()
 
-	return nil
+	return runtimeErr
 }
 
 func (s *Supervisor) measureSubroutine() {

@@ -38,6 +38,16 @@ func getMsgType(msg any) (string, error) {
 	var msgType string
 
 	switch msg.(type) {
+	case *ProposalPermitRequest:
+		msgType = ProposalPermitRequestType
+	case *ProposalPermitGrant:
+		msgType = ProposalPermitGrantType
+	case *ProposalPermitDone:
+		msgType = ProposalPermitDoneType
+	case *AccountSnapshotRequest:
+		msgType = AccountSnapshotRequestType
+	case *AccountSnapshotResponse:
+		msgType = AccountSnapshotResponseType
 	case *StopConsensusMsg, StopConsensusMsg:
 		msgType = StopConsensusMessageType
 

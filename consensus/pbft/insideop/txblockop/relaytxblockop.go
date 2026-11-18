@@ -192,6 +192,7 @@ func (r *RelayTxBlockOp) deliverBlockInfo2Supervisor(
 		Epoch:            r.c.GetEpochID(),
 		BlockProposeTime: b.CreateTime,
 		BlockCommitTime:  time.Now(),
+		BlockHeight:      b.Number,
 	}
 
 	w, err := message.WrapMsg(rbm)
@@ -204,7 +205,12 @@ func (r *RelayTxBlockOp) deliverBlockInfo2Supervisor(
 		return fmt.Errorf("GetSupervisor failed: %w", err)
 	}
 
-	go r.conn.SendMsg2Dest(ctx, spv, w)
+	if r.cfg.AgentRuntimeConfig != "" {
+		// Deliver commit data before the permit completion/snapshot barrier.
+		r.conn.SendMsg2Dest(ctx, spv, w)
+	} else {
+		go r.conn.SendMsg2Dest(ctx, spv, w)
+	}
 
 	return nil
 }

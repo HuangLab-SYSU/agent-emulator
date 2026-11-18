@@ -1,14 +1,17 @@
 package agentsupervisor
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 
+	"github.com/HuangLab-SYSU/block-emulator-x/config"
 	"github.com/HuangLab-SYSU/block-emulator-x/supervisor/txsource/tracesource"
 )
 
@@ -105,4 +108,43 @@ func TestChainRunnerClusterShape(t *testing.T) {
 	require.NoError(t, err)
 	require.EqualValues(t, 2, shardNum)
 	require.EqualValues(t, 4, nodeNum)
+}
+
+func TestProcessGroupReapedProcessIsNotWaitedTwice(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("uses a POSIX shell")
+	}
+	g := newProcessGroup()
+	defer g.killAll()
+	p, err := g.start("/bin/sh", t.TempDir(), "exit", "-c", "exit 0")
+	require.NoError(t, err)
+	require.NoError(t, g.wait(p, context.Background().Done()))
+	require.NotContains(t, g.done, p.Pid, "a consumed completion channel must not remain in grace wait")
+}
+
+func TestChainRunnerOnlineModeSelection(t *testing.T) {
+	c := newTestChainRunner(t)
+	c.OnlineConfigPath = "/runtime/agent.yaml"
+	dir := t.TempDir()
+	path, _, _, err := c.prepare(dir, RoundSpec{Round: 1, PlanPath: filepath.Join(dir, "plan.jsonl")})
+	require.NoError(t, err)
+	data, err := os.ReadFile(path)
+	require.NoError(t, err)
+	var doc map[string]any
+	require.NoError(t, yaml.Unmarshal(data, &doc))
+	require.Equal(t, c.OnlineConfigPath, doc["system"].(map[string]any)["agent_runtime_config"])
+	require.NoError(t, os.WriteFile(c.BaseConfig, []byte("system:\n  consensus_type: static_broker\n"), 0o600))
+	_, _, _, err = c.prepare(t.TempDir(), RoundSpec{})
+	require.ErrorContains(t, err, "static_relay")
+}
+
+func TestChainRunnerPassesInitialBalances(t *testing.T) {
+	c := newTestChainRunner(t)
+	c.InitialBalances = map[string]string{"0x0000000000000000000000000000000000000001": "2"}
+	dir := t.TempDir()
+	path, _, _, err := c.prepare(dir, RoundSpec{Round: 1, PlanPath: filepath.Join(dir, "plan.jsonl")})
+	require.NoError(t, err)
+	cfg, err := config.LoadConfig(path)
+	require.NoError(t, err)
+	require.Equal(t, c.InitialBalances, cfg.GlobalSys.InitialBalances)
 }

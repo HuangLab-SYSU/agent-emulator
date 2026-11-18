@@ -45,7 +45,10 @@ type Node struct {
 	iop insideop.ShardInsideOp
 	omh outsideop.ShardOutsideMsgHandler
 
-	pbftMsgHandler map[string]messageHandleFunc
+	permitRequested bool
+	permitGranted   bool
+	permitID        uint64
+	pbftMsgHandler  map[string]messageHandleFunc
 }
 
 // NewPBFTNode creates a new node running PBFT consensus with given configurations.
@@ -193,6 +196,8 @@ func (n *Node) run() {
 
 // registerHandleFunc registers all message handle functions.
 func (n *Node) registerHandleFunc() {
+	n.pbftMsgHandler[message.ProposalPermitGrantType] = n.handlePermitGrant
+	n.pbftMsgHandler[message.AccountSnapshotRequestType] = n.handleAccountSnapshot
 	n.pbftMsgHandler[message.StopConsensusMessageType] = n.handleStopConsensus
 	n.pbftMsgHandler[message.PreprepareMessageType] = n.handlePreprepare
 	n.pbftMsgHandler[message.PrepareMessageType] = n.handlePrepare
@@ -398,6 +403,18 @@ func (n *Node) step2NextStage(ctx context.Context) error {
 			if n.pbftMeta.leader != n.pbftMeta.lp.NodeID {
 				return nil
 			}
+
+			if n.pbftMeta.cfg.AgentRuntimeConfig != "" {
+				if err := n.sendRuntimeMessage(
+					ctx,
+					&message.ProposalPermitDone{ShardID: n.pbftMeta.lp.ShardID, ID: n.permitID},
+				); err != nil {
+					return err
+				}
+
+				n.permitGranted = false
+				n.permitRequested = false
+			}
 			// record this block
 			if err = n.recordBlock(n.pbftMeta.lastProposal.Block); err != nil {
 				return fmt.Errorf("record block failed: %w", err)
@@ -431,6 +448,22 @@ func (n *Node) propose(ctx context.Context) error {
 			"time duration",
 			time.Since(n.pbftMeta.lastProposeTime).Seconds(),
 		)
+
+		return nil
+	}
+
+	if n.pbftMeta.cfg.AgentRuntimeConfig != "" && !n.permitGranted {
+		if !n.permitRequested {
+			n.permitID++
+			if err := n.sendRuntimeMessage(
+				ctx,
+				&message.ProposalPermitRequest{ShardID: n.pbftMeta.lp.ShardID, ID: n.permitID},
+			); err != nil {
+				return err
+			}
+
+			n.permitRequested = true
+		}
 
 		return nil
 	}
