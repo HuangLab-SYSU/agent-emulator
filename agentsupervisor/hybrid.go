@@ -239,7 +239,7 @@ func FilterHybridTrace(records []Record, agentID string, seed int64) ([]Record, 
 			}
 
 			if sender == addr {
-				return nil, 0, fmt.Errorf("trace line %d: raw transfer cannot spend API agent's account", record.Seq)
+				return nil, 0, fmt.Errorf("trace line %d: raw transfer cannot spend LLM-driven Agent's account", record.Seq)
 			}
 		}
 
@@ -256,7 +256,7 @@ func FilterHybridTrace(records []Record, agentID string, seed int64) ([]Record, 
 	}
 
 	if !joined {
-		return nil, 0, fmt.Errorf("API agent %q must have a join in trace", agentID)
+		return nil, 0, fmt.Errorf("LLM-driven Agent %q must have a join in trace", agentID)
 	}
 
 	return filtered, skipped, nil
