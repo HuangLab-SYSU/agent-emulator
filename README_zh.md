@@ -338,7 +338,7 @@ base:
   module_root: "."                      # 包含 go.mod 和 cmd/ 的仓库根目录，用于构建区块链程序
 experiment:
   seed: 20260903                        # Agent 身份的确定性派生种子
-  Trace: ./traces/metals_savings_22000.jsonl   # 贵金属场景：包含背景支付、买家拨款和黄金供应商上下线
+  trace: ./traces/metals_savings_22000.jsonl   # 贵金属场景：包含背景支付、买家拨款和黄金供应商上下线
 chain:
   enabled: true                         # 启动 BlockEmulator-X 执行交易
   run_timeout_seconds: 900              # 整场实验超时，包含启动、运行和收尾
@@ -353,7 +353,7 @@ protocols:
     contract_address: "0x0000000000000000000000000000000000000030"
 agent_api:
   enabled: true                         # true：LLM API 接入模式；false：Agent 行为回放模式
-  agent_id: agent-metal-buyer           # 该标识必须在 Trace 中有 join 记录
+  agent_id: agent-metal-buyer           # 该标识必须在 trace 中有 join 记录
   initial_balance: "15"                 # API Agent 的初始余额，单位 wei，使用字符串
   adapter: chat-completions             # 接口前缀，适配器会自动追加 /chat/completions
   base_url: https://api.deepseek.com
@@ -511,7 +511,7 @@ exp/agentemu-results/                 # 示例目录，实际路径由 base.resu
 ├── agent_thinking.log                # LLM API 接入模式：大模型调用起止、决策摘要和校验结果
 └── round_001/                        # LLM API 接入模式下包含整场实验的交易结果
     ├── input_actions.jsonl           # 实际采用的动作，含 LLM API 接入模式下新增的大模型动作
-    ├── trace_failures.jsonl          # LLM API 接入模式：跳过的背景 Trace 动作及原因
+    ├── trace_failures.jsonl          # LLM API 接入模式：跳过的背景 trace 动作及原因
     ├── agent_transactions.jsonl      # 交易数据集（哈希、双方、金额、nonce、data）
     ├── agent_action_txs.jsonl        # ★ 动作→交易映射（request_id ↔ 交易哈希）
     ├── Agent_Events.csv              # Agent 行为事件流

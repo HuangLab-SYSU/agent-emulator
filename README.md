@@ -344,7 +344,7 @@ base:
   module_root: "."                      # Repository root containing go.mod and cmd/, used to build the blockchain
 experiment:
   seed: 20260903                        # Deterministic seed for agent identities
-  Trace: ./traces/metals_savings_22000.jsonl   # Metals scenario: background payments, buyer funding, and gold supplier churn
+  trace: ./traces/metals_savings_22000.jsonl   # Metals scenario: background payments, buyer funding, and gold supplier churn
 chain:
   enabled: true                         # Start BlockEmulator-X to execute transactions
   run_timeout_seconds: 900              # Timeout for the whole experiment, including startup, run, and teardown
@@ -359,7 +359,7 @@ protocols:
     contract_address: "0x0000000000000000000000000000000000000030"
 agent_api:
   enabled: true                         # true: LLM API integration mode; false: Agent behavior replay mode
-  agent_id: agent-metal-buyer           # This identity must have a join record in the Trace
+  agent_id: agent-metal-buyer           # This identity must have a join record in the trace
   initial_balance: "15"                 # API Agent's initial balance in wei, as a string
   adapter: chat-completions             # Endpoint prefix; the adapter appends /chat/completions
   base_url: https://api.deepseek.com
@@ -519,7 +519,7 @@ exp/agentemu-results/                 # Example directory; the actual path is gi
 ├── agent_thinking.log                # LLM API integration mode: model call start/end, decision summaries, validation
 └── round_001/                        # In LLM API integration mode, holds the transaction results of the whole experiment
     ├── input_actions.jsonl           # Actions actually adopted, including model actions added in LLM API integration mode
-    ├── trace_failures.jsonl          # LLM API integration mode: skipped background Trace actions and reasons
+    ├── trace_failures.jsonl          # LLM API integration mode: skipped background trace actions and reasons
     ├── agent_transactions.jsonl      # Transactions: hash, parties, value, nonce, data
     ├── agent_action_txs.jsonl        # ★ Action-to-transaction mapping (request_id ↔ transaction hashes)
     ├── Agent_Events.csv              # Agent action event stream
