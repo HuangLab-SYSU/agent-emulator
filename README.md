@@ -20,7 +20,7 @@ AgentEmulator is an **experimental tool** for scenarios that combine AI agent be
 
 Jian Zheng, Jianbo Xiong, Feihong Hu, and Huawei Huang (corresponding author). October 2026. Preprint.
 
-The paper formalizes the trace–transaction mapping, the three execution orders (logical trace order, backend execution order, visualization order), the reproducibility requirements, and an evaluation methodology for payment completion and execution overhead.
+The paper formalizes the trace–transaction mapping, the three execution orders (logical Trace order, backend execution order, visualization order), the reproducibility requirements, and an evaluation methodology for payment completion and execution overhead.
 
 If you use AgentEmulator in your research, please cite this paper (see [CITATION.cff](CITATION.cff)):
 
@@ -55,9 +55,9 @@ AgentEmulator measures the infrastructure layer, not agent capability. Capabilit
 
 AgentEmulator currently supports two run modes.
 
-**Agent behavior replay mode:** this mode covers trace-driven behavior replay, records of identity registration and revocation, direct payments, experimental data collection, and visualization. Researchers describe agent actions in a JSONL trace file. The `agentSupervisor` module compiles the trace into a transaction dataset. The module then starts a BlockEmulator-X blockchain and submits the transactions for on-chain execution and recording. After the experiment, AgentEmulator records transaction and account data and generates balance plots. AgentEmulator also creates an HTML gallery with Chinese and English interface options. The launch script opens the gallery in the default browser.
+**Agent behavior replay mode:** this mode covers Trace-driven behavior replay, records of identity registration and revocation, direct payments, experimental data collection, and visualization. Researchers describe agent actions in a JSONL Trace file. The `agentSupervisor` module compiles the Trace into a transaction dataset. The module then starts a BlockEmulator-X blockchain and submits the transactions for on-chain execution and recording. After the experiment, AgentEmulator records transaction and account data and generates balance plots. AgentEmulator also creates an HTML gallery with Chinese and English interface options. The launch script opens the gallery in the default browser.
 
-In Agent behavior replay mode, agents' behavior is predefined in the trace. Transactions follow the **User-specified Original Sequence** policy. No additional transaction orchestration or scheduling algorithm is included. Researchers can extend the default policy with mechanisms such as transaction reordering, priority rules, or agent weights.
+In Agent behavior replay mode, agents' behavior is predefined in the Trace. Transactions follow the **User-specified Original Sequence** policy. No additional transaction orchestration or scheduling algorithm is included. Researchers can extend the default policy with mechanisms such as transaction reordering, priority rules, or agent weights.
 
 **LLM API integration mode:** in this mode, one identity from the Trace file is handed to a model API for online control, while all other identities still act as described in the Trace file. The model reads global data from on-chain block snapshots, reasons over it, and makes concrete decisions to pay, wait, or leave; accepted decisions are converted into on-chain transactions. Each run records the decision log of every round and supports exporting timeline figures and cross-model comparison figures. This mode supports only the `static_relay` consensus. One reminder: calling the model may consume your API quota.
 
@@ -83,7 +83,7 @@ AgentEmulator maps onto a five-layer taxonomy of trustworthy agent infrastructur
 
 The paper demonstrates the workflow with 100 agents and 10,000 payment transactions on a 4-shard × 4-node blockchain (single host, Mac mini / Apple M4 Pro / 24 GB, Go 1.25.7, seed 20260903), producing 23 figures across four balance views.
 
-This demonstration establishes the workflow — trace in, ledgers and views out. It does not establish performance or scalability; throughput, latency, and resource overhead require separate timing measurements, which are part of the evaluation methodology in the paper.
+This demonstration establishes the workflow — Trace in, ledgers and views out. It does not establish performance or scalability; throughput, latency, and resource overhead require separate timing measurements, which are part of the evaluation methodology in the paper.
 
 <p align="center">
   <img src="docs/figures/svgs/AgentEmulator_workflow_en.svg" alt="AgentEmulator workflow from a user's perspective">
@@ -95,7 +95,7 @@ This diagram illustrates the platform's broader purpose. The user-defined mechan
 
 ### Reproducibility
 
-Repeatable experiments require fixed inputs: the same trace bytes, the same seed, the same configuration, the same source revisions, and a clean initial registry. AgentEmulator automates consistent preparation, and the paper's Appendix A specifies the records, checks, and figure-regeneration commands that make a run verifiable.
+Repeatable experiments require fixed inputs: the same Trace bytes, the same seed, the same configuration, the same source revisions, and a clean initial registry. AgentEmulator automates consistent preparation, and the paper's Appendix A specifies the records, checks, and figure-regeneration commands that make a run verifiable.
 
 In Agent behavior replay mode, the same seed, Trace file, and code version produce byte-for-byte identical transaction datasets. In LLM API integration mode, model responses and concurrent block production advance in real time, so repeated runs with the same seed may produce different decisions and confirmation times; users can replay the experiment workflow from the captured actions.
 
@@ -141,15 +141,15 @@ This section describes the main terms in AgentEmulator, helping researchers unde
 |Term|Description|
 |---|---|
 |AgentEmulator|An agent behavior emulator built on BlockEmulator-X. AgentEmulator converts agent actions into blockchain transactions, records experimental data, and presents the results.|
-|Agent|An experimental participant whose `join`, `pay`, and `leave` actions are defined in a trace.|
+|Agent|An experimental participant whose `join`, `pay`, and `leave` actions are defined in a Trace.|
 |BlockEmulator-X|The underlying blockchain emulator, responsible for node operation, consensus, block production, transaction execution, and on-chain records. See the [BlockEmulator-X repository](https://github.com/HuangLab-SYSU/block-emulator-x).|
 |Trace file|A JSONL input file describing a sequence of agent actions. Each line contains one action or one plain transfer.|
-|`agentEmuConfig.yaml`|The agent-level experiment configuration: trace path, identity derivation seed, output directory, and blockchain execution settings.|
+|`agentEmuConfig.yaml`|The agent-level experiment configuration: Trace path, identity derivation seed, output directory, and blockchain execution settings.|
 |`config.yaml`|The BlockEmulator-X configuration template: shard count, node count, block interval, and other blockchain parameters.|
 |`agentSupervisor`|The experiment coordinator. `agentSupervisor` reads configurations and traces, then compiles actions into transactions. The module also manages blockchain execution and produces experiment outputs.|
-|`agent_id`|A unique identifier assigned to an agent in the trace, such as `agent-alice`. The identifier distinguishes agents and links each agent's behavior records.|
+|`agent_id`|A unique identifier assigned to an agent in the Trace, such as `agent-alice`. The identifier distinguishes agents and links each agent's behavior records.|
 |`seed`|The identity derivation seed in `agentEmuConfig.yaml`. The same seed and `agent_id` produce the same DID.|
-|DID|A Decentralized Identifier derived automatically from `seed` and `agent_id`. DIDs do not need to be entered in the trace.|
+|DID|A Decentralized Identifier derived automatically from `seed` and `agent_id`. DIDs do not need to be entered in the Trace.|
 |LLM API|The interface through which AgentEmulator calls an external large language model (LLM). Services compatible with Chat Completions are currently supported; researchers configure the endpoint, model name, and authentication in agentEmuConfig.yaml.|
 |API Agent|An Agent controlled by the LLM API. Selected through `agent_api.agent_id` from an existing identity in the Trace. The system keeps the identity's first join action; subsequent behavior is taken over by model decisions.|
 
@@ -228,7 +228,7 @@ The launch script performs these steps automatically:
 1. **Build** the project with `go build ./...`.
 2. **Clear previous experiment data** by deleting `./exp`.
 3. **Run the experiment:**
-   - **Agent behavior replay mode:** read `agentEmuConfig.yaml` → compile the trace into a transaction dataset → automatically start the BlockEmulator-X blockchain (4 shards, 4 nodes per shard by default) → commit all transactions on chain → experiment complete, the blockchain stops automatically.
+   - **Agent behavior replay mode:** read `agentEmuConfig.yaml` → compile the Trace into a transaction dataset → automatically start the BlockEmulator-X blockchain (4 shards, 4 nodes per shard by default) → commit all transactions on chain → experiment complete, the blockchain stops automatically.
    - **LLM API integration mode:** read `agentEmuConfig.yaml` and select the API Agent → automatically start the BlockEmulator-X blockchain → other agents inject preset actions following the Trace while the API Agent calls the model with on-chain snapshots to make decisions → agentSupervisor validates the decisions and submits accepted transactions on chain → when the time limit is reached, stop injecting new actions, wait for committed transactions to settle, record results, and shut down the blockchain.
 4. **Generate plots** from the latest round's agent ledgers and save PNG files to `figs/figs_results/`.
 5. **Build and open the HTML gallery** containing the plots.
@@ -241,7 +241,7 @@ bash run_agentemu.sh my-config.yaml
 
 ## Trace File Setup
 
-A trace file provides the input for an experiment. The file uses JSONL format, with one agent action or one plain blockchain transfer per line. In agent action records, `agent_id` identifies the agent performing the action, and `ts` defines the logical order. The `action` field specifies `join`, `pay`, or `leave`. AgentEmulator generates the emulation results from this file in a deterministic order:
+A Trace file provides the input for an experiment. The file uses JSONL format, with one agent action or one plain blockchain transfer per line. In agent action records, `agent_id` identifies the agent performing the action, and `ts` defines the logical order. The `action` field specifies `join`, `pay`, or `leave`. AgentEmulator generates the emulation results from this file in a deterministic order:
 
 ```text
 Trace file (experiment intent)
@@ -252,21 +252,21 @@ Transaction dataset → Emulation replay → Agent ledgers / On-chain metrics �
 ```
 
 <p align="center">
-  <img src="docs/figures/svgs/AgentEmulator_trace_flow_en.svg" alt="Illustration of the fields in a behavior trace">
+  <img src="docs/figures/svgs/AgentEmulator_trace_flow_en.svg" alt="Illustration of the fields in a behavior Trace">
   <br>
-  Illustration of the fields in a behavior trace. An agent action is compiled into a payment transaction that the blockchain can process.
+  Illustration of the fields in a behavior Trace. An agent action is compiled into a payment transaction that the blockchain can process.
 </p>
 
 ### Trace Basics
 
-1. **Actions and transactions.** Describe actions in the trace. Blockchain transactions do not need to be constructed manually. AgentEmulator deterministically generates DIDs, transaction nonces, and data fields from the action records and `seed`.
-2. **Reproducibility and ordering in Agent behavior replay mode.** The same trace, seed, and code version produce the same transaction plan (see FAQ Q10). Records are ordered by `ts`, with ties resolved by file order. `ts` defines the logical order rather than an on-chain timestamp. Changing the gaps between `ts` values does not control transaction commit times.
+1. **Actions and transactions.** Describe actions in the Trace. Blockchain transactions do not need to be constructed manually. AgentEmulator deterministically generates DIDs, transaction nonces, and data fields from the action records and `seed`.
+2. **Reproducibility and ordering in Agent behavior replay mode.** The same Trace, seed, and code version produce the same transaction plan (see FAQ Q10). Records are ordered by `ts`, with ties resolved by file order. `ts` defines the logical order rather than an on-chain timestamp. Changing the gaps between `ts` values does not control transaction commit times.
 3. **Trace timing in LLM API integration mode.** `agentSupervisor` uses the first retained Trace action as the time baseline and divides the difference between each action's `ts` and the baseline by `trace_time_scale`, yielding the planned injection time relative to the experiment start, in milliseconds. Records with the same time are processed in file order. Due to the injection rate and on-chain snapshot collection, actions may be injected later than planned; delayed actions keep their original order. The API Agent's subsequent actions are decided in real time by the model from on-chain observations and submitted after validation. `ts` gives the planned injection time of a Trace action; the actual confirmation time depends on transaction execution and block progress.
 4. **Agent lifecycle.** `join` and `leave` update each agent's `active` status in `agent_registry.json`. Both parties must be active when a `pay` action is processed.
 5. **Record linkage and versioning.** `request_id` links payment actions, on-chain transactions, and ledger records. Globally unique `request_id` values are recommended. `params_hash` identifies the version of action parameters. AgentEmulator copies `params_hash` unchanged into the mapping file to support data management across rounds.
 6. **Plain transfers.** Records with `sender`, `recipient`, and `value` can be mixed with agent actions to create workloads containing different transaction types.
 
-The repository includes the following basic sample traces: `traces/minimal.jsonl` (a minimal example with two agents joining and making a payment) and `traces/agent=100_txs=10000.jsonl` (the trace used by the v1.0 basic example, with 100 agents and 10,000 transactions). Example trace:
+The repository includes the following basic sample traces: `traces/minimal.jsonl` (a minimal example with two agents joining and making a payment) and `traces/agent=100_txs=10000.jsonl` (the Trace used by the v1.0 basic example, with 100 agents and 10,000 transactions). Example Trace:
 
 ```json
 {"agent_id":"agent-alice","action":"join","params_hash":"doc-alice-v1","ts":1}
@@ -284,7 +284,7 @@ The repository includes the following basic sample traces: `traces/minimal.jsonl
 | `leave` | Deregister an agent | DID `revoke` contract call |
 | Plain transfer | Transfer between blockchain accounts, without an agent action | Plain transfer |
 
-Plain transfer records have no `action` field. AgentEmulator identifies plain transfers by three fields: `sender`, `recipient`, and `value`. The `sender` field contains an account address. Plain transfers follow the record order in the trace:
+Plain transfer records have no `action` field. AgentEmulator identifies plain transfers by three fields: `sender`, `recipient`, and `value`. The `sender` field contains an account address. Plain transfers follow the record order in the Trace:
 
 ```json
 {"sender":"0xabc...","recipient":"0xdef...","value":"12345"}
@@ -303,7 +303,7 @@ Model responses and the original Trace use different input formats. The model re
 1. Both `agent_id` and `target` in a `pay` action must be **active** (joined and not yet left). A violation aborts the experiment.
 2. Only an active agent can `leave`. An agent that rejoins after leaving must register again.
 3. `amount` must be a positive integer. New on-chain accounts receive an initial balance of 10^36 wei, which is sufficient for typical experiments.
-4. **Do not enter DIDs in the trace.** AgentEmulator derives DIDs deterministically from `seed` and `agent_id`.
+4. **Do not enter DIDs in the Trace.** AgentEmulator derives DIDs deterministically from `seed` and `agent_id`.
 5. Use globally unique `request_id` values to simplify payment-intent lookup and analysis.
 
 ### Validation Rules for LLM API Responses
@@ -344,7 +344,7 @@ base:
   module_root: "."                      # Repository root containing go.mod and cmd/, used to build the blockchain
 experiment:
   seed: 20260903                        # Deterministic seed for agent identities
-  trace: ./traces/metals_savings_22000.jsonl   # Metals scenario: background payments, buyer funding, and gold supplier churn
+  Trace: ./traces/metals_savings_22000.jsonl   # Metals scenario: background payments, buyer funding, and gold supplier churn
 chain:
   enabled: true                         # Start BlockEmulator-X to execute transactions
   run_timeout_seconds: 900              # Timeout for the whole experiment, including startup, run, and teardown
@@ -414,7 +414,7 @@ For Alibaba Cloud Bailian, change the value to `DASHSCOPE_API_KEY`. `api_key_env
 
 ### Blockchain configuration: `config.yaml`
 
-By default, AgentEmulator uses BlockEmulator-X's native configuration. `agentSupervisor` treats `config.yaml` as a template and generates a separate blockchain configuration for each experiment. The module adjusts storage and log paths and sets the transaction source to `trace_source_JSONL`. The module also sets `tx_number` to the number of transactions compiled from the trace.
+By default, AgentEmulator uses BlockEmulator-X's native configuration. `agentSupervisor` treats `config.yaml` as a template and generates a separate blockchain configuration for each experiment. The module adjusts storage and log paths and sets the transaction source to `trace_source_JSONL`. The module also sets `tx_number` to the number of transactions compiled from the Trace.
 
 Common settings include:
 
@@ -483,7 +483,7 @@ bash run_agentemu.sh            # Or: bash run_agentemu.sh <config-file>
 ```
 
 - **Blockchain logs stream to the console.** Full logs are also saved to `exp/agentemu-results/round_001/chain/logs/`.
-- To preview the compiled transaction dataset without running the blockchain, first set `agent_api.enabled` to `false` and then set `chain.enabled` to `false` in `agentEmuConfig.yaml`. Under that configuration, agentSupervisor only compiles the trace into a transaction dataset without starting BlockEmulator-X.
+- To preview the compiled transaction dataset without running the blockchain, first set `agent_api.enabled` to `false` and then set `chain.enabled` to `false` in `agentEmuConfig.yaml`. Under that configuration, agentSupervisor only compiles the Trace into a transaction dataset without starting BlockEmulator-X.
 - At the end of a run, the script prints the output paths for experiment data and generated figures.
 
 ## Agent Decision Logs
@@ -600,7 +600,7 @@ The experiment used multiple processes on a single machine with these settings:
 1. **Topology:** 4 shards with 4 consensus nodes each (16 consensus nodes in total), plus one supervisor. Nodes communicated in `direct` mode over `127.0.0.1`. Consensus nodes used ports in the range 32217–32547. The supervisor used port 38800.
 2. **Consensus and cross-shard processing:** `static_relay`, with static account placement and relay-based cross-shard transactions. The block interval was 2000 ms. Transactions were packed by count, with up to 5000 transactions per block.
 3. **Storage:** BoltDB for blocks, Ethereum-style LevelDB for world state, and a Bloom filter bitmap length of 4096.
-4. **Workload:** seed `20260903`, 100 agents, and a trace containing 10,000 transactions, replayed through `trace_source_JSONL`. Each round automatically compiled the transactions and started a fresh BlockEmulator-X emulation run.
+4. **Workload:** seed `20260903`, 100 agents, and a Trace containing 10,000 transactions, replayed through `trace_source_JSONL`. Each round automatically compiled the transactions and started a fresh BlockEmulator-X emulation run.
 
 <p align="center">
   <img src="docs/figures/pngs/fig1_all_agents_overview.png" alt="Final balance changes for all 100 agents">
@@ -725,7 +725,7 @@ Figure 11 shows one DeepSeek single-model run. The upper and lower halves share 
 - **Agent observes the latest block:** the on-chain snapshot collection before each decision, where the Supervisor of BlockEmulator-X fetches block and account states from all shards and sends them through the LLM API to the corresponding model.
 - **Agent reasons using an LLM:** the start and end of each LLM API call. Short intervals can look like single points on the time scale of the whole experiment.
 - **Agent makes a decision:** the moment the model returns a submittable action. Waiting decisions produce no new payment marker.
-- **agentSupervisor updates the trace file:** the moment a validated model action enters the actually executed action sequence and is submitted to the transaction flow.
+- **agentSupervisor updates the Trace file:** the moment a validated model action enters the actually executed action sequence and is submitted to the transaction flow.
 
 Comparing these four tracks with the balance steps separates funding arrival, the model's payment decision, action injection, and the on-chain debit, showing how a purchase progresses through each stage.
 
@@ -820,12 +820,12 @@ bash run_agentemu.sh > run.log 2>&1
 ```
 
 **Q5. How can I run a small, single-shard experiment?**
-Set `system.shard_num` to `1` in `config.yaml`. Adjust the actions and transaction count in the trace to control the workload size.
+Set `system.shard_num` to `1` in `config.yaml`. Adjust the actions and transaction count in the Trace to control the workload size.
 
 **Q6. Why does the HTML gallery not open after an experiment?**
 Check the end of the console output for `figures & gallery: ./figs/figs_results/index.html`:
 
-- If the gallery path is missing and `warn: no agent CSVs ...` appears, the experiment produced no agent ledger data. No agent ledger data is expected when `chain.enabled` is `false`. Under that configuration, AgentEmulator compiles the trace without running the blockchain.
+- If the gallery path is missing and `warn: no agent CSVs ...` appears, the experiment produced no agent ledger data. No agent ledger data is expected when `chain.enabled` is `false`. Under that configuration, AgentEmulator compiles the Trace without running the blockchain.
 - If the line appears but the gallery does not open, open `figs/figs_results/index.html` manually. On MacOS, run `open figs/figs_results/index.html`.
 
 **Q7. How do I resolve `ModuleNotFoundError: matplotlib`?**
@@ -844,7 +844,7 @@ Set `--data-dir` to the desired `round_XXX/agents/` directory and run the plotti
 Figure 4 currently groups agents in sets of five. Edit the Figure 4 section in `figs/python_code/plot_agent_balance.py` to filter agents or change the group size. The `5` in `range(0, len(dfs), 5)` specifies the number of agents per group.
 
 **Q10. Are experiments reproducible?**
-For Agent behavior replay mode, with the same `seed`, trace, and code version, the generated transaction dataset and agent action CSV are byte-for-byte identical. Agent ledger records also use a deterministic global ordering. On-chain transaction packing and timing remain subject to runtime conditions, as in BlockEmulator-X.
+For Agent behavior replay mode, with the same `seed`, Trace, and code version, the generated transaction dataset and agent action CSV are byte-for-byte identical. Agent ledger records also use a deterministic global ordering. On-chain transaction packing and timing remain subject to runtime conditions, as in BlockEmulator-X.
 
 **Q11. On Windows, why is `python` not recognized, or why does `python` open the Microsoft Store?**
 Python may not be installed, or the Python installation directory may be missing from `PATH`. Download Python from the [official website](https://www.python.org/downloads/windows/) and select **Add python.exe to PATH** during installation.

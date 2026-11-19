@@ -20,7 +20,7 @@ AgentEmulator 是面向 AI 智能体行为与区块链相结合的场景、基�
 
 Jian Zheng, Jianbo Xiong, Feihong Hu, and Huawei Huang（通讯作者）。2026 年 10 月。Preprint。
 
-论文形式化了 trace 到交易的映射、三种执行顺序（逻辑 trace 顺序、后端执行顺序、可视化顺序）、可复现性要求，以及支付完成度与执行开销的评估方法论。
+论文形式化了 Trace 到交易的映射、三种执行顺序（逻辑 Trace 顺序、后端执行顺序、可视化顺序）、可复现性要求，以及支付完成度与执行开销的评估方法论。
 
 研究中使用 AgentEmulator 请引用本论文（见 [CITATION.cff](CITATION.cff)）：
 
@@ -226,7 +226,7 @@ bash run_agentemu.sh
 1. **编译**：`go build ./...`
 2. **清理旧的实验数据**：删除 `./exp` 目录
 3. **实验运行步骤**：
-   - **Agent 行为回放模式**：读取 `agentEmuConfig.yaml` → 编译 trace 为交易数据集 → 自动启动 BlockEmulator-X 区块链（默认 4 分片，每分片 4 节点）→ 交易数据全部上链 → 实验完成，区块链自动停止
+   - **Agent 行为回放模式**：读取 `agentEmuConfig.yaml` → 编译 Trace 为交易数据集 → 自动启动 BlockEmulator-X 区块链（默认 4 分片，每分片 4 节点）→ 交易数据全部上链 → 实验完成，区块链自动停止
    - **LLM API 接入模式**：读取 `agentEmuConfig.yaml` 并选定 API Agent → 自动启动 BlockEmulator-X 区块链 → 其余 Agent 按 Trace 注入预设动作，API Agent 根据链上快照调用大模型作出决策 → agentSupervisor 校验决策，并将通过校验的交易提交到链上 → 到达实验时限后停止注入新动作，等待已提交交易确认，记录结果并关闭区块链
 4. **自动绘制实验图**：读取最新一轮的数据记录表，生成 PNG 格式的数据图到 `figs/figs_results/` 目录中
 5. **将 PNG 数据图嵌入 HTML 页面中并自动在浏览器中打开**
@@ -243,7 +243,7 @@ bash run_agentemu.sh my-config.yaml
 Trace 文件采用 JSONL 格式记录 Agent 的行为序列，作为 AgentEmulator 的实验输入数据，用于模拟 Agent 行为和区块链常规交易。文件中的每条记录通过 `agent_id` 标识执行行为的 Agent，通过 `ts` 确定行为的执行顺序，并指定具体的行为类型，包括 `join`、`pay` 和 `leave`。AgentEmulator 基于该文件，以确定顺序生成仿真实验结果：
 
 ```text
-trace 文件（实验的全部意图）
+Trace 文件（实验的全部意图）
     │  编译：意图 → 真实区块链交易（DID 派生、nonce、数据字段）
     ▼
 交易数据集 → 仿真回放 → Agent 账本 / 链上测量 → 绘图展示效果
@@ -260,7 +260,7 @@ trace 文件（实验的全部意图）
 5. **实验数据关联与版本标记。** `request_id` 用于关联支付行为、链上交易和 Agent 账本记录，建议实验人员为其设置全局唯一值。`params_hash` 用于标记行为参数的版本，系统将该字段原样写入映射文件，以支持多轮实验的数据管理。
 6. **普通区块链转账交易。** Trace 文件支持包含 `sender`、`recipient` 和 `value` 字段的普通转账记录。实验人员可以将此类记录与 Agent 行为记录组合使用，从而构造包含不同交易类型的实验负载。
 
-Trace 文件以 JSONL 格式给出，每一行表示一个 Agent 执行的某个行为或者是普通转账交易，按 `ts`（TimeStamp）排序（`ts` 相同则按照文件中的行序进行执行）。仓库自带的基础示例包括：`traces/minimal.jsonl`（只包含 2 个 Agent 加入 / 转账的最小实验规模示例）、`traces/agent=100_txs=10000.jsonl`（v1.0 基础示例使用的 trace 文件，包含 100 个 Agent，10,000 笔交易），以下展示一份 trace 文件的示例。
+Trace 文件以 JSONL 格式给出，每一行表示一个 Agent 执行的某个行为或者是普通转账交易，按 `ts`（TimeStamp）排序（`ts` 相同则按照文件中的行序进行执行）。仓库自带的基础示例包括：`traces/minimal.jsonl`（只包含 2 个 Agent 加入 / 转账的最小实验规模示例）、`traces/agent=100_txs=10000.jsonl`（v1.0 基础示例使用的 Trace 文件，包含 100 个 Agent，10,000 笔交易），以下展示一份 Trace 文件的示例。
 
 ```json
 {"agent_id":"agent-alice","action":"join","params_hash":"doc-alice-v1","ts":1}
@@ -278,7 +278,7 @@ Trace 文件以 JSONL 格式给出，每一行表示一个 Agent 执行的某个
 |`leave`|Agent 注销“退出”|DID `revoke` 智能合约调用|
 |普通转账交易|由区块链账户而非 Agent 发起的转账交易|普通转账交易|
 
-普通转账交易行中不包含 `action` 字段，靠 trace 文件中的结构（`sender` 字段中使用的是账户地址）自动识别，只有三个输入字段，该普通转账交易的执行顺序严格按照 trace 文件中的行序执行，示例如下：
+普通转账交易行中不包含 `action` 字段，靠 Trace 文件中的结构（`sender` 字段中使用的是账户地址）自动识别，只有三个输入字段，该普通转账交易的执行顺序严格按照 Trace 文件中的行序执行，示例如下：
 
 ```json
 {"sender":"0xabc...","recipient":"0xdef...","value":"12345"}
@@ -297,7 +297,7 @@ Trace 文件以 JSONL 格式给出，每一行表示一个 Agent 执行的某个
 1. **`pay` 行为的双方 Agent（`agent_id` 和 `target`）当时必须处于 active 状态**（已 join 且未 leave），否则整场仿真实验将报错终止。
 2. `leave` 操作只能作用于处于 `active` 状态的 Agent；已经 `leave` 的 Agent 再次 `join` 需要重新注册。
 3. `amount` 字段的填写必须为正整数。链上新账户地址会自动获得 10^36 wei 的初始余额，正常实验无需担心账户余额不足。
-4. **trace 文件中不需要写 DID**——Agent 的身份由 `seed + agent_id` 确定性派生，同 seed、同 ID 永远得到同一 DID。
+4. **Trace 文件中不需要写 DID**——Agent 的身份由 `seed + agent_id` 确定性派生，同 seed、同 ID 永远得到同一 DID。
 5. `request_id` 建议全局唯一，因为后续需要使用它来检索每个 Agent 的“支付意图”数据。
 
 ### LLM API 所应答内容的校验规则
@@ -338,7 +338,7 @@ base:
   module_root: "."                      # 包含 go.mod 和 cmd/ 的仓库根目录，用于构建区块链程序
 experiment:
   seed: 20260903                        # Agent 身份的确定性派生种子
-  trace: ./traces/metals_savings_22000.jsonl   # 贵金属场景：包含背景支付、买家拨款和黄金供应商上下线
+  Trace: ./traces/metals_savings_22000.jsonl   # 贵金属场景：包含背景支付、买家拨款和黄金供应商上下线
 chain:
   enabled: true                         # 启动 BlockEmulator-X 执行交易
   run_timeout_seconds: 900              # 整场实验超时，包含启动、运行和收尾
@@ -475,7 +475,7 @@ bash run_agentemu.sh            # 或 bash run_agentemu.sh <配置文件>
 ```
 
 - **BlockEmulator-X 区块链运行过程中的日志会实时在控制台中输出。**同时，完整的实验日志会保存在 `exp/agentemu-results/round_001/chain/logs/` 目录中。
-- 如果实验人员只想预览编译出的交易数据集，而不启动 BlockEmulator-X 运行区块链进行实验，请在 agentEmuConfig.yaml 配置文件中先将 `agent_api.enabled` 设为 `false`，再把 `chain.enabled` 改为 `false` 即可（该配置下，agentSupervisor 仅将 trace 文件编译成交易数据集，而不会启动 BlockEmulator-X 运行区块链）。
+- 如果实验人员只想预览编译出的交易数据集，而不启动 BlockEmulator-X 运行区块链进行实验，请在 agentEmuConfig.yaml 配置文件中先将 `agent_api.enabled` 设为 `false`，再把 `chain.enabled` 改为 `false` 即可（该配置下，agentSupervisor 仅将 Trace 文件编译成交易数据集，而不会启动 BlockEmulator-X 运行区块链）。
 - 实验结束时，实验运行脚本文件会在控制台中打印实验运行结果的输出路径，以及使用 python 脚本绘制的实验图的存储路径。
 
 ## Agent 决策日志
@@ -717,7 +717,7 @@ start "" figs\figs_results\index.html
 - **Agent observes the latest block**：对应本轮决策前的链上快照采集，即 BlockEmulator-X 的 Supervisor 从各分片取得区块与账户状态，并通过 LLM API 发送到对应的大模型进行决策。
 - **Agent reasons using an LLM**：对应 LLM API 调用的起止区间。较短的区间在整场实验的时间尺度下可能看起来像一个点。
 - **Agent makes a decision**：标出大模型返回可提交动作的时刻。等待决策不会产生新的付款动作。
-- **agentSupervisor updates the trace file**：对应通过校验的大模型动作进入实际执行的动作序列，并提交到交易流程的时刻。
+- **agentSupervisor updates the Trace file**：对应通过校验的大模型动作进入实际执行的动作序列，并提交到交易流程的时刻。
 
 将这四条轨道与余额阶梯线对照，可以区分资金到位、大模型返回付款决策、动作注入和链上扣款，从而观察一次购买在各个环节中的推进过程。
 
@@ -860,7 +860,7 @@ join 操作只有在 Agent **首次加入或离开后重新加入**时才会生�
 
 ## 参与贡献
 
-欢迎通过标准 GitHub PR 流程贡献基准场景、插件、trace 与文档。见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+欢迎通过标准 GitHub PR 流程贡献基准场景、插件、Trace 与文档。见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ## 许可证
 
