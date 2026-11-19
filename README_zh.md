@@ -85,9 +85,13 @@ AgentEmulator 对应可信智能体基础设施的五层分类法。五层定义
 
 这次演示验证的是工作流——Trace 进去，账本和视图出来。它不构成性能或扩展性结论；吞吐量、时延、资源开销需要独立的计时测量，这部分评估方法论在论文中有定义。
 
-![AgentEmulator 用户视角的工作流程图](docs/figures/svgs/AgentEmulator_workflow_zh.svg)
+<p align="center">
+  <img src="docs/figures/svgs/AgentEmulator_workflow_zh.svg" alt="AgentEmulator 用户视角的工作流程图">
+  <br>
+  图 1：AgentEmulator 的通用工作流
+</p>
 
-**图 1. AgentEmulator 的通用工作流** (并不只是对应于当前版本) 展示了用户与 AgentEmulator 之间的交互关系。其中，“用户自定义 机制/算法” 具有非常大的自由发挥空间，是用户二次开发、自由创新之地。
+图 1 展示了用户与 AgentEmulator 之间的交互关系。其中，“用户自定义 机制/算法” 具有非常大的自由发挥空间，是用户二次开发、自由创新之地。
 
 ### 可复现性
 
@@ -157,9 +161,11 @@ GitHub 代码仓库地址为：https://github.com/HuangLab-SYSU/agent-emulator
 
 下图展示了 AgentEmulator 的模块架构。
 
-![AgentEmulator 的模块架构图](docs/figures/svgs/AgentEmulator_architecture_zh.svg)
-
-图 2：AgentEmulator 的模块架构
+<p align="center">
+  <img src="docs/figures/svgs/AgentEmulator_architecture_zh.svg" alt="AgentEmulator 的模块架构图">
+  <br>
+  图 2：AgentEmulator 的模块架构
+</p>
 
 LLM API 接入模式在架构上增加一个模型决策环节：链上 Supervisor 从各分片收集快照，交给 AgentSupervisor 调用外部模型 API 并校验决策，再提交通过校验。实现说明见 `docs/hybrid-agent-api.md`。
 
@@ -169,7 +175,7 @@ LLM API 接入模式在架构上增加一个模型决策环节：链上 Supervis
 
 ## 环境准备
 
-AgentEmulator 支持在 macOS、Linux 和 Windows 操作系统上运行，环境依赖如下表所示。
+AgentEmulator 支持在 MacOS、Linux 和 Windows 操作系统上运行，环境依赖如下表所示。
 
 |依赖|版本要求|验证命令|用途|
 |---|---|---|---|
@@ -192,11 +198,13 @@ go build ./...      # 首次编译，验证环境正常
 
 在 Windows 系统中，实验人员可以通过 cmd 执行 `.bat` 批处理脚本，也可以在文件资源管理器中双击运行 `run_agentemu.bat`。具体命令如下：
 
-```text
+```batch
+rem 运行示例脚本
 run_agentemu.bat
 ```
 
-```text
+```batch
+rem 使用自定义配置运行示例脚本
 run_agentemu.bat my-config.yaml
 ```
 
@@ -204,11 +212,12 @@ run_agentemu.bat my-config.yaml
 
 实验人员可随时按下 `Ctrl-C` 安全终止实验，随后 BlockEmulator-X 启动的共识节点子进程将一并被清理。
 
-> **注意**：实验失败时不会执行绘图步骤；另外，每次运行前，脚本文件会先清空 `figs/figs_results/` 路径中的旧实验图，绘制的实验图永远只反映**最近一次成功的实验结果**。
+> **注意**：实验失败时不会执行绘图步骤；另外，每次实验结束，进行绘图前，脚本文件会先清空 `figs/figs_results/` 路径中的旧实验图，绘制的实验图永远只反映**最近一次成功的实验结果**。
 
 使用 **MacOS** 和 **Linux** 系统的实验人员可使用 bash 运行脚本，示例如下：
 
 ```bash
+# 运行示例脚本
 bash run_agentemu.sh
 ```
 
@@ -225,12 +234,13 @@ bash run_agentemu.sh
 实验人员也可使用以下命令自定义配置运行：
 
 ```bash
+# 使用自定义配置运行示例脚本
 bash run_agentemu.sh my-config.yaml
 ```
 
 ## 编写 Trace 文件
 
-Trace 文件采用 JSONL 格式记录 Agent 的行为序列，作为 AgentEmulator 的实验输入数据，用于模拟 Agent 行为和区块链常规交易。文件中的每条记录通过 `agent_id` 标识执行行为的 Agent，通过 `ts` 确定行为的执行顺序，并指定具体的行为类型，包括 `join`、`pay` 和 `leave`。AgentEmulator 基于该文件，以确定性方式生成仿真实验的全部后续产物：
+Trace 文件采用 JSONL 格式记录 Agent 的行为序列，作为 AgentEmulator 的实验输入数据，用于模拟 Agent 行为和区块链常规交易。文件中的每条记录通过 `agent_id` 标识执行行为的 Agent，通过 `ts` 确定行为的执行顺序，并指定具体的行为类型，包括 `join`、`pay` 和 `leave`。AgentEmulator 基于该文件，以确定顺序生成仿真实验结果：
 
 ```text
 trace 文件（实验的全部意图）
@@ -250,7 +260,7 @@ trace 文件（实验的全部意图）
 5. **实验数据关联与版本标记。** `request_id` 用于关联支付行为、链上交易和 Agent 账本记录，建议实验人员为其设置全局唯一值。`params_hash` 用于标记行为参数的版本，系统将该字段原样写入映射文件，以支持多轮实验的数据管理。
 6. **普通区块链转账交易。** Trace 文件支持包含 `sender`、`recipient` 和 `value` 字段的普通转账记录。实验人员可以将此类记录与 Agent 行为记录组合使用，从而构造包含不同交易类型的实验负载。
 
-Trace 文件以 JSONL 格式给出，每一行表示一个 Agent 执行的某个行为或者是普通转账交易，按 `ts`（TimeStamp）排序（`ts` 相同则按照文件中的行序进行执行）。仓库自带的基础示例包括：`traces/minimal.jsonl`（只包含 2 个 Agent 加入 / 转账的最小实验规模示例）、`traces/agent=100_txs=10000.jsonl`（v1.0 基础示例使用的 trace 文件，包含 100 个 Agent，10000 笔交易），以下展示一份 trace 文件的示例。
+Trace 文件以 JSONL 格式给出，每一行表示一个 Agent 执行的某个行为或者是普通转账交易，按 `ts`（TimeStamp）排序（`ts` 相同则按照文件中的行序进行执行）。仓库自带的基础示例包括：`traces/minimal.jsonl`（只包含 2 个 Agent 加入 / 转账的最小实验规模示例）、`traces/agent=100_txs=10000.jsonl`（v1.0 基础示例使用的 trace 文件，包含 100 个 Agent，10,000 笔交易），以下展示一份 trace 文件的示例。
 
 ```json
 {"agent_id":"agent-alice","action":"join","params_hash":"doc-alice-v1","ts":1}
@@ -274,9 +284,9 @@ Trace 文件以 JSONL 格式给出，每一行表示一个 Agent 执行的某个
 {"sender":"0xabc...","recipient":"0xdef...","value":"12345"}
 ```
 
-**LLM API 回复规则。**每轮大模型调用应返回一个 JSON 对象，通过 `action` 字段指定动作，取值为 `pay`、`wait` 或 `leave`。`pay` 表示向指定 Agent 支付，须同时提供收款方标识 `target` 和付款金额 `amount`。`wait` 表示本轮等待，不填写收款方或金额，也不产生链上交易。`leave` 表示退出实验，不填写收款方或金额，通过校验后由 agentSupervisor 转换为退出交易。
+**LLM API 应答规则。**每轮大模型调用应返回一个 JSON 对象，通过 `action` 字段指定动作，取值为 `pay`、`wait` 或 `leave`。`pay` 表示向指定 Agent 支付，须同时提供收款方标识 `target` 和付款金额 `amount`。`wait` 表示本轮等待，不填写收款方或金额，也不产生链上交易。`leave` 表示退出实验，不填写收款方或金额，通过校验后由 agentSupervisor 转换为退出交易。
 
-大模型回复与原有 Trace 使用不同的输入格式。大模型每轮只返回一个决策对象，由运行环境确定执行该动作的 Agent 身份。原有 Trace 则采用 JSONL 格式，每行记录一个预设动作或一笔普通转账。对于支付，大模型回复中的 `amount` 必须是 `uint64` 范围内的正十进制整数字符串，例如 `"160"`。Trace 中 Agent 支付记录的同名字段使用 JSON 整数，例如 `160`。LLM API 回复的 JSON 示例如下。
+大模型应答与原有 Trace 使用不同的输入格式。大模型每轮只返回一个决策对象，由运行环境确定执行该动作的 Agent 身份。原有 Trace 则采用 JSONL 格式，每行记录一个预设动作或一笔普通转账。对于支付，大模型应答中的 `amount` 必须是 `uint64` 范围内的正十进制整数字符串，例如 `"160"`。Trace 中 Agent 支付记录的同名字段使用 JSON 整数，例如 `160`。LLM API 应答的 JSON 示例如下。
 
 ```json
 {"action":"pay","target":"agent-gold-supplier","amount":"160","summary":"Pay 160 wei for gold."}
@@ -290,9 +300,9 @@ Trace 文件以 JSONL 格式给出，每一行表示一个 Agent 执行的某个
 4. **trace 文件中不需要写 DID**——Agent 的身份由 `seed + agent_id` 确定性派生，同 seed、同 ID 永远得到同一 DID。
 5. `request_id` 建议全局唯一，因为后续需要使用它来检索每个 Agent 的“支付意图”数据。
 
-### LLM API 所回复内容的校验规则
+### LLM API 所应答内容的校验规则
 
-**LLM API 校验与无效动作。**在 LLM API 接入模式下，由 agentSupervisor 校验大模型回复的格式和动作类型。对于 `pay`，还会根据最新状态检查收款方是否活跃、是否为自转账，以及可用余额是否足够。`wait` 和 `leave` 不应携带收款方或金额，其中 `wait` 不产生链上交易。格式错误或校验未通过的大模型决策记入决策日志，本轮不提交交易，实验继续运行。
+在 LLM API 接入模式下，由 agentSupervisor 校验大模型应答的格式和动作类型。对于 `pay`，还会根据最新状态检查收款方是否活跃、是否为自转账，以及可用余额是否足够。`wait` 和 `leave` 不应携带收款方或金额，其中 `wait` 不产生链上交易。格式错误或校验未通过的大模型决策记入决策日志，本轮不提交交易，实验继续运行。
 
 对于其它未接入 LLM API 的 Agent，若某条动作违反运行时规则，例如付款方或收款方不活跃、重复退出，或 Agent 支付金额为零，agentSupervisor 会跳过该动作，并在 `trace_failures.jsonl` 中记录原始行号、请求标识、失败时间和原因。被跳过的动作不改变 Agent 状态、不消耗交易 nonce，也不产生链上交易，后续动作仍按原顺序处理。
 
@@ -313,7 +323,7 @@ Trace 文件格式错误、普通转账试图直接从 API Agent 的账户支出
 {"agent_id":"agent-metal-buyer","action":"pay","target":"agent-gold-supplier","amount":160,"ts":1794363625783,"request_id":"api-agent-metal-buyer-1794363490779374000-000009","params_hash":""}
 ```
 
-大模型回复中的付款金额使用字符串，例如 `"160"`。写入实际动作文件时，金额转换为 JSON 整数 `160`。原始 Trace 的 `ts` 用于计算计划注入时间，实际动作文件的 `ts` 则是处理该动作时记录的 Unix 毫秒时间戳。若要核对交易是否最终上链，可用 `request_id` 在 `agent_action_txs.jsonl` 中查找对应的交易哈希，再到链上交易记录中查询最终确认时间。
+大模型应答中的付款金额使用字符串，例如 `"160"`。写入实际动作文件时，金额转换为 JSON 整数 `160`。原始 Trace 的 `ts` 用于计算计划注入时间，实际动作文件的 `ts` 则是处理该动作时记录的 Unix 毫秒时间戳。若要核对交易是否最终上链，可用 `request_id` 在 `agent_action_txs.jsonl` 中查找对应的交易哈希，再到链上交易记录中查询最终确认时间。
 
 ## 实验参数配置说明
 
@@ -362,20 +372,20 @@ agent_api:
   trace_time_scale: 1                   # 1 按原时间间隔注入，2 按两倍速度注入
 ```
 
-### LLM API 调用规则与接入方法
+### LLM API 接入方法
 
-1. **Chat Completions 调用规则。**将 `agent_api.enabled` 设为 `true`，并将 `adapter` 设为 `chat-completions`。`base_url` 填写服务商的 LLM API 前缀，适配器会自动追加 `/chat/completions`。若服务商的前缀包含 `/v1`，应保留该部分。每轮请求将任务目标与当前链上观察发送给指定大模型。
-2. **大模型回复规则。**大模型应返回一个 JSON 对象，`action` 可取 `pay`、`wait` 或 `leave`。`pay` 须提供收款方 `target` 和金额 `amount`。金额使用正十进制整数字符串，例如 `"160"`。`wait` 和 `leave` 均不填写收款方或金额，其中 `wait` 不产生链上交易。
-3. **接入 LLM API。**可接入兼容 Chat Completions 调用方式、且能够按照上述规则返回决策 JSON 的 LLM API。配置时需填写服务商的接口前缀、账户可用的大模型标识和认证凭证。以下给出两个接入样例。
-   - **接入 DeepSeek**：在 `agent_api` 中，将 `base_url` 设为 `https://api.deepseek.com`，并填写账户可用的大模型标识。贵金属实验中的 DeepSeek 运行使用 `deepseek-flash`，凭证通过 `api_key_file` 指向本地密钥文件。
+1. **Chat Completions 调用规则。**将 `agent_api.enabled` 设为 `true`，并将 `adapter` 设为 `chat-completions`。`base_url` 填写服务商的 LLM API 前缀，适配器会自动追加 `/chat/completions`。若服务商的前缀包含 `/v1`，应保留该部分。每轮请求将任务目标与当前链上观察发送给指定大模型。相关文档见：https://developers.openai.com/api/reference/chat-completions/overview/ 。
+2. **大模型应答规则。**大模型应返回一个 JSON 对象，`action` 可取 `pay`、`wait` 或 `leave`。`pay` 须提供收款方 `target` 和金额 `amount`。金额使用正十进制整数字符串，例如 `"160"`。`wait` 和 `leave` 均不填写收款方或金额，其中 `wait` 不产生链上交易。
+3. **接入 LLM API。**可接入兼容 Chat Completions 调用方式、且能够按照上述规则返回决策 JSON 的 LLM API。配置时需填写服务商的接口前缀、账户可用的大模型标识和认证 API Key。以下给出两个接入样例。
+   - **接入 DeepSeek**：在 `agent_api` 中，将 `base_url` 设为 `https://api.deepseek.com`，并填写账户可用的大模型标识。贵金属实验中的 DeepSeek 运行使用 `deepseek-flash`，API Key 通过 `api_key_file` 指向本地密钥文件。
    - **接入 Qwen**：将 `base_url` 设为所用 Qwen 服务的 Chat Completions 兼容接口前缀，将 `model` 设为该服务提供的大模型标识，并配置对应的 API Key。贵金属对比实验中的 Qwen 运行记录的大模型标识为 `qwen3.8-max`。具体可用标识以所用服务为准。
-4. **更换大模型与凭证。**在同一服务商下切换大模型时，修改 `model` 即可。更换服务商时，同时核对 `base_url`、`model` 和凭证。凭证可使用 `api_key_file` 指定本地文件，或使用 `api_key_env` 指定环境变量名，两者选其一。
+4. **更换大模型与 API Key。**在同一服务商下切换大模型时，修改 `model` 即可。更换服务商时，同时核对 `base_url`、`model` 和 API Key。API Key 可使用 `api_key_file` 指定本地文件，或使用 `api_key_env` 指定环境变量名，两者选其一。
 
-### LLM API 密钥的保存方式
+### LLM API 密钥保存方式
 
 **方式 A：本地文件**
 
-在 macOS 或 Linux 上执行以下命令创建密钥文件。
+在 MacOS 或 Linux 上执行以下命令创建密钥文件。
 
 ```bash
 umask 077
@@ -398,7 +408,7 @@ api_key_env: DEEPSEEK_API_KEY
 
 ### 对 BlockEmulator-X 侧的配置：config.yaml（默认使用 BlockEmulator-X 的原生配置）
 
-agentSupervisor 以 `config.yaml` 文件为模板，用于为每次实验生成独立的 BlockEmulator-X 区块链配置。系统自动调整数据存储路径和日志路径，将交易源设置为 `trace_source_JSONL`，并将 `tx_number` 设置为 Trace 文件对应的交易数量。实验人员可根据需要修改以下常用配置项：
+agentSupervisor 以 `config.yaml` 文件为模板，为每次实验生成独立的 BlockEmulator-X 区块链配置。系统自动调整数据存储路径和日志路径，将交易源设置为 `trace_source_JSONL`，并将 `tx_number` 设置为 Trace 文件对应的交易数量。实验人员可根据需要修改以下常用配置项：
 
 - `system.shard_num` / `system.node_num`：区块链分片数量，以及每个分片中共识节点的数量
 - `consensus_node.block_interval`：出块间隔（ms）
@@ -464,19 +474,23 @@ LLM API 接入模式要求 config.yaml 中的共识类型为 `static_relay`。�
 bash run_agentemu.sh            # 或 bash run_agentemu.sh <配置文件>
 ```
 
-- **BlockEmulator-X 区块链运行过程中的日志会实时镜像到控制台中输出。**同时，完整的实验日志会保存在 `exp/agentemu-results/round_001/chain/logs/` 目录中。
-- 如果实验人员只想预览编译出的交易数据集，而不启动 BlockEmulator-X 运行区块链进行实验，请在 agentEmuConfig.yaml 配置文件中先将 `agent_api.enabled` 设为 `false`，再把 `chain.enabled` 改为 `false` 即可（该配置下，agentSupervisor 仅将 trace 文件编译成交易数据集，而不会启动 BlockEmulator-X 运行区块链）
-- 实验结束时，实验运行脚本文件会在控制台中打印实验运行结果的输出路径，与使用 python 脚本绘制的实验图的存储路径
+- **BlockEmulator-X 区块链运行过程中的日志会实时在控制台中输出。**同时，完整的实验日志会保存在 `exp/agentemu-results/round_001/chain/logs/` 目录中。
+- 如果实验人员只想预览编译出的交易数据集，而不启动 BlockEmulator-X 运行区块链进行实验，请在 agentEmuConfig.yaml 配置文件中先将 `agent_api.enabled` 设为 `false`，再把 `chain.enabled` 改为 `false` 即可（该配置下，agentSupervisor 仅将 trace 文件编译成交易数据集，而不会启动 BlockEmulator-X 运行区块链）。
+- 实验结束时，实验运行脚本文件会在控制台中打印实验运行结果的输出路径，以及使用 python 脚本绘制的实验图的存储路径。
 
-## Agent 决策过程与用户查看决策日志的命令
+## Agent 决策日志
 
-在 LLM API 接入模式下，由 LLM API 驱动的 Agent 在注册交易结算后，根据链上状态和用户设定的任务目标持续作出决策。每轮决策包括观察、推理和决策执行三个步骤：
+### 生成决策日志
 
-1. **观察：采集链上状态。**BlockEmulator-X 的 Supervisor 暂停发放新的出块许可，等待已发放许可对应的提案完成，再向各分片采集链上快照，获取账户余额、可用余额和其他 Agent 的活跃状态等信息。运行时将快照交给外层的 agentSupervisor 进程，作为本轮决策的观察结果。
-2. **推理：调用 LLM API。**agentSupervisor 将链上观察结果与用户设置的任务目标发送给 LLM API，由大模型判断应执行支付、等待还是退出。大模型调用期间，Supervisor 按照 `max_blocks_during_decision` 管理所有分片共享的出块配额，空块也占用额度；额度耗尽后，Supervisor 暂停发放新的出块许可，等待本轮大模型调用结束。
-3. **决策执行：校验动作并提交交易。**系统对大模型返回的动作进行校验。对于支付决策，Supervisor 再次采集快照，检查收款方是否活跃、付款方可用余额是否充足，并将通过校验且需要上链的动作提交到交易流程。只有达到配置的决策间隔，且上一笔已提交的 Agent 交易完成结算，运行时才会启动下一轮决策。达到 `run_duration_seconds` 后，Supervisor 停止注入剩余 Trace，取消正在进行的大模型调用并解除出块限制，随后在 `drain_timeout_seconds` 内等待未处理完成的交易结算，采集最终快照并结束本轮链运行；若交易未能在规定时间内结算，实验将报错。外层的 `chain.run_timeout_seconds` 限制链启动、活跃运行和收尾三个阶段的总时长。
+在 LLM API 接入模式下，由 LLM API 驱动的 Agent 在注册交易结算后，根据链上状态和用户设定的任务目标持续作出决策。每轮决策流程包括“观察”、“推理”和“执行决策”三个步骤：
 
-查看决策日志。实验人员可在 `base.result_dir` 指定的实验结果目录中找到 `agent_thinking.log`。若需实时查看决策过程，可另开终端执行以下命令，并将示例中的目录替换为实际结果目录。
+1. **观察（Observation）：采集链上状态。**BlockEmulator-X 的 Supervisor 暂停发放新的出块许可，等待已发放许可对应的提案完成，再向各分片采集链上快照，获取账户余额、可用余额和其他 Agent 的活跃状态等信息。运行时将快照交给外层的 agentSupervisor 进程，作为本轮决策的观察结果。
+2. **推理（Reasoning）：调用 LLM API。**agentSupervisor 将链上观察结果与用户设置的任务目标发送给 LLM API，由大模型判断应执行支付、等待还是退出。大模型调用期间，Supervisor 按照 `max_blocks_during_decision` 管理所有分片共享的出块配额，空块也占用额度；额度耗尽后，Supervisor 暂停发放新的出块许可，等待本轮大模型调用结束。
+3. **执行决策（Decision）：校验动作并提交交易。**系统对大模型返回的动作进行校验。对于支付决策，Supervisor 再次采集快照，检查收款方是否活跃、付款方可用余额是否充足，并将通过校验且需要上链的动作提交到交易流程。只有达到配置的决策间隔，且上一笔已提交的 Agent 交易完成结算，运行时才会启动下一轮决策。达到 `run_duration_seconds` 后，Supervisor 停止注入剩余 Trace，取消正在进行的大模型调用并解除出块限制，随后在 `drain_timeout_seconds` 内等待未处理完成的交易结算，采集最终快照并结束本轮链运行；若交易未能在规定时间内结算，实验将报错。外层的 `chain.run_timeout_seconds` 限制链启动、活跃运行和收尾三个阶段的总时长。
+
+### 查看决策日志
+
+实验人员可在 `base.result_dir` 指定的实验结果目录中找到 `agent_thinking.log`。若需实时查看决策过程，可另开终端执行以下命令，并将示例中的目录替换为实际结果目录。
 
 ```bash
 tail -f exp/treasury-stress-22000/agent_thinking.log
@@ -524,9 +538,11 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 - `block_time_ms` 为打包该交易的区块出块时间
 - 数据记录表中的行序按照区块出块时间排序，同一时间内以“分片/高度/块内”的序号决定最后的顺序
 
-![Agent 数据记录表](docs/figures/pngs/agent_csv.png)
-
-图 3：Agent 数据记录表
+<p align="center">
+  <img src="docs/figures/pngs/agent_csv.png" alt="Agent 数据记录表">
+  <br>
+  图 3：Agent 数据记录表
+</p>
 
 `agent_action_txs.jsonl` 文件的示例如下（每个 Agent 动作用一行来表示）：
 
@@ -534,15 +550,17 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 {"seq":3,"action":"pay","agent_id":"agent-alice","target":"agent-bob","amount":12,"ts":3,"request_id":"payment-1","params_hash":"","tx_hashes":["f58c994e..."]}
 ```
 
-![Agent 操作记录文件示例](docs/figures/pngs/agent_action.png)
-
-图 4：Agent 操作记录文件示例
+<p align="center">
+  <img src="docs/figures/pngs/agent_action.png" alt="Agent 操作记录文件示例">
+  <br>
+  图 4：Agent 操作记录文件示例
+</p>
 
 ## 实验结果的展示
 
 通过启动脚本成功完成实验后，AgentEmulator 自动读取本轮实验的 Agent 账本 CSV 文件，生成论文排版风格的余额变化图，并以 PNG 格式保存至 `figs/figs_results/` 目录。随后，系统将图表整合为支持中英文切换的静态 HTML 图册页面（`figs/figs_results/index.html`），并在默认浏览器中自动打开该页面。
 
-以下各小节依次介绍自动绘图流程、四张实验图表的展示内容、图册页面的使用方法、无需重新运行实验的手动绘图方法，以及 LLM API 接入模式的实验结果与大模型对比。
+以下各小节依次介绍自动绘图流程、四张实验图表的展示内容、图册页面的使用方法，以及无需重新运行实验的手动绘图方法。
 
 ### 实验结束后，模拟器自动执行如下操作
 
@@ -552,20 +570,20 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 2. 清空 `figs/figs_results/` 里的旧实验图与旧 `index.html` 文件
 3. 运行 `figs/python_code/plot_agent_balance.py` 生成全部实验图的 PNG 格式图片
 4. 运行 `figs/python_code/build_fig_html.py` 生成展示实验结果图表的 html 页面
-5. 模拟器调用网页打开命令在实验人员计算机的默认浏览器中打开 `figs/figs_results/index.html` 页面，展示绘图结果。根据实验人员设备的操作系统类型不同，网页打开命令具体如下：macOS 使用 `open` 命令，Linux 使用 `xdg-open` 命令，Windows 使用 `start` 命令。
+5. 模拟器调用网页打开命令在实验人员计算机的默认浏览器中打开 `figs/figs_results/index.html` 页面，展示绘图结果。根据实验人员设备的操作系统类型不同，网页打开命令具体如下：MacOS 使用 `open` 命令，Linux 使用 `xdg-open` 命令，Windows 使用 `start` 命令。
 
 ### 实验图绘制的内容
 
 |实验结果图表的 HTML 页面中实验图编号|内容|对应的 PNG 文件|
 |---|---|---|
-|图 1|全部 Agent 期末余额变化总览：按 Agent ID 排序的柱状图，每根柱子代表一个 Agent，绿色柱表示余额增加、红色柱表示余额减少|`fig1_all_agents_overview.png`|
-|图 2|按照全局交易顺序统计所有 Agent 的余额分布：先按 tx_hash 去重、再按确定性顺序回放各 Agent 的余额变化；图中以阴影带展示最小–最大包络与 P25–P75 四分位带，并叠加全体均值线（均值恒为 0）|`fig2_global_tx_order.png`|
-|图 3|按各 Agent 的交易进度归一化对齐：各 Agent 自身交易序号拉伸到 0–1 后叠加，每条灰色曲线代表一个 Agent；均值曲线在中间阶段低于 0、终点回到 0|`fig3_normalized_progress.png`|
-|图 4|分组展示各个 Agent 的余额变化：每 5 个 Agent 一张子图，横轴为各 Agent 自身的交易序号|`fig4_agents_001-005.png` … `fig4_agents_096-100.png`|
+|图 1（见图 5）|全部 Agent 期末余额变化总览：按 Agent ID 排序的柱状图，每根柱子代表一个 Agent，绿色柱表示余额增加、红色柱表示余额减少|`fig1_all_agents_overview.png`|
+|图 2（见图 6）|按照全局交易顺序统计所有 Agent 的余额分布：先按 tx_hash 去重、再按确定性顺序回放各 Agent 的余额变化；图中以阴影带展示最小–最大包络与 P25–P75 四分位带，并叠加全体均值线（均值恒为 0）|`fig2_global_tx_order.png`|
+|图 3（见图 7）|按各 Agent 的交易进度归一化对齐：各 Agent 自身交易序号拉伸到 0–1 后叠加，每条灰色曲线代表一个 Agent；均值曲线在中间阶段低于 0、终点回到 0|`fig3_normalized_progress.png`|
+|图 4（见图 8）|分组展示各个 Agent 的余额变化：每 5 个 Agent 一张子图，横轴为各 Agent 自身的交易序号|`fig4_agents_001-005.png` … `fig4_agents_096-100.png`|
 
 请注意，实验图绘制的是**相对初始余额的变化量 Δbalance = balance − 初始余额**。
 
-以下展示的实验结果是在一台 Mac mini（macOS 15.6）上运行的。该 Mac mini 的硬件为 Apple M4 Pro 芯片（12 核：8 个性能核 + 4 个能效核）、24 GB 内存。区块链环境基于黄华威研究组自研的 BlockEmulator-X（Go 语言版本为 1.25.7，GitHub 代码仓库地址为 `github.com/HuangLab-SYSU/block-emulator-x`）。
+以下展示的实验是在一台 Mac mini（MacOS 15.6）上完成的。该 Mac mini 的硬件为 Apple M4 Pro 芯片（12 核：8 个性能核 + 4 个能效核）、24 GB 内存。区块链环境基于黄华威研究组自研的 BlockEmulator-X（Go 语言版本为 1.25.7，GitHub 代码仓库地址为 `github.com/HuangLab-SYSU/block-emulator-x`）。
 
 本次实验采用单机多进程模拟部署，实验相关设置如下：
 
@@ -574,21 +592,29 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 3. 区块存储采用 BoltDB，世界状态采用以太坊式 LevelDB，布隆过滤器位图长度 4096；
 4. 在 AgentEmulator 实验层以随机种子 20260903 回放包含 100 个 Agent、10,000 笔交易的 trace（`trace_source_JSONL` 方式），每轮实验自动编译并重新启动 BlockEmulator-X 区块链模拟实验。
 
-![全部 100 个 Agent 相对初始余额的最终余额变化](docs/figures/pngs/fig1_all_agents_overview.png)
+<p align="center">
+  <img src="docs/figures/pngs/fig1_all_agents_overview.png" alt="全部 Agents 相对初始余额的最终变化">
+  <br>
+  图 5：100 个 Agents 相对初始余额的最终变化，按 Agent ID 排序。每根柱子代表一个 Agent。绿色表示余额增加，红色表示余额减少。
+</p>
 
-图 5：100 个 Agent 相对初始余额的最终变化，按 Agent ID 排序。每根柱子代表一个 Agent。绿色表示余额增加，红色表示余额减少。
+<p align="center">
+  <img src="docs/figures/pngs/fig2_global_tx_order.png" alt="按全局交易顺序回放时的账户余额变化">
+  <br>
+  图 6：按全局交易顺序回放时的账户余额变化。
+</p>
 
-![余额变化与全局交易顺序的关系](docs/figures/pngs/fig2_global_tx_order.png)
+<p align="center">
+  <img src="docs/figures/pngs/fig3_normalized_progress.png" alt="账户余额随各 Agent 相关交易的归一化确认进度变化">
+  <br>
+  图 7：账户余额随各 Agent 相关交易的归一化确认进度变化。每条灰色曲线代表一个 Agent。
+</p>
 
-图 6：按全局交易顺序回放时的账户余额变化。
-
-![余额变化与各 Agent 相关交易进度的关系](docs/figures/pngs/fig3_normalized_progress.png)
-
-图 7：账户余额随各 Agent 相关交易的归一化确认进度变化。每条灰色曲线代表一个 Agent。
-
-![#001–#005 号 Agent 相对初始余额的余额变化](docs/figures/pngs/fig4_agents_001-005.png)
-
-图 8：#001 至 #005 号 Agent 相对初始余额的变化，按各 Agent 的相关交易序号展示。
+<p align="center">
+  <img src="docs/figures/pngs/fig4_agents_001-005.png" alt="#001 至 #005 号 Agents 相对初始余额的变化">
+  <br>
+  图 8：#001 至 #005 号 Agents 相对初始余额的变化，按各 Agent 的相关交易序号展示。
+</p>
 
 ### 用于展示实验的 HTML 页面的 UI 设计
 
@@ -597,9 +623,11 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 - **中英文切换**：右上角按钮（当前中文时显示 "EN"，英文时显示“中文”），或按键盘 `L` 键；切换作用于页面标题、章节标题、元信息与页脚，语言偏好自动记忆，下次打开该 html 页面时保持上一次的设置
 - 实验图内文字由绘图脚本生成，不随页面语言切换变化
 
-![HTML 实验结果页面界面总览](docs/figures/pngs/agent_lifecycle_figs.png)
-
-图 9：HTML 实验结果页面界面总览
+<p align="center">
+  <img src="docs/figures/pngs/agent_lifecycle_figs.png" alt="HTML 实验结果页面界面总览">
+  <br>
+  图 9：HTML 实验结果页面界面总览
+</p>
 
 ### 手动 / 独立运行绘图脚本
 
@@ -621,12 +649,12 @@ python3 figs/python_code/build_fig_html.py \
 python3 figs/python_code/build_fig_html.py
 
 # 打开图册
-open figs/figs_results/index.html        # macOS
+open figs/figs_results/index.html        # MacOS
 ```
 
 Windows 下等价命令（实验人员可通过 cmd 运行以下命令，路径使用反斜杠；`python` 不可用时改用 `py -3`）：
 
-```text
+```batch
 python figs\python_code\plot_agent_balance.py
 python figs\python_code\build_fig_html.py
 
@@ -646,15 +674,17 @@ start "" figs\figs_results\index.html
 |`build_fig_html.py`|`--fig-dir`|`figs/figs_results/`|扫描 PNG 并在此生成 `index.html` 页面|
 ||`--data-dir`|无|仅用于页面显示数据来源与 Agent 数量|
 
-### LLM API 接入模式的实验结果与大模型对比
+### LLM API 接入模式的实验结果
 
 本节以贵金属购买场景展示 LLM API 接入模式的实验结果。场景中包含一个由 LLM 控制的买家 Agent，以及黄金和白银供应商。买家初始余额为 15 wei，随后按 Trace 中的安排分批收到共 835 wei 的拨款；黄金和白银的单价分别为 160 wei 和 100 wei。供应商的上下线与拨款由预设 Trace 驱动，买家则根据运行期间观察到的账户余额和供应商状态决定是否购买。
 
-如图 10 所示，Agent 的运行过程包含观察、推理和决策三个阶段，即 Observation–Reasoning–Decision（ORD）。在观察阶段，Agent 接收最新区块及账户状态快照，获取余额、供应商活跃状态等信息；在推理阶段，LLM 将这些观察结果与用户设置的购买策略结合，判断当前是否具备付款条件；在决策阶段，LLM 输出付款、等待或退出等结构化动作。agentSupervisor 对动作进行校验，将通过校验且需要上链的动作转换为交易，并合并到实际执行的动作序列中。后续决策继续依据更新后的链上状态进行，从而形成持续的观察、推理和决策过程。
+如图 10 所示，Agent 的运行过程包含“观察（Observation）”、“推理（Reasoning）”和“决策（Decision）”三个阶段，即 Observation–Reasoning–Decision（ORD）。在观察阶段，Agent 接收最新区块及账户状态快照，获取余额、供应商活跃状态等信息；在推理阶段，LLM 将这些观察结果与用户设置的购买策略结合，判断当前是否具备付款条件；在决策阶段，LLM 输出付款、等待或退出等结构化动作。agentSupervisor 对动作进行校验，将通过校验且需要上链的动作转换为交易，并合并到实际执行的动作序列中。后续决策继续依据更新后的链上状态进行，从而形成持续的观察、推理和决策过程。
 
-![LLM API 接入模式下的观察、推理与决策三步骤](docs/figures/pngs/ord_decision_flow.png)
-
-图 10：LLM API 接入模式下的 Agent 根据区块信息做出实施决策的 3 个步骤：观察（Observation）、推理（Reasoning）与决策（Decision）
+<p align="center">
+  <img src="docs/figures/pngs/ord_decision_flow.png" alt="LLM API 接入模式下的观察、推理与决策三步骤">
+  <br>
+  图 10：LLM API 接入模式下的 Agent 根据区块信息做出实时决策的 3 个步骤：观察（Observation）、推理（Reasoning）与决策（Decision）。
+</p>
 
 用户向 LLM 设置的购买策略是：“优先购买黄金。黄金供应商在线且可用余额不少于 160 wei 时，支付 160 wei 购买一份黄金；黄金供应商在线但余额不足时，继续等待拨款，即使余额已足够购买白银，也不改买白银。只有在黄金供应商离线、白银供应商在线且可用余额不少于 100 wei 时，才支付 100 wei 购买一份白银。黄金供应商恢复在线后，重新优先购买黄金。每轮最多购买一份商品，不满足购买条件时返回等待。”
 
@@ -672,9 +702,11 @@ start "" figs\figs_results\index.html
 
 图 11 展示了一次 DeepSeek 单大模型实验。上下两部分共享同一横轴，从实验开始计时，以秒为单位。上半部分展示买家的账面余额与商品价格，下半部分展示链上快照采集、大模型思考、决策产生和动作注入的时间关系。
 
-![DeepSeek 控制的买家在贵金属场景中的余额变化与决策时间线](docs/figures/pngs/timeline-relative-time.png)
-
-图 11：DeepSeek 控制的买家在贵金属场景中的余额变化与决策时间线
+<p align="center">
+  <img src="docs/figures/pngs/timeline-relative-time.png" alt="DeepSeek 控制的买家在贵金属场景中的余额变化与决策时间线">
+  <br>
+  图 11：DeepSeek 控制的买家在贵金属场景中的余额变化与决策时间线
+</p>
 
 **余额变化与购买过程。**上半部分的纵轴是买家的账面余额，以 wei 为单位。阶梯线上升表示拨款入账，下降表示付款扣款，水平段表示两次余额变动之间的等待时间。买家余额达到 115 wei 时，虽然已经买得起白银，但黄金供应商仍在线，因此买家继续攒钱，直到余额达到 170 wei 才发起第一笔黄金付款。扣除 160 wei 后剩余 10 wei，后续每次新拨款会与这一余额相加，因此黄金购买前常出现 170 wei 的高点，白银购买前则出现 110 wei 的高点。
 
@@ -693,9 +725,11 @@ start "" figs\figs_results\index.html
 
 图 12 对比了 DeepSeek 和 Qwen 在同一贵金属场景下各自运行一轮的结果。两轮实验以各自的开始时刻为零点对齐。蓝色实线表示 `deepseek-flash`，紫色虚线表示 `qwen3.8-max`。两条阶梯线使用相同的时间与余额刻度，在余额相同的时段可能重叠。
 
-![DeepSeek 与 Qwen 在贵金属场景中的买家余额变化](docs/figures/pngs/model-comparison-balance.png)
-
-图 12：DeepSeek 与 Qwen 在贵金属场景中的买家余额变化
+<p align="center">
+  <img src="docs/figures/pngs/model-comparison-balance.png" alt="DeepSeek 与 Qwen 在贵金属场景中的买家余额变化">
+  <br>
+  图 12：DeepSeek 与 Qwen 在贵金属场景中的买家余额变化
+</p>
 
 **供应商状态与余额标记。**浅色区域表示黄金供应商的离线窗口，这里以 DeepSeek 一轮的上下线确认时刻作为共同标记，两轮实际边界相差约 0.4 秒。各大模型曲线上的空心标记表示对应付款前的余额位置，曲线随后下降的位置表示账面扣款。
 
@@ -705,17 +739,19 @@ start "" figs\figs_results\index.html
 
 #### DeepSeek 与 Qwen 的单轮决策耗时对比
 
-图 13 的决策耗时统计取自前述两轮大模型对比实验。横轴列出两个大模型，纵轴表示单 Agent 运行时间线中 Agent reasons using an LLM 阶段的耗时，以秒为单位。计时从发起本轮大模型决策开始，到收到回复或处理失败为止，包括 LLM API 请求等待及回复解析等开销。
+图 13 的决策耗时统计取自前述两轮大模型对比实验。横轴列出两个大模型，纵轴表示单 Agent 运行时间线中 Agent reasons using an LLM 阶段的耗时，以秒为单位。计时从发起本轮大模型决策开始，到收到应答或处理失败为止，包括 LLM API 请求等待及应答解析等开销。
 
-![DeepSeek 与 Qwen 的单轮 LLM API 决策耗时分布](docs/figures/pngs/model-comparison-decision-latency.png)
-
-图 13：DeepSeek 与 Qwen 的单轮 LLM API 决策耗时分布
+<p align="center">
+  <img src="docs/figures/pngs/model-comparison-decision-latency.png" alt="DeepSeek 与 Qwen 的单轮 LLM API 决策耗时分布">
+  <br>
+  图 13：DeepSeek 与 Qwen 的单轮 LLM API 决策耗时分布
+</p>
 
 **散点与箱线的含义。**每个彩色散点对应一轮决策，散点的横向偏移仅便于区分重叠的样本。箱体的下缘和上缘分别表示第 25 和第 75 百分位，箱内横线表示中位数。
 
 **决策轮数与耗时差异。**LLM API decision calls 表示实验记录的大模型决策轮数，包括付款、等待和返回错误的轮次。600 秒活跃期内，DeepSeek 发起 38 轮决策，Qwen 发起 22 轮。DeepSeek 的决策耗时中位数约为 2.0 秒，Qwen 约为 13.5 秒。每轮耗时、轮间等待以及上一笔交易的结算进度，都会影响同一活跃期内能完成的决策轮数。
 
-**回复格式错误。**红色椭圆内的叉号标出 Qwen 的六次回复格式错误。大模型将 `amount` 返回为 JSON 数字，而当前接口要求使用十进制字符串，例如 `"160"`。这些轮次未通过回复解析，因此没有提交付款，对应的耗时仍计入统计。Qwen 随后通过其他有效轮次完成了六笔采购。
+**应答格式错误。**红色椭圆内的叉号标出 Qwen 的六次应答格式错误。大模型将 `amount` 返回为 JSON 数字，而当前接口要求使用十进制字符串，例如 `"160"`。这些轮次未通过应答解析，因此没有提交付款，对应的耗时仍计入统计。Qwen 随后通过其他有效轮次完成了六笔采购。
 
 结合余额变化与决策耗时可以看到，在这两轮实测中，DeepSeek 的单轮决策耗时较短，六笔付款也均较早确认；两个大模型最终都完成了场景要求的购买顺序。每个大模型各运行一轮，这些数值描述的是本次场景与配置下观察到的表现。
 
@@ -745,7 +781,7 @@ for line in open('exp/agentemu-results/round_001/agent_action_txs.jsonl'):
 print(f'支付意图 {confirmed}/{total} 全部确认')
 ```
 
-每笔交易的延迟统计口径为：`Tx finally commit time − Tx create time`；对于跨片交易，在实验结束生成的 CSV 结果表格中使用了 Relay1/Relay2 两段提议/提交时间对跨片交易的处理进行细分。
+每笔交易的延迟统计口径为：`Tx finally commit time − Tx create time`；对于跨片交易，在实验结束生成的 CSV 结果表格中使用提议（Relay1）和提交（Relay2）两个时间点对跨片交易的处理进行细分。
 
 实验人员也可以直接使用 pandas 库对 Agent 账本进行分析，相关代码如下：
 
@@ -764,7 +800,7 @@ df = pd.read_csv('exp/agentemu-results/round_001/agents/agent-001.csv',
 join 操作只有在 Agent **首次加入或离开后重新加入**时才会生成对应的注册交易。出现这个问题，实验人员可在 `agent_registry.json` 文件中查找到该 Agent 是否已是 active 状态。如果实验人员想复现所有 agents 在 join 时生成对应的注册交易，则需要将旧的 results 文件删除。
 
 **Q3：Agent 之间的互相转账是通过调用智能合约实现的吗？**
-不是。Agent 之间的 `pay` 操作会被 agentSupervisor 编译为**普通转账交易**；只有 Agent 的 `join`/`leave` 操作是通过调用智能合约实现的。不过，相关的智能合约当前暂未部署，调用相关的智能合约目前只是在 EVM 层做了一个记录，而非真实调用智能合约的状态。但 Agent 之间的 `pay` 操作的转账操作是真实有效的。
+不是。Agent 之间的 `pay` 操作会被 agentSupervisor 编译为**普通转账交易**；只有 Agent 的 `join`/`leave` 操作是通过调用智能合约实现的。不过，相关的智能合约当前暂未部署，调用相关的智能合约目前只是在 EVM 层做了一个记录，而非真实调用智能合约的状态。但 Agent 之间的 `pay` 转账操作是真实有效的。
 
 **Q4：控制台日志输出太多，无法查看到关键信息怎么办？**
 实验人员可在 `config.yaml` 配置文件中，修改 `system.log.log_level` 部分的配置为 `warn`，或在运行脚本文件时使用 `bash run_agentemu.sh > run.log 2>&1` 命令进行重定向，即可减少控制台输出的日志内容。
@@ -775,16 +811,16 @@ join 操作只有在 Agent **首次加入或离开后重新加入**时才会生�
 **Q6：实验运行结束但是没有弹出 HTML 页面是为什么？**
 实验人员可先查看控制台末尾是否有输出 `figures & gallery: ./figs/figs_results/index.html`：
 
-- 没有输出这行且出现 `warn: no agent CSVs ...`：表示本次实验没有生成 Agent 相关的数据记录（例如实验人员在 `agentEmuConfig.yaml` 文件中将配置设置为 `chain.enabled: false`，表示只通过 agentSupervisor 将 trace 文件编译成对应的交易数据，而不启动 BlockEmulator-X 模拟区块链运行），属于正常现象；
+- 没有输出这行且出现 `warn: no agent CSVs ...`：表示本次实验没有生成 Agent 相关的数据记录（例如实验人员在 `agentEmuConfig.yaml` 文件中将配置设置为 `chain.enabled: false`，表示只通过 agentSupervisor 将 Trace 文件编译成对应的交易数据，而不启动 BlockEmulator-X 模拟区块链运行），属于正常现象；
 - 有这行但 HTML 页面没有弹出：实验人员可手动使用以下命令 `open figs/figs_results/index.html` 打开该 HTML 页面。
 
 **Q7：绘图脚本提示 `ModuleNotFoundError: matplotlib`，应如何处理？**
 该错误表示当前运行绘图脚本的 Python 环境缺少 `matplotlib` 库。实验人员应在该环境中执行 `pip3 install matplotlib numpy pandas` 命令，安装绘图所需的依赖库；也可以使用已安装上述依赖库的 Python 解释器运行脚本。
 
 **Q8：实验人员如何使用历史数据重新绘制实验图？**
-实验人员可将 `--data-dir` 参数设置为目标实验轮次的 `round_XXX/agents/` 目录，并手动执行绘图脚本。由于 `run_agentemu.sh` 每次运行时都会清空 `exp/` 和 `figs/figs_results/` 目录，实验人员应在运行前备份需要保留的历史数据和图表。
+实验人员可将 `--data-dir` 参数设置为目标实验轮次的 `round_XXX/agents/` 目录，并手动执行绘图脚本。由于 `run_agentemu.sh` 每次实验运行前都会清空 `exp/` 目录，并在实验结束后、开始绘图前删除 `figs/figs_results/` 目录，实验人员应在运行前备份需要保留的历史数据和图表。
 
-**Q9：实验图图 4 包含较多子图，实验人员如何调整 Agent 的展示范围或分组方式？**
+**Q9：实验图 4 包含较多子图，实验人员如何调整 Agent 的展示范围或分组方式？**
 当前绘图脚本按照每组 5 个 Agent 的规则生成实验图图 4 的子图。实验人员可修改 `figs/python_code/plot_agent_balance.py` 文件中图 4 对应的绘图代码，筛选需要展示的 Agent，或调整分组大小。其中，`range(0, len(dfs), 5)` 中的 `5` 表示每组包含的 Agent 数量。
 
 **Q10：AgentEmulator 的实验结果是否具有可复现性？**
@@ -799,19 +835,28 @@ join 操作只有在 Agent **首次加入或离开后重新加入**时才会生�
 这是 AgentEmulator v2.0 的实现范围。LLM API 接入模式在实验运行期间需要从各分片获取区块与账户快照，协调大模型调用期间的出块许可，并根据链上提交记录判断上一笔付款是否已结算。目前，这些机制接入了 BlockEmulator-X 的 static_relay 运行流程。对于跨分片付款，Supervisor 根据两个 relay 阶段的提交记录判断交易是否完成结算，再安排后续决策。其他共识或跨分片交易模式需要适配各自的快照采集、出块协调和交易确认流程。使用 LLM API 接入模式时，请在 config.yaml 中将 `system.consensus_type` 设为 `static_relay`。如果需要使用其他已支持的链配置，可以在 agentEmuConfig.yaml 中将 `agent_api.enabled` 设为 `false`，使用 Agent 行为回放模式。
 
 **Q13：为什么大模型返回了支付决策，但链上没有对应的付款记录？**
-先查看 `agent_thinking.log` 中该轮的 `thinking_finished` 和 `decision_result`。收到 pay 决策后，Supervisor 还要检查回复格式、收款方是否活跃以及可用余额是否充足。例如，大模型回复中的 `amount` 必须是 JSON 字符串 `"160"`。若大模型返回 JSON 数字 160，该轮回复无法通过解析，因此不会提交付款。若校验未通过，日志会记录失败原因，实验会继续处理后续动作。
+先查看 `agent_thinking.log` 中该轮的 `thinking_finished` 和 `decision_result`。收到 pay 决策后，Supervisor 还要检查应答格式、收款方是否活跃以及可用余额是否充足。例如，大模型应答中的 `amount` 必须是 JSON 字符串 `"160"`。若大模型返回 JSON 数字 160，该轮应答无法通过解析，因此不会提交付款。若校验未通过，日志会记录失败原因，实验会继续处理后续动作。
 
 如果该轮支付决策显示 accepted 并附有交易哈希，说明交易已提交。此时可用该哈希在 `relay_stats_detail_tx_info.csv` 中查找对应记录，通过 `Tx finally commit time` 核对交易是否已最终确认。
 
 # 研究团队
 
-**本文由中山大学软件工程学院黄华威教授研究组（HuangLab）主导完成。研究组长期专注于区块链分片、共识协议、链上金融、AI 与区块链交叉等方向的研究，已在 IEEE/ACM ToN、TSC、TC、TPDS、TDSC、INFOCOM、WWW、ICDCS、SRDS 等期刊与会议发表多篇区块链论文。**
+**本文由中山大学软件工程学院黄华威教授研究组（HuangLab）主导完成。研究组长期专注于区块链系统与协议、共识协议、区块链金融、AI 与区块链交叉等方向的研究，已在 IEEE/ACM ToN、TSC、TC、TPDS、TDSC、INFOCOM、WWW、ICDCS 等期刊与会议发表多篇论文。**
 
-- AI 智能体可信基础设施的仿真与实验平台 AgentEmulator 的 GitHub 仓库：https://github.com/HuangLab-SYSU/agent-emulator
-- 开源区块链分片实验平台 BlockEmulator 主页：https://www.blockemulator.com
-- BlockEmulator 的 GitHub 仓库：https://github.com/HuangLab-SYSU/block-emulator
+研究组代表性开源项目如下：
 
-HuangLab 近 7 年专注于区块链分片（Blockchain Sharding）理论与技术架构。若您对区块链分片、共识协议、DeFi 协议等方向感兴趣，欢迎关注 HuangLab 公众号（ID: Huang-Lab），或访问 HuangLab 学术主页：http://xintelligence.pro
+**智能体实验平台 AgentEmulator**
+
+- 主页：https://xintelligence.pro/agentemulator
+- GitHub 仓库：https://github.com/HuangLab-SYSU/agent-emulator
+
+**区块链分片实验平台 BlockEmulator**
+
+- 主页：https://www.blockemulator.com
+- GitHub 仓库：https://github.com/HuangLab-SYSU/block-emulator
+
+欢迎关注 HuangLab 公众号（ID: Huang-Lab）。
+欢迎访问 HuangLab 学术主页：http://xintelligence.pro
 
 ## 参与贡献
 

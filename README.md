@@ -85,9 +85,13 @@ The paper demonstrates the workflow with 100 agents and 10,000 payment transacti
 
 This demonstration establishes the workflow — trace in, ledgers and views out. It does not establish performance or scalability; throughput, latency, and resource overhead require separate timing measurements, which are part of the evaluation methodology in the paper.
 
-![AgentEmulator workflow from a user's perspective](docs/figures/svgs/AgentEmulator_workflow_en.svg)
+<p align="center">
+  <img src="docs/figures/svgs/AgentEmulator_workflow_en.svg" alt="AgentEmulator workflow from a user's perspective">
+  <br>
+  Figure 1: AgentEmulator's general workflow
+</p>
 
-**Figure 1. AgentEmulator's general workflow.** This diagram illustrates the platform's broader purpose, beyond the current release. The user-defined mechanisms and algorithms provide scope for extensions and original research.
+This diagram illustrates the platform's broader purpose. The user-defined mechanisms and algorithms provide scope for extensions and original research.
 
 ### Reproducibility
 
@@ -153,9 +157,11 @@ This section describes the main terms in AgentEmulator, helping researchers unde
 
 The following diagram shows AgentEmulator's modules and their relationships.
 
-![AgentEmulator system architecture](docs/figures/svgs/AgentEmulator_architecture_en.svg)
-
-Figure 2: AgentEmulator system architecture
+<p align="center">
+  <img src="docs/figures/svgs/AgentEmulator_architecture_en.svg" alt="AgentEmulator system architecture">
+  <br>
+  Figure 2: AgentEmulator system architecture
+</p>
 
 The LLM API integration mode adds a model-decision hop to this architecture: the on-chain supervisor collects snapshots from all shards and hands them to AgentSupervisor, which calls the external model API, validates the decisions, and submits the accepted ones. See `docs/hybrid-agent-api.md`.
 
@@ -165,7 +171,7 @@ The LLM API integration mode adds a model-decision hop to this architecture: the
 
 ## Prerequisites
 
-AgentEmulator runs on macOS, Linux, and Windows.
+AgentEmulator runs on MacOS, Linux, and Windows.
 
 | Dependency | Required version | Verification command | Purpose |
 | --- | --- | --- | --- |
@@ -209,9 +215,9 @@ If `python` is unavailable, the Windows script falls back to `py -3`.
 
 Press `Ctrl-C` to stop an experiment safely. Consensus node subprocesses started by BlockEmulator-X will also be cleaned up.
 
-> **Note:** Each run clears previous plots in `figs/figs_results/`. Plotting is skipped if the experiment fails, and the gallery always reflects **the most recent successful run**.
+> **Note:** Plotting is skipped if the experiment fails. Also, at the end of each experiment and before plotting, the script clears previous plots in `figs/figs_results/`, so the gallery always reflects **the most recent successful run**.
 
-On **macOS and Linux**, run:
+On **MacOS and Linux**, run:
 
 ```bash
 bash run_agentemu.sh
@@ -235,7 +241,7 @@ bash run_agentemu.sh my-config.yaml
 
 ## Trace File Setup
 
-A trace file provides the input for an experiment. The file uses JSONL format, with one agent action or one plain blockchain transfer per line. In agent action records, `agent_id` identifies the agent performing the action, and `ts` defines the logical order. The `action` field specifies `join`, `pay`, or `leave`.
+A trace file provides the input for an experiment. The file uses JSONL format, with one agent action or one plain blockchain transfer per line. In agent action records, `agent_id` identifies the agent performing the action, and `ts` defines the logical order. The `action` field specifies `join`, `pay`, or `leave`. AgentEmulator generates the emulation results from this file in a deterministic order:
 
 ```text
 Trace file (experiment intent)
@@ -245,9 +251,11 @@ Trace file (experiment intent)
 Transaction dataset → Emulation replay → Agent ledgers / On-chain metrics → Plots
 ```
 
-![Illustration of the fields in a behavior trace](docs/figures/svgs/AgentEmulator_trace_flow_en.svg)
-
-Illustration of the fields in a behavior trace. An agent action is compiled into a payment transaction that the blockchain can process.
+<p align="center">
+  <img src="docs/figures/svgs/AgentEmulator_trace_flow_en.svg" alt="Illustration of the fields in a behavior trace">
+  <br>
+  Illustration of the fields in a behavior trace. An agent action is compiled into a payment transaction that the blockchain can process.
+</p>
 
 ### Trace Basics
 
@@ -282,9 +290,9 @@ Plain transfer records have no `action` field. AgentEmulator identifies plain tr
 {"sender":"0xabc...","recipient":"0xdef...","value":"12345"}
 ```
 
-**LLM API reply rules.** Each model call should return one JSON object with an `action` field set to `pay`, `wait`, or `leave`. `pay` pays a designated agent and requires the payee identifier `target` and the amount `amount`. `wait` means waiting for this round: no payee or amount is provided and no on-chain transaction is produced. `leave` means leaving the experiment: no payee or amount is provided, and after validation `agentSupervisor` converts it into a leave transaction.
+**LLM API response rules.** Each model call should return one JSON object with an `action` field set to `pay`, `wait`, or `leave`. `pay` pays a designated agent and requires the payee identifier `target` and the amount `amount`. `wait` means waiting for this round: no payee or amount is provided and no on-chain transaction is produced. `leave` means leaving the experiment: no payee or amount is provided, and after validation `agentSupervisor` converts it into a leave transaction.
 
-Model replies and the original Trace use different input formats. The model returns one decision object per round; the runtime determines which agent executes the action. The original Trace uses JSONL format, with one preset action or one plain transfer per line. For payments, the `amount` in a model reply must be a positive decimal integer string within `uint64`, such as `"160"`. The same field in an agent payment record of the Trace uses a JSON integer, such as `160`. Example LLM API reply:
+Model responses and the original Trace use different input formats. The model returns one decision object per round; the runtime determines which agent executes the action. The original Trace uses JSONL format, with one preset action or one plain transfer per line. For payments, the `amount` in a model response must be a positive decimal integer string within `uint64`, such as `"160"`. The same field in an agent payment record of the Trace uses a JSON integer, such as `160`. Example LLM API response:
 
 ```json
 {"action":"pay","target":"agent-gold-supplier","amount":"160","summary":"Pay 160 wei for gold."}
@@ -300,7 +308,7 @@ Model replies and the original Trace use different input formats. The model retu
 
 ### Validation Rules for LLM API Responses
 
-**LLM API validation and invalid actions.** In LLM API integration mode, `agentSupervisor` validates the format and action type of each model reply. For `pay`, it also checks against the latest state whether the payee is active, whether the payment is a self-transfer, and whether the available balance is sufficient. `wait` and `leave` should not carry a payee or amount; `wait` produces no on-chain transaction. Model decisions with format errors or failed validation are recorded in the decision log; no transaction is submitted for that round and the experiment keeps running.
+**LLM API validation and invalid actions.** In LLM API integration mode, `agentSupervisor` validates the format and action type of each model response. For `pay`, it also checks against the latest state whether the payee is active, whether the payment is a self-transfer, and whether the available balance is sufficient. `wait` and `leave` should not carry a payee or amount; `wait` produces no on-chain transaction. Model decisions with format errors or failed validation are recorded in the decision log; no transaction is submitted for that round and the experiment keeps running.
 
 For agents not connected to the LLM API, an action that violates runtime rules — such as an inactive payer or payee, a duplicate leave, or a zero-amount agent payment — is skipped by `agentSupervisor`, which records the original line number, request identifier, failure time, and reason in `trace_failures.jsonl`. Skipped actions do not change agent state, do not consume transaction nonces, and do not produce on-chain transactions; subsequent actions keep their original order.
 
@@ -321,7 +329,7 @@ The following excerpt from the metals trading scenario omits intermediate record
 {"agent_id":"agent-metal-buyer","action":"pay","target":"agent-gold-supplier","amount":160,"ts":1794363625783,"request_id":"api-agent-metal-buyer-1794363490779374000-000009","params_hash":""}
 ```
 
-The payment amount in a model reply is a string, such as `"160"`; when written to the actions file it becomes the JSON integer `160`. The `ts` of the original Trace is used to compute the planned injection time, while the `ts` in the actions file is the Unix millisecond timestamp recorded when the action was processed. To check whether a transaction was finally committed, look up the transaction hash by `request_id` in `agent_action_txs.jsonl`, then query the final confirmation time in the on-chain transaction records.
+The payment amount in a model response is a string, such as `"160"`; when written to the actions file it becomes the JSON integer `160`. The `ts` of the original Trace is used to compute the planned injection time, while the `ts` in the actions file is the Unix millisecond timestamp recorded when the action was processed. To check whether a transaction was finally committed, look up the transaction hash by `request_id` in `agent_action_txs.jsonl`, then query the final confirmation time in the on-chain transaction records.
 
 ## Configuration
 
@@ -370,20 +378,20 @@ agent_api:
   trace_time_scale: 1                   # 1 injects at the original intervals, 2 at twice the speed
 ```
 
-### LLM API calling rules and integration
+### LLM API integration
 
-1. **Chat Completions calling rules.** Set `agent_api.enabled` to `true` and `adapter` to `chat-completions`. `base_url` takes the provider's LLM API prefix; the adapter appends `/chat/completions`. If the provider's prefix contains `/v1`, keep that part. Each request sends the task goal together with the current on-chain observation to the selected model.
-2. **Model reply rules.** The model should return one JSON object whose `action` is `pay`, `wait`, or `leave`. `pay` requires the payee `target` and the amount `amount`. The amount is a positive decimal integer string, such as `"160"`. `wait` and `leave` carry no payee or amount, and `wait` produces no on-chain transaction.
-3. **Integrating an LLM API.** Any LLM API compatible with the Chat Completions calling convention that can return decision JSON following the rules above can be integrated. Configure the provider's endpoint prefix, the model identifiers available to your account, and the credentials. Two examples follow.
-   - **DeepSeek:** in `agent_api`, set `base_url` to `https://api.deepseek.com` and fill in a model identifier available to your account. The DeepSeek run in the metals experiment used `deepseek-flash`, with credentials given by `api_key_file` pointing to a local key file.
+1. **Chat Completions calling rules.** Set `agent_api.enabled` to `true` and `adapter` to `chat-completions`. `base_url` takes the provider's LLM API prefix; the adapter appends `/chat/completions`. If the provider's prefix contains `/v1`, keep that part. Each request sends the task goal together with the current on-chain observation to the selected model. Related documentation: https://developers.openai.com/api/reference/chat-completions/overview/ .
+2. **Model response rules.** The model should return one JSON object whose `action` is `pay`, `wait`, or `leave`. `pay` requires the payee `target` and the amount `amount`. The amount is a positive decimal integer string, such as `"160"`. `wait` and `leave` carry no payee or amount, and `wait` produces no on-chain transaction.
+3. **Integrating an LLM API.** Any LLM API compatible with the Chat Completions calling convention that can return decision JSON following the rules above can be integrated. Configure the provider's endpoint prefix, the model identifiers available to your account, and the API Key. Two examples follow.
+   - **DeepSeek:** in `agent_api`, set `base_url` to `https://api.deepseek.com` and fill in a model identifier available to your account. The DeepSeek run in the metals experiment used `deepseek-flash`, with the API Key given by `api_key_file` pointing to a local key file.
    - **Qwen:** set `base_url` to the Chat Completions compatible endpoint prefix of your Qwen service and `model` to the model identifier provided by that service, and configure the corresponding API key. The Qwen run in the metals comparison experiment used the identifier `qwen3.8-max`. Available identifiers depend on the service.
-4. **Switching models and credentials.** To switch models within one provider, change `model`. When changing providers, check `base_url`, `model`, and the credentials together. Credentials can be given by `api_key_file` as a local file or by `api_key_env` as an environment variable name; choose one.
+4. **Switching models and API Keys.** To switch models within one provider, change `model`. When changing providers, check `base_url`, `model`, and the API Key together. The API Key can be given by `api_key_file` as a local file or by `api_key_env` as an environment variable name; choose one.
 
 ### Storing LLM API credentials
 
 **Option A: local file**
 
-Run the following commands on macOS or Linux to create the key files.
+Run the following commands on MacOS or Linux to create the key files.
 
 ```bash
 umask 077
@@ -478,15 +486,19 @@ bash run_agentemu.sh            # Or: bash run_agentemu.sh <config-file>
 - To preview the compiled transaction dataset without running the blockchain, first set `agent_api.enabled` to `false` and then set `chain.enabled` to `false` in `agentEmuConfig.yaml`. Under that configuration, agentSupervisor only compiles the trace into a transaction dataset without starting BlockEmulator-X.
 - At the end of a run, the script prints the output paths for experiment data and generated figures.
 
-## The Agent Decision Process and Viewing Decision Logs
+## Agent Decision Logs
 
-In LLM API integration mode, the Agent driven by the LLM API makes decisions continuously based on on-chain state and the task goal configured by the user, starting once its registration transaction has settled. Each decision round has three steps: observation, reasoning, and decision execution.
+### Generating decision logs
+
+In LLM API integration mode, the Agent driven by the LLM API makes decisions continuously based on on-chain state and the task goal configured by the user, starting once its registration transaction has settled. Each decision round consists of three steps: observation, reasoning, and decision execution.
 
 1. **Observation: collect on-chain state.** The Supervisor of BlockEmulator-X pauses the issuance of new block proposals, waits for proposals already issued to finish, and then collects snapshots from all shards, obtaining account balances, available balances, the active status of other agents, and similar information. The runtime hands the snapshots to the outer agentSupervisor process as the observation of this round.
 2. **Reasoning: call the LLM API.** agentSupervisor sends the on-chain observation and the user-configured task goal to the LLM API, and the model decides whether to pay, wait, or leave. While the model is being called, the Supervisor manages the block quota shared by all shards according to `max_blocks_during_decision`; empty blocks also consume the quota. Once the quota is exhausted, the Supervisor pauses new block proposals until this model call finishes.
-3. **Decision execution: validate actions and submit transactions.** The system validates the actions returned by the model. For a payment decision, the Supervisor collects a new snapshot, checks whether the payee is active and whether the payer's available balance is sufficient, and submits accepted actions that need to go on-chain into the transaction flow. The next decision round starts only when the configured decision interval has elapsed and the previous submitted agent transaction has settled. When `run_duration_seconds` is reached, the Supervisor stops injecting the remaining Trace, cancels model calls in progress, and releases the block limits; it then waits up to `drain_timeout_seconds` for unsettled transactions, collects the final snapshot, and ends the chain run. If transactions do not settle within that time, the experiment reports an error. The outer `chain.run_timeout_seconds` bounds the total duration of startup, the active run, and teardown.
+3. **Execute the decision: validate actions and submit transactions.** The system validates the actions returned by the model. For a payment decision, the Supervisor collects a new snapshot, checks whether the payee is active and whether the payer's available balance is sufficient, and submits accepted actions that need to go on-chain into the transaction flow. The next decision round starts only when the configured decision interval has elapsed and the previous submitted agent transaction has settled. When `run_duration_seconds` is reached, the Supervisor stops injecting the remaining Trace, cancels model calls in progress, and releases the block limits; it then waits up to `drain_timeout_seconds` for unsettled transactions, collects the final snapshot, and ends the chain run. If transactions do not settle within that time, the experiment reports an error. The outer `chain.run_timeout_seconds` bounds the total duration of startup, the active run, and teardown.
 
-Viewing decision logs. Researchers can find `agent_thinking.log` in the results directory given by `base.result_dir`. To watch the decision process in real time, open another terminal and run the following command, replacing the example directory with the actual results directory.
+### Viewing decision logs
+
+Researchers can find `agent_thinking.log` in the results directory given by `base.result_dir`. To watch the decision process in real time, open another terminal and run the following command, replacing the example directory with the actual results directory.
 
 ```bash
 tail -f exp/treasury-stress-22000/agent_thinking.log
@@ -534,9 +546,11 @@ block_height, tx_hash, sender, recipient, value, balance, block_time_ms
 - `block_time_ms` is the production time of the block containing the transaction.
 - Rows are ordered by block time, with ties resolved by shard, block height, and position within the block.
 
-![Example agent ledger](docs/figures/pngs/agent_csv.png)
-
-Figure 3: Agent ledger
+<p align="center">
+  <img src="docs/figures/pngs/agent_csv.png" alt="Example agent ledger">
+  <br>
+  Figure 3: Agent ledger
+</p>
 
 The following example shows a record from **`agent_action_txs.jsonl`**. Each action occupies one line in the file.
 
@@ -544,15 +558,17 @@ The following example shows a record from **`agent_action_txs.jsonl`**. Each act
 {"seq":3,"action":"pay","agent_id":"agent-alice","target":"agent-bob","amount":12,"ts":3,"request_id":"payment-1","params_hash":"","tx_hashes":["f58c994e..."]}
 ```
 
-![Example action-to-transaction mapping](docs/figures/pngs/agent_action.png)
-
-Figure 4: Agent action record
+<p align="center">
+  <img src="docs/figures/pngs/agent_action.png" alt="Example action-to-transaction mapping">
+  <br>
+  Figure 4: Agent action record
+</p>
 
 ## Visualizing Results
 
-After a successful experiment, AgentEmulator reads the agent ledger CSV files and generates balance plots styled for academic publications. PNG files are saved to `figs/figs_results/` and assembled into a static HTML gallery at `figs/figs_results/index.html`. The gallery supports Chinese and English interface text and opens automatically in the default browser.
+After a successful experiment run via the launch script, AgentEmulator reads the agent ledger CSV files and generates balance plots styled for academic publications. PNG files are saved to `figs/figs_results/` and assembled into a static HTML gallery at `figs/figs_results/index.html`. The gallery supports Chinese and English interface text and opens automatically in the default browser.
 
-The subsections below describe the automatic plotting workflow, the four generated figures, the HTML gallery, how to regenerate plots without rerunning the experiment, and the experimental results and model comparison in LLM API integration mode.
+The subsections below describe the automatic plotting workflow, the four generated figures, the HTML gallery, and how to regenerate plots without rerunning the experiment.
 
 ### Automatic plotting workflow
 
@@ -562,7 +578,7 @@ After a successful run, `run_agentemu.sh` (or `run_agentemu.bat` on Windows):
 2. Clears previous plots and `index.html` from `figs/figs_results/`.
 3. Runs `figs/python_code/plot_agent_balance.py` to generate the PNG figures.
 4. Runs `figs/python_code/build_fig_html.py` to build the gallery.
-5. Opens the gallery using `open` on macOS, `xdg-open` on Linux, or `start` on Windows.
+5. Opens the gallery using `open` on MacOS, `xdg-open` on Linux, or `start` on Windows.
 
 ### Generated figures
 
@@ -570,14 +586,14 @@ All plots show **changes relative to the initial balance: Δbalance = balance �
 
 | Figure | Content | PNG file |
 | --- | --- | --- |
-| 1 | Final balance changes for all agents, ordered by agent ID. Each bar represents one agent; green bars indicate balance increases, and red bars indicate balance decreases. | `fig1_all_agents_overview.png` |
-| 2 | Agent balance changes over the global transaction index. Transactions are deduplicated by `tx_hash` and replayed in a deterministic order. The plot shows the minimum–maximum envelope, the P25–P75 interquartile band, and the mean across agents. | `fig2_global_tx_order.png` |
-| 3 | Agent balance changes aligned by normalized transaction progress. Each agent's transaction index is scaled to 0–1, and each gray line represents an agent. The mean curve falls below zero during intermediate stages and returns to zero at the endpoint. | `fig3_normalized_progress.png` |
-| 4 | Individual agent balance changes in groups of five, ordered by each agent's related transaction index. | `fig4_agents_001-005.png` … `fig4_agents_096-100.png` |
+| 1 (see Figure 5) | Final balance changes for all agents, ordered by agent ID. Each bar represents one agent; green bars indicate balance increases, and red bars indicate balance decreases. | `fig1_all_agents_overview.png` |
+| 2 (see Figure 6) | Agent balance changes over the global transaction index. Transactions are deduplicated by `tx_hash` and replayed in a deterministic order. The plot shows the minimum–maximum envelope, the P25–P75 interquartile band, and the mean across agents. | `fig2_global_tx_order.png` |
+| 3 (see Figure 7) | Agent balance changes aligned by normalized transaction progress. Each agent's transaction index is scaled to 0–1, and each gray line represents an agent. The mean curve falls below zero during intermediate stages and returns to zero at the endpoint. | `fig3_normalized_progress.png` |
+| 4 (see Figure 8) | Individual agent balance changes in groups of five, ordered by each agent's related transaction index. | `fig4_agents_001-005.png` … `fig4_agents_096-100.png` |
 
 ### Example experiment
 
-The results below were generated on a Mac mini running macOS 15.6. The Mac mini had an Apple M4 Pro processor and 24 GB of memory. The processor had 12 cores: 8 performance cores and 4 efficiency cores. The blockchain layer used HuangLab's [BlockEmulator-X](https://github.com/HuangLab-SYSU/block-emulator-x) with Go 1.25.7.
+The experiment shown below was completed on a Mac mini running MacOS 15.6. The Mac mini had an Apple M4 Pro processor and 24 GB of memory. The processor had 12 cores: 8 performance cores and 4 efficiency cores. The blockchain layer used HuangLab's [BlockEmulator-X](https://github.com/HuangLab-SYSU/block-emulator-x) with Go 1.25.7.
 
 The experiment used multiple processes on a single machine with these settings:
 
@@ -586,21 +602,29 @@ The experiment used multiple processes on a single machine with these settings:
 3. **Storage:** BoltDB for blocks, Ethereum-style LevelDB for world state, and a Bloom filter bitmap length of 4096.
 4. **Workload:** seed `20260903`, 100 agents, and a trace containing 10,000 transactions, replayed through `trace_source_JSONL`. Each round automatically compiled the transactions and started a fresh BlockEmulator-X emulation run.
 
-![Final balance changes for all 100 agents](docs/figures/pngs/fig1_all_agents_overview.png)
+<p align="center">
+  <img src="docs/figures/pngs/fig1_all_agents_overview.png" alt="Final balance changes for all 100 agents">
+  <br>
+  Figure 5: Final balance changes for all 100 Agents relative to their initial balances, ordered by agent ID. Each bar represents one agent. Green indicates balance increases, red indicates decreases.
+</p>
 
-Figure 5: Final balance changes for all 100 agents relative to their initial balances, ordered by agent ID. Each bar represents one agent. Green indicates balance increases, red indicates decreases.
+<p align="center">
+  <img src="docs/figures/pngs/fig2_global_tx_order.png" alt="Balance changes vs. the global transaction order">
+  <br>
+  Figure 6: Account balance changes replayed in the global transaction order.
+</p>
 
-![Balance changes vs. the global transaction order](docs/figures/pngs/fig2_global_tx_order.png)
+<p align="center">
+  <img src="docs/figures/pngs/fig3_normalized_progress.png" alt="Balance changes vs. the progress of each agent's related transactions">
+  <br>
+  Figure 7: Account balance vs. the normalized confirmation progress of each agent's related transactions. Each gray line represents one agent.
+</p>
 
-Figure 6: Account balance changes replayed in the global transaction order.
-
-![Balance changes vs. the progress of each agent's related transactions](docs/figures/pngs/fig3_normalized_progress.png)
-
-Figure 7: Account balance vs. the normalized confirmation progress of each agent's related transactions. Each gray line represents one agent.
-
-![Balance changes for agents #001-005](docs/figures/pngs/fig4_agents_001-005.png)
-
-Figure 8: Balance changes of agents #001–#005 relative to initial balances, ordered by each agent's related transaction index.
+<p align="center">
+  <img src="docs/figures/pngs/fig4_agents_001-005.png" alt="Balance changes for agents #001-005">
+  <br>
+  Figure 8: Balance changes of Agents #001–#005 relative to initial balances, ordered by each agent's related transaction index.
+</p>
 
 ### Using the HTML gallery
 
@@ -609,9 +633,11 @@ Figure 8: Balance changes of agents #001–#005 relative to initial balances, or
 - Use the language button in the upper-right corner (`EN` or `中文`), or press `L`, to switch between Chinese and English. The language setting applies to the page title, section headings, metadata, and footer. The gallery remembers your language preference.
 - Text embedded in plots is generated by the plotting script and does not change with the page language.
 
-![Overview of the HTML results page](docs/figures/pngs/agent_lifecycle_figs.png)
-
-Figure 9: Overview of the HTML results page
+<p align="center">
+  <img src="docs/figures/pngs/agent_lifecycle_figs.png" alt="Overview of the HTML results page">
+  <br>
+  Figure 9: Overview of the HTML results page
+</p>
 
 ### Regenerating plots manually
 
@@ -632,7 +658,7 @@ python3 figs/python_code/build_fig_html.py \
 # Rebuild only the gallery, using existing plots
 python3 figs/python_code/build_fig_html.py
 
-# Open the gallery on macOS
+# Open the gallery on MacOS
 open figs/figs_results/index.html
 ```
 
@@ -656,15 +682,17 @@ start "" figs\figs_results\index.html
 | `build_fig_html.py` | `--fig-dir` | `figs/figs_results/` | Directory to scan for PNG files and write `index.html` |
 | `build_fig_html.py` | `--data-dir` | None | Used only to display the data source and agent count |
 
-### Experimental results and model comparison in LLM API integration mode
+### Experimental results in LLM API integration mode
 
 This section presents the experimental results of LLM API integration mode using the metals trading scenario. The scenario contains one buyer Agent controlled by an LLM plus gold and silver suppliers. The buyer starts with 15 wei and later receives 835 wei of funding in batches as arranged in the Trace; the gold and silver prices are 160 wei and 100 wei. Supplier churn and funding are driven by the preset Trace, while the buyer decides whether to purchase based on the account balance and supplier status observed during the run.
 
-As shown in Figure 10, the agent's run consists of three phases: Observation, Reasoning, and Decision (ORD). In the observation phase, the agent receives snapshots of the latest blocks and account states, including balances and supplier status. In the reasoning phase, the LLM combines these observations with the purchasing policy configured by the user to judge whether the conditions for payment are met. In the decision phase, the LLM outputs structured actions such as pay, wait, or leave. agentSupervisor validates the actions, converts accepted actions that need to go on-chain into transactions, and merges them into the actually executed action sequence. Subsequent decisions continue from the updated on-chain state, forming a continuous observe–reason–decide process.
+As shown in Figure 10, the agent's run consists of three phases — Observation, Reasoning, and Decision — collectively Observation–Reasoning–Decision (ORD). In the observation phase, the agent receives snapshots of the latest blocks and account states, including balances and supplier status. In the reasoning phase, the LLM combines these observations with the purchasing policy configured by the user to judge whether the conditions for payment are met. In the decision phase, the LLM outputs structured actions such as pay, wait, or leave. agentSupervisor validates the actions, converts accepted actions that need to go on-chain into transactions, and merges them into the actually executed action sequence. Subsequent decisions continue from the updated on-chain state, forming a continuous observe–reason–decide process.
 
-![The Observation, Reasoning, and Decision steps in LLM API integration mode](docs/figures/pngs/ord_decision_flow.png)
-
-Figure 10: The three steps — Observation, Reasoning, and Decision — by which the Agent in LLM API integration mode makes decisions from block information
+<p align="center">
+  <img src="docs/figures/pngs/ord_decision_flow.png" alt="The Observation, Reasoning, and Decision steps in LLM API integration mode">
+  <br>
+  Figure 10: The three steps — Observation, Reasoning, and Decision — by which the Agent in LLM API integration mode makes real-time decisions from block information
+</p>
 
 The purchasing policy configured for the LLM is: "Prefer gold. While the gold supplier is online and the available balance is at least 160 wei, pay 160 wei for one unit of gold; while the gold supplier is online but the balance is insufficient, keep waiting for funding and do not switch to silver even if the balance is enough for it. Only when the gold supplier is offline, the silver supplier is online, and the available balance is at least 100 wei, pay 100 wei for one unit of silver. Once the gold supplier is back online, switch back to gold. At most one unit is purchased per round; return wait when the conditions are not met."
 
@@ -682,9 +710,11 @@ Under the given funding and supplier schedule, the scenario expects two gold, tw
 
 Figure 11 shows one DeepSeek single-model run. The upper and lower halves share the same horizontal axis, timed in seconds from the experiment start. The upper half shows the buyer's ledger balance and commodity prices; the lower half shows the timing of on-chain snapshot collection, model reasoning, decision generation, and action injection.
 
-![Balance changes and decision timeline of the DeepSeek-controlled buyer](docs/figures/pngs/timeline-relative-time.png)
-
-Figure 11: Balance changes and decision timeline of the DeepSeek-controlled buyer in the metals scenario
+<p align="center">
+  <img src="docs/figures/pngs/timeline-relative-time.png" alt="Balance changes and decision timeline of the DeepSeek-controlled buyer">
+  <br>
+  Figure 11: Balance changes and decision timeline of the DeepSeek-controlled buyer in the metals scenario
+</p>
 
 **Balance changes and the purchase process.** The vertical axis of the upper half is the buyer's ledger balance in wei. Rising steps mean funding arrived, falling steps mean a payment was debited, and flat segments are the waiting time between balance changes. When the buyer's balance reached 115 wei, silver was already affordable, but the gold supplier was still online, so the buyer kept saving and only initiated the first gold payment at 170 wei. After deducting 160 wei, 10 wei remained, and each later funding added to this balance, so gold purchases often show a 170 wei high point and silver purchases a 110 wei high point.
 
@@ -703,9 +733,11 @@ Comparing these four tracks with the balance steps separates funding arrival, th
 
 Figure 12 compares DeepSeek and Qwen, each run once in the same metals scenario. The two runs are aligned at their own start times. The blue solid line is `deepseek-flash` and the purple dashed line is `qwen3.8-max`. Both step lines use the same time and balance scales and may overlap when balances coincide.
 
-![Buyer balance changes of DeepSeek and Qwen in the metals scenario](docs/figures/pngs/model-comparison-balance.png)
-
-Figure 12: Buyer balance changes of DeepSeek and Qwen in the metals scenario
+<p align="center">
+  <img src="docs/figures/pngs/model-comparison-balance.png" alt="Buyer balance changes of DeepSeek and Qwen in the metals scenario">
+  <br>
+  Figure 12: Buyer balance changes of DeepSeek and Qwen in the metals scenario
+</p>
 
 **Supplier status and balance markers.** The shaded region marks the gold supplier's offline window, using the confirmation times of the DeepSeek run as the common marker; the actual boundaries of the two runs differ by about 0.4 seconds. The hollow markers on each model's line show the balance before the corresponding payment, and the following falling step is the ledger debit.
 
@@ -715,17 +747,19 @@ Figure 12: Buyer balance changes of DeepSeek and Qwen in the metals scenario
 
 #### DeepSeek vs. Qwen per-round decision latency comparison
 
-The decision-latency statistics in Figure 13 are taken from the two model-comparison runs above. The horizontal axis lists the two models; the vertical axis is the duration of the Agent reasons using an LLM phase in the single-agent run timeline, in seconds. Timing starts when a model decision is initiated and ends when the reply is received or the failure is handled, including the LLM API request wait and reply parsing overhead.
+The decision-latency statistics in Figure 13 are taken from the two model-comparison runs above. The horizontal axis lists the two models; the vertical axis is the duration of the Agent reasons using an LLM phase in the single-agent run timeline, in seconds. Timing starts when a model decision is initiated and ends when the response is received or the failure is handled, including the LLM API request wait and response parsing overhead.
 
-![Per-round LLM API decision latency distribution of DeepSeek and Qwen](docs/figures/pngs/model-comparison-decision-latency.png)
-
-Figure 13: Per-round LLM API decision latency distribution of DeepSeek and Qwen
+<p align="center">
+  <img src="docs/figures/pngs/model-comparison-decision-latency.png" alt="Per-round LLM API decision latency distribution of DeepSeek and Qwen">
+  <br>
+  Figure 13: Per-round LLM API decision latency distribution of DeepSeek and Qwen
+</p>
 
 **Scatter points and boxes.** Each colored point corresponds to one decision round; horizontal offsets only separate overlapping samples. The bottom and top of each box are the 25th and 75th percentiles, and the line inside the box is the median.
 
 **Decision counts and latency difference.** LLM API decision calls is the number of decision rounds recorded in the experiment, including pay, wait, and error rounds. Within the 600-second active window, DeepSeek initiated 38 decision rounds and Qwen 22. DeepSeek's median decision latency was about 2.0 seconds; Qwen's was about 13.5 seconds. Per-round latency, inter-round waiting, and the settlement progress of the previous transaction all affect how many rounds fit into the same active window.
 
-**Response-format errors.** The crosses inside red ellipses mark Qwen's six response-format errors. The model returned `amount` as a JSON number, while the interface requires a decimal string such as `"160"`. Those rounds failed reply parsing, so no payment was submitted, and their durations are still included in the statistics. Qwen completed the six purchases through other valid rounds.
+**Response-format errors.** The crosses inside red ellipses mark Qwen's six response-format errors. The model returned `amount` as a JSON number, while the interface requires a decimal string such as `"160"`. Those rounds failed response parsing, so no payment was submitted, and their durations are still included in the statistics. Qwen completed the six purchases through other valid rounds.
 
 Together, the balance changes and decision latencies show that in these two runs DeepSeek had shorter per-round decision latency and earlier confirmation of all six payments, and both models completed the purchase sequence required by the scenario. Each model ran once; these values describe the observed behavior under this scenario and configuration.
 
@@ -757,7 +791,7 @@ for line in open('exp/agentemu-results/round_001/agent_action_txs.jsonl'):
 print(f'Fully confirmed payment intents: {confirmed}/{total}')
 ```
 
-Transaction latency is calculated as `Tx finally commit time − Tx create time`. For cross-shard transactions, the CSV output further breaks processing down into Relay1 and Relay2 proposal and commit times.
+Transaction latency is calculated as `Tx finally commit time − Tx create time`. For cross-shard transactions, the CSV output uses the proposal (Relay1) and commit (Relay2) timestamps to break down the processing of cross-shard transactions.
 
 You can also analyze agent ledgers directly with pandas. Read large numeric values as strings to preserve precision:
 
@@ -770,7 +804,7 @@ df = pd.read_csv('exp/agentemu-results/round_001/agents/agent-001.csv',
 # FAQ
 
 **Q1. Why does a new run fail with `file already exists: .../block_record.csv`?**
-Output files from a previous run are still present. AgentEmulator requires new output files and cannot overwrite existing files. Use `run_agentemu.sh` to clear old results automatically. Before starting an experiment manually, remove the previous results. On macOS or Linux, run `rm -rf exp/agentemu-results`, then `go run cmd/agentemu/main.go`.
+Output files from a previous run are still present. AgentEmulator requires new output files and cannot overwrite existing files. Use `run_agentemu.sh` to clear old results automatically. Before starting an experiment manually, remove the previous results. On MacOS or Linux, run `rm -rf exp/agentemu-results`, then `go run cmd/agentemu/main.go`.
 
 **Q2. Why does `join` sometimes produce no registration transaction?**
 A registration transaction is generated only when an agent joins for the first time or rejoins after leaving. Check whether the agent is already active in `agent_registry.json`. To regenerate registration transactions for all agents, remove the previous results before running again.
@@ -792,7 +826,7 @@ Set `system.shard_num` to `1` in `config.yaml`. Adjust the actions and transacti
 Check the end of the console output for `figures & gallery: ./figs/figs_results/index.html`:
 
 - If the gallery path is missing and `warn: no agent CSVs ...` appears, the experiment produced no agent ledger data. No agent ledger data is expected when `chain.enabled` is `false`. Under that configuration, AgentEmulator compiles the trace without running the blockchain.
-- If the line appears but the gallery does not open, open `figs/figs_results/index.html` manually. On macOS, run `open figs/figs_results/index.html`.
+- If the line appears but the gallery does not open, open `figs/figs_results/index.html` manually. On MacOS, run `open figs/figs_results/index.html`.
 
 **Q7. How do I resolve `ModuleNotFoundError: matplotlib`?**
 Install the plotting dependencies in the Python environment used to run the scripts:
@@ -804,7 +838,7 @@ pip3 install matplotlib numpy pandas
 Alternatively, run the scripts with a Python interpreter that already has these packages installed.
 
 **Q8. How can I regenerate plots from historical data?**
-Set `--data-dir` to the desired `round_XXX/agents/` directory and run the plotting scripts manually. Back up historical data and figures before starting a new experiment. `run_agentemu.sh` clears both `exp/` and `figs/figs_results/` on every run.
+Set `--data-dir` to the desired `round_XXX/agents/` directory and run the plotting scripts manually. `run_agentemu.sh` clears `exp/` before every experiment run and deletes `figs/figs_results/` after the run ends, before plotting starts. Back up any historical data and figures you wish to keep before running.
 
 **Q9. How can I change which agents appear in Figure 4 or adjust the group size?**
 Figure 4 currently groups agents in sets of five. Edit the Figure 4 section in `figs/python_code/plot_agent_balance.py` to filter agents or change the group size. The `5` in `range(0, len(dfs), 5)` specifies the number of agents per group.
@@ -833,19 +867,27 @@ py -3 -m pip install matplotlib numpy pandas
 This is the implementation scope of AgentEmulator v2.0. During the experiment, LLM API integration mode needs to fetch block and account snapshots from all shards, coordinate block proposals while the model is being called, and determine from the on-chain submission records whether the previous payment has settled. Currently these mechanisms are integrated with the static_relay flow of BlockEmulator-X. For cross-shard payments, the Supervisor decides whether a transaction has settled based on the submission records of the two relay phases before arranging the next decision. Other consensus or cross-shard modes would require adapting their own snapshot collection, block coordination, and transaction confirmation flows. When using LLM API integration mode, set `system.consensus_type` to `static_relay` in config.yaml. To use another supported chain configuration, set `agent_api.enabled` to `false` in agentEmuConfig.yaml and use Agent behavior replay mode.
 
 **Q13. Why did the model return a pay decision but no corresponding payment appears on chain?**
-First check `thinking_finished` and `decision_result` of that round in `agent_thinking.log`. After receiving a pay decision, the Supervisor also checks the reply format, whether the payee is active, and whether the available balance is sufficient. For example, `amount` in the model reply must be the JSON string `"160"`. If the model returns the JSON number 160, the reply fails parsing and no payment is submitted. If validation fails, the log records the reason and the experiment continues with subsequent actions.
+First check `thinking_finished` and `decision_result` of that round in `agent_thinking.log`. After receiving a pay decision, the Supervisor also checks the response format, whether the payee is active, and whether the available balance is sufficient. For example, `amount` in the model response must be the JSON string `"160"`. If the model returns the JSON number 160, the response fails parsing and no payment is submitted. If validation fails, the log records the reason and the experiment continues with subsequent actions.
 
 If the pay decision of that round shows accepted with a transaction hash, the transaction has been submitted. Use the hash to find the record in `relay_stats_detail_tx_info.csv` and check whether the transaction was finally confirmed through `Tx finally commit time`.
 
 # Research Team
 
-This work is led by **HuangLab, Professor Huawei Huang's research group at the School of Software Engineering, Sun Yat-sen University**. HuangLab studies blockchain sharding, consensus protocols, on-chain finance, and the intersection of AI and blockchain. HuangLab's blockchain research has appeared in IEEE/ACM ToN, TSC, TC, TPDS, TDSC, INFOCOM, WWW, ICDCS, SRDS, and other journals and conferences.
+This work is led by **HuangLab, Professor Huawei Huang's research group at the School of Software Engineering, Sun Yat-sen University**. The group focuses on blockchain systems and protocols, consensus protocols, blockchain finance, and the intersection of AI and blockchain, and has published papers in IEEE/ACM ToN, TSC, TC, TPDS, TDSC, INFOCOM, WWW, ICDCS, and other journals and conferences.
 
-- AgentEmulator repository — emulation and experimentation for trustworthy AI agent infrastructure: https://github.com/HuangLab-SYSU/agent-emulator
-- BlockEmulator website — an open-source platform for blockchain sharding experiments: https://www.blockemulator.com
-- BlockEmulator repository: https://github.com/HuangLab-SYSU/block-emulator
+Representative open-source projects of the group:
 
-HuangLab has focused on blockchain sharding theory and system architecture for the past seven years. Readers interested in blockchain sharding, consensus protocols, or DeFi are welcome to follow HuangLab's research. Visit the [HuangLab website](http://xintelligence.pro) or follow HuangLab's WeChat public account, **Huang-Lab**.
+**AgentEmulator — agent experimentation platform**
+
+- Website: https://xintelligence.pro/agentemulator
+- GitHub repository: https://github.com/HuangLab-SYSU/agent-emulator
+
+**BlockEmulator — blockchain sharding experimentation platform**
+
+- Website: https://www.blockemulator.com
+- GitHub repository: https://github.com/HuangLab-SYSU/block-emulator
+
+You are welcome to follow HuangLab's WeChat public account (ID: Huang-Lab) and visit HuangLab's academic homepage: http://xintelligence.pro
 
 ## Contributing
 
