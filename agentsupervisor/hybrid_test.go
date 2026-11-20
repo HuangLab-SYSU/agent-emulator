@@ -80,7 +80,7 @@ func TestHybridTraceOwnership(t *testing.T) {
 	require.NoError(t, err)
 	records = append(records, Record{RawTx: &RawTxSpec{Sender: hex.EncodeToString(addr[:])}})
 	_, _, err = FilterHybridTrace(records, "alice", 42)
-	require.ErrorContains(t, err, "cannot spend API")
+	require.ErrorContains(t, err, "raw transfer cannot spend")
 }
 
 func TestHybridTraceTimingAndCompilerContinuity(t *testing.T) {
