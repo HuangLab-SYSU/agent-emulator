@@ -40,3 +40,7 @@ __pycache__/
 
 # Local API credentials (never commit key files).
 /.secrets/
+
+# 本地测试运行产物
+# Local test run artifacts.
+/pkg/vm/test_vm_state/

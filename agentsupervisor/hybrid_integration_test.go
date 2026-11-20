@@ -304,7 +304,7 @@ func TestHybridWaitForFundsIntegration(t *testing.T) {
 	require.Equal(t, "0", ledger[len(ledger)-1][5])
 }
 
-func TestHybridTraceFailureIntegration(t *testing.T) {
+func TestHybridInvalidTraceActionIntegration(t *testing.T) {
 	if os.Getenv("AGENTEMU_INTEGRATION") != "1" {
 		t.Skip("set AGENTEMU_INTEGRATION=1 to launch the trace rejection scenario")
 	}
@@ -349,7 +349,7 @@ func TestHybridTraceFailureIntegration(t *testing.T) {
 	require.NoError(t, err)
 	var summary struct {
 		Phase     string          `json:"phase"`
-		Failed    int             `json:"trace_actions_failed"`
+		Invalid   int             `json:"trace_actions_invalid"`
 		Remaining int             `json:"trace_actions_remaining"`
 		Pending   int             `json:"pending_transactions"`
 		Decisions []DecisionAudit `json:"decisions"`
@@ -357,19 +357,19 @@ func TestHybridTraceFailureIntegration(t *testing.T) {
 	}
 	require.NoError(t, json.Unmarshal(data, &summary))
 	require.Equal(t, phaseFinished, summary.Phase)
-	require.Equal(t, 1, summary.Failed)
+	require.Equal(t, 1, summary.Invalid)
 	require.Zero(t, summary.Remaining)
 	require.Zero(t, summary.Pending)
 	require.Len(t, summary.Decisions, 1)
 	require.Equal(t, "leave", summary.Decisions[0].Reply.Decision.Action)
 	require.Equal(t, "accepted", summary.Decisions[0].Result)
-	data, err = os.ReadFile(filepath.Join(rounds[0].OutputDir, TraceFailuresFile))
+	data, err = os.ReadFile(filepath.Join(rounds[0].OutputDir, InvalidTraceActionsFile))
 	require.NoError(t, err)
-	var failure TraceFailure
-	require.NoError(t, json.Unmarshal(data, &failure))
-	require.Equal(t, 4, failure.TraceLine)
-	require.Equal(t, "invalid-after-leave", failure.Record.RequestID)
-	require.Contains(t, failure.Reason, "not active")
+	var invalid InvalidTraceAction
+	require.NoError(t, json.Unmarshal(data, &invalid))
+	require.Equal(t, 4, invalid.TraceLine)
+	require.Equal(t, "invalid-after-leave", invalid.Record.RequestID)
+	require.Contains(t, invalid.Reason, "not active")
 	data, err = os.ReadFile(filepath.Join(rounds[0].OutputDir, ActionTxMapFileName))
 	require.NoError(t, err)
 	require.NotContains(t, string(data), "invalid-after-leave")

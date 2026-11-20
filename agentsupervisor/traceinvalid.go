@@ -8,15 +8,15 @@ import (
 	"time"
 )
 
-const TraceFailuresFile = "trace_failures.jsonl"
+const InvalidTraceActionsFile = "invalid_trace_actions.jsonl"
 
 var errInvalidTraceAction = errors.New("invalid trace action")
 
-// TraceFailure is an off-chain rejection: no transaction was generated or sent.
+// InvalidTraceAction is an off-chain rejection: no transaction was generated or sent.
 // TraceLine and Record.TS retain the original input line and scheduled time.
-type TraceFailure struct {
+type InvalidTraceAction struct {
 	TraceLine int        `json:"trace_line"`
-	FailedAt  time.Time  `json:"failed_at"`
+	InvalidAt time.Time  `json:"invalid_at"`
 	Status    string     `json:"status"`
 	Reason    string     `json:"reason"`
 	Record    Record     `json:"record"`
@@ -58,22 +58,22 @@ func (h *HybridRuntime) validateTraceAction(record Record) error {
 	return nil
 }
 
-func (h *HybridRuntime) rejectTraceAction(record Record, cause error, now time.Time) error {
-	failure := TraceFailure{
+func (h *HybridRuntime) recordInvalidTraceAction(record Record, cause error, now time.Time) error {
+	invalid := InvalidTraceAction{
 		TraceLine: record.Seq,
-		FailedAt:  now,
-		Status:    "failed",
+		InvalidAt: now,
+		Status:    "invalid",
 		Reason:    cause.Error(),
 		Record:    record,
 		RawTx:     record.RawTx,
 	}
-	if err := json.NewEncoder(h.traceFailures).Encode(failure); err != nil {
-		return fmt.Errorf("write trace failure: %w", err)
+	if err := json.NewEncoder(h.invalidActions).Encode(invalid); err != nil {
+		return fmt.Errorf("write invalid trace action: %w", err)
 	}
 
-	h.traceFailed++
+	h.traceInvalid++
 
-	slog.Warn("trace action rejected; continuing experiment",
+	slog.Warn("invalid trace action; continuing experiment",
 		"trace_line", record.Seq, "agent_id", record.AgentID, "action", record.Action,
 		"target", record.Target, "amount", record.Amount, "request_id", record.RequestID, "reason", cause.Error())
 

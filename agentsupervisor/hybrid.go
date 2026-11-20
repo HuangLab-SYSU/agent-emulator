@@ -109,8 +109,8 @@ type HybridRuntime struct {
 	events         *os.File
 	thinkingFile   *os.File
 	thinkingLogger *slog.Logger
-	traceFailures  *os.File
-	traceFailed    int
+	invalidActions *os.File
+	traceInvalid   int
 }
 
 func NewHybridRuntime(
@@ -171,14 +171,18 @@ func NewHybridRuntime(
 		return nil, fmt.Errorf("create hybrid trace: %w", err)
 	}
 
-	traceFailures, err := os.OpenFile(filepath.Join(dir, TraceFailuresFile), os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
+	invalidActions, err := os.OpenFile(
+		filepath.Join(dir, InvalidTraceActionsFile),
+		os.O_CREATE|os.O_EXCL|os.O_WRONLY,
+		0o600,
+	)
 	if err != nil {
-		return nil, errors.Join(fmt.Errorf("create trace failure log: %w", err), events.Close())
+		return nil, errors.Join(fmt.Errorf("create invalid trace action log: %w", err), events.Close())
 	}
 
 	thinkingLogger, thinkingFile, err := newThinkingLogger(cfg.Base.ResultDir, cfg.AgentAPI.AgentID, cfg.AgentAPI.Model)
 	if err != nil {
-		return nil, errors.Join(err, events.Close(), traceFailures.Close())
+		return nil, errors.Join(err, events.Close(), invalidActions.Close())
 	}
 
 	runtime := &HybridRuntime{
@@ -197,7 +201,7 @@ func NewHybridRuntime(
 		events:         events,
 		thinkingFile:   thinkingFile,
 		thinkingLogger: thinkingLogger,
-		traceFailures:  traceFailures,
+		invalidActions: invalidActions,
 	}
 	if len(records) > 0 {
 		runtime.firstTS = records[0].TS
@@ -239,7 +243,10 @@ func FilterHybridTrace(records []Record, agentID string, seed int64) ([]Record, 
 			}
 
 			if sender == addr {
-				return nil, 0, fmt.Errorf("trace line %d: raw transfer cannot spend API agent's account", record.Seq)
+				return nil, 0, fmt.Errorf(
+					"trace line %d: raw transfer cannot spend LLM-driven Agent's account",
+					record.Seq,
+				)
 			}
 		}
 
@@ -256,7 +263,7 @@ func FilterHybridTrace(records []Record, agentID string, seed int64) ([]Record, 
 	}
 
 	if !joined {
-		return nil, 0, fmt.Errorf("API agent %q must have a join in trace", agentID)
+		return nil, 0, fmt.Errorf("LLM-driven Agent %q must have a join in trace", agentID)
 	}
 
 	return filtered, skipped, nil
@@ -434,7 +441,7 @@ func (h *HybridRuntime) apiReady() bool {
 func (h *HybridRuntime) injectTrace(ctx context.Context, now time.Time) error {
 	elapsed := now.Sub(h.started).Seconds() * 1000
 
-	failedBefore := h.traceFailed
+	invalidBefore := h.traceInvalid
 	for n := int64(0); h.cursor < len(h.records) && n < h.chainCfg.TxInjectionSpeed; n++ {
 		record := h.records[h.cursor]
 
@@ -448,7 +455,7 @@ func (h *HybridRuntime) injectTrace(ctx context.Context, now time.Time) error {
 				return err
 			}
 
-			if err := h.rejectTraceAction(record, err, now); err != nil {
+			if err := h.recordInvalidTraceAction(record, err, now); err != nil {
 				return err
 			}
 
@@ -464,9 +471,9 @@ func (h *HybridRuntime) injectTrace(ctx context.Context, now time.Time) error {
 		h.cursor++
 	}
 
-	// Failure rows are appended immediately; rewrite cumulative outputs only
+	// Invalid action rows are appended immediately; rewrite cumulative outputs only
 	// once per batch, even when many background actions become invalid.
-	if h.traceFailed != failedBefore {
+	if h.traceInvalid != invalidBefore {
 		return h.persist()
 	}
 
@@ -779,13 +786,13 @@ func (h *HybridRuntime) persist() error {
 		Phase                 string          `json:"phase"`
 		TraceActionsReplaced  int             `json:"trace_actions_replaced"`
 		TraceActionsRemaining int             `json:"trace_actions_remaining"`
-		TraceActionsFailed    int             `json:"trace_actions_failed"`
+		TraceActionsInvalid   int             `json:"trace_actions_invalid"`
 		PendingTransactions   int             `json:"pending_transactions"`
 		BlocksCommitted       uint64          `json:"blocks_committed"`
 		BlockCommits          []blockCommit   `json:"block_commits"`
 		Latest                Observation     `json:"latest_snapshot"`
 		Decisions             []DecisionAudit `json:"decisions"`
-	}{h.cfg.AgentAPI.AgentID, h.cfg.AgentAPI.Model, h.phase, h.skipped, len(h.records) - h.cursor, h.traceFailed, len(h.pending), h.budget.Committed, h.blockCommits, h.latest, h.audits}
+	}{h.cfg.AgentAPI.AgentID, h.cfg.AgentAPI.Model, h.phase, h.skipped, len(h.records) - h.cursor, h.traceInvalid, len(h.pending), h.budget.Committed, h.blockCommits, h.latest, h.audits}
 
 	data, err := json.MarshalIndent(summary, "", "  ")
 	if err != nil {
@@ -819,8 +826,8 @@ func (h *HybridRuntime) Close() error {
 		persistErr = errors.Join(persistErr, fmt.Errorf("close agent thinking log: %w", err))
 	}
 
-	if err := h.traceFailures.Close(); err != nil {
-		persistErr = errors.Join(persistErr, fmt.Errorf("close trace failure log: %w", err))
+	if err := h.invalidActions.Close(); err != nil {
+		persistErr = errors.Join(persistErr, fmt.Errorf("close invalid trace action log: %w", err))
 	}
 
 	return persistErr
