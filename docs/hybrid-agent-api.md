@@ -68,7 +68,7 @@ unknown fields, malformed JSON, and trailing output are rejected. In online mode
 background actions that violate mutable lifecycle rules (inactive payer/payee,
 repeated leave), zero-value agent payments, and unsupported actions are rejected
 before compilation. They are appended immediately to
-`round_001/trace_failures.jsonl` with the original trace line, scheduled action,
+`round_001/invalid_trace_actions.jsonl` with the original trace line, scheduled action,
 request ID, failure time and reason. The cursor advances and subsequent trace
 records and API decisions continue. Rejected actions do not mutate the registry,
 consume nonces, generate transactions or appear in successful action mappings.
@@ -196,7 +196,7 @@ the next supervisor tick after the API response (normally within one second).
 - `hybrid_config.yaml`: normalized run configuration, with the environment
   variable name or the resolved key-file path instead of the key value.
 - `round_001/input_actions.jsonl`: captured accepted trace/model actions.
-- `round_001/trace_failures.jsonl`: rejected background actions and reasons;
+- `round_001/invalid_trace_actions.jsonl`: rejected background actions and reasons;
   these were not submitted on chain. The summary counts `trace_actions_failed`.
 - `round_001/agent_transactions.jsonl`, `agent_action_txs.jsonl`,
   `Agent_Events.csv`, `agents/*.csv`: existing plan, mapping, event and ledger
