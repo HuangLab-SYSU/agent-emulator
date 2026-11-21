@@ -128,7 +128,7 @@ python3 scripts/test_gen_treasury_trace.py
 
 - `hybrid_summary.json`: `phase=finished`, no pending transactions, no remaining
   trace records, and 24 failed trace actions if all probes were reached.
-- `round_001/trace_failures.jsonl`: the manifest's 24 inactive-provider probes;
+- `round_001/invalid_trace_actions.jsonl`: the manifest's 24 inactive-provider probes;
   unexpected additional failures should be investigated.
 - The action-to-transaction map and chain measurements: all ordinary background
   payments confirmed, plus valid funding/lifecycle transactions and API payments.
