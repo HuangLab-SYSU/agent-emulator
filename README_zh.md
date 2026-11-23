@@ -170,7 +170,7 @@ AgentEmulator 的基本工作流程是：**实验人员通过 Trace 文件描述
 在 AgentEmulator v2.0 中，如图 3 所示，LLM-driven Agent 的运行流程包含“观察（Observation）”、“推理（Reasoning）”和“决策（Decision Making）”三个阶段，即 Observation–Reasoning–Decision（ORD）。在观察（O）阶段，LLM-driven Agent 接收最新区块及账户状态快照，获取相关账户的余额、状态等信息。在推理（R）阶段，LLM 将这些观察结果与用户设置的智能体行为策略相结合，判断当前是否具备进入下一步操作的条件。在决策（D）阶段，LLM 输出“支付”、“等待”或“退出”等结构化动作。agentSupervisor 对这些结构化动作进行校验，将通过校验且需要上链的动作转换为“交易（transaction, Tx）”，添加到需要实际执行的动作序列中。LLM 后续的决策将依据更新后的链上状态进行，从而形成持续的“观察、推理和决策（ORD）”循环迭代流程。
 
 <p align="center">
-  <img src="docs/figures/pngs/ord_loop.png" alt="LLM-driven Agent 的 ORD 回环流程">
+  <img src="docs/figures/pngs/Agent_workflow.png" alt="LLM-driven Agent 的 ORD 回环流程">
   <br>
   图 3：LLM-driven Agent 根据最新区块信息做出实时决策的 3 个操作步骤：观察（Observation）、推理（Reasoning）、决策（Decision Making）；agentSupervisor 对 Trace 的更新以及新交易集合（Tx dataset）的生成与提交到区块链，形成一个 Loop 回环。
 </p>
@@ -705,7 +705,7 @@ start "" figs\figs_results\index.html
 根据图 12 所示流程，LLM-driven agent 的运行过程包含“观察（Observation）”、“推理（Reasoning）”和“决策（Decision Making）”三个阶段，即 Observation–Reasoning–Decision（ORD）。在观察阶段，LLM-driven agent 接收最新区块及账户状态快照，获取所有能观测的账户余额、供应商活跃状态等信息；在推理阶段，LLM 将这些观察结果与用户设置的购买策略结合，判断当前是否具备付款条件；在决策阶段，LLM 给出“付款”、“等待”或“退出”等结构化动作。agentSupervisor 对这些动作进行校验，将通过校验且需要上链的动作编译为“交易（Transaction, TX）”。LLM 后续的决策依据更新后的链上状态，形成持续的 ORD 流程。
 
 <p align="center">
-  <img src="docs/figures/pngs/agent_decision_execution.png" alt="Agent 投资决策的产生和执行过程">
+  <img src="docs/figures/pngs/Agent_workflow_example.png" alt="Agent 投资决策的产生和执行过程">
   <br>
   图 12：Agent 投资决策的产生和执行过程
 </p>
