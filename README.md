@@ -12,6 +12,8 @@ AgentEmulator is an **experimental tool** for scenarios that combine AI agent be
 
 [**AgentEmulator Demo Video**](https://www.bilibili.com/video/BV1d54g6oEST/) (on Bilibili)
 
+[**AgentEmulator Demo Video 2**](https://www.bilibili.com/video/BV1N2ytzDEHL/) (on Bilibili)
+
 ### Paper
 
 [**AgentEmulator: A Blockchain-Empowered Testbed for Trustworthy AI Agent Infrastructure（HAL）**](https://hal.science/hal-05774794)
