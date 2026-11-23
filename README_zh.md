@@ -12,6 +12,8 @@ AgentEmulator 是面向 AI 智能体行为与区块链相结合的场景、基�
 
 [**AgentEmulator 演示视频**](https://www.bilibili.com/video/BV1d54g6oEST/)（Bilibili）
 
+[**AgentEmulator 演示视频 2**](https://www.bilibili.com/video/BV1N2ytzDEHL/)（Bilibili）
+
 ### 论文
 
 [**AgentEmulator: A Blockchain-Empowered Testbed for Trustworthy AI Agent Infrastructure（HAL）**](https://hal.science/hal-05774794)
