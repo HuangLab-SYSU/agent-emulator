@@ -170,7 +170,7 @@ The LLM API integration mode adds a model-decision hop to this architecture: the
 In AgentEmulator v2.0, as shown in Figure 3, the run loop of the LLM-driven Agent consists of three phases: Observation, Reasoning, and Decision Making, collectively Observation–Reasoning–Decision (ORD). In the observation phase, the LLM-driven Agent receives snapshots of the latest blocks and account states. In the reasoning phase, the LLM combines these observations with the agent behavior policy configured by the user to judge whether the conditions for the next action are met. In the decision-making phase, the LLM outputs structured actions such as pay, wait, or leave; agentSupervisor validates these structured actions and converts the accepted ones that need to go on-chain into transactions, adding them to the actually executed action sequence. Subsequent decisions are made from the updated on-chain state, forming a continuous ORD loop.
 
 <p align="center">
-  <img src="docs/figures/pngs/ord_loop.png" alt="The ORD loop of the LLM-driven Agent">
+  <img src="docs/figures/pngs/Agent_workflow.png" alt="The ORD loop of the LLM-driven Agent">
   <br>
   Figure 3: The three steps — Observation, Reasoning, and Decision Making — by which the LLM-driven Agent makes real-time decisions from the latest block information; the Trace updates by agentSupervisor and the generation and submission of a new transaction dataset to the blockchain form a loop
 </p>
@@ -703,7 +703,7 @@ This section presents an experiment of LLM API integration mode using the precio
 As shown in Figure 12, the run of the LLM-driven agent consists of three phases: Observation, Reasoning, and Decision Making, collectively Observation–Reasoning–Decision (ORD). In the observation phase, the LLM-driven agent receives snapshots of the latest blocks and account states, including the balances of all observable accounts and supplier status. In the reasoning phase, the LLM combines these observations with the purchasing policy configured by the user to judge whether the conditions for payment are met. In the decision-making phase, the LLM outputs structured actions such as pay, wait, or leave. agentSupervisor validates these actions and compiles the accepted ones that need to go on-chain into transactions. Subsequent decisions are based on the updated on-chain state, forming a continuous ORD process.
 
 <p align="center">
-  <img src="docs/figures/pngs/agent_decision_execution.png" alt="Generation and execution of the agent's investment decisions">
+  <img src="docs/figures/pngs/Agent_workflow_example.png" alt="Generation and execution of the agent's investment decisions">
   <br>
   Figure 12: Generation and execution of the agent's investment decisions
 </p>
